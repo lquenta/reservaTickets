@@ -1,0 +1,39 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+
+class Venue extends Model
+{
+    use HasFactory;
+
+    protected $fillable = [
+        'name',
+        'slug',
+        'address',
+        'plan_image_path',
+        'seat_rows',
+        'seat_columns',
+    ];
+
+    protected function casts(): array
+    {
+        return [
+            'seat_rows' => 'integer',
+            'seat_columns' => 'integer',
+        ];
+    }
+
+    public function seats(): HasMany
+    {
+        return $this->hasMany(Seat::class);
+    }
+
+    public function events(): HasMany
+    {
+        return $this->hasMany(Event::class);
+    }
+}
