@@ -1,0 +1,213 @@
+@import 'tailwindcss';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../**/*.blade.php';
+@source '../**/*.js';
+
+@theme {
+    --font-sans: 'Outfit', 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+        'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-display: 'Bebas Neue', 'Outfit', ui-sans-serif, system-ui, sans-serif;
+    --color-brand: #7c3aed;
+    --color-brand-fuchsia: #c026d3;
+    --color-neon-red: #e50914;
+}
+
+/* Homepage Stranger Things – keyframes */
+@keyframes scanlines {
+    0% { transform: translateY(-100%); }
+    100% { transform: translateY(100%); }
+}
+
+@keyframes flicker {
+    0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% { opacity: 1; }
+    20%, 24%, 55% { opacity: 0.85; }
+}
+
+@keyframes glow-pulse {
+    0%, 100% { filter: drop-shadow(0 0 4px var(--color-neon-red)) drop-shadow(0 0 12px var(--color-neon-red)); }
+    50% { filter: drop-shadow(0 0 8px var(--color-neon-red)) drop-shadow(0 0 24px var(--color-neon-red)); }
+}
+
+@keyframes fade-in-up {
+    from {
+        opacity: 0;
+        transform: translateY(1.5rem);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Stranger Things – ash / snow fall (vertical in vh, diagonal drift in vmin) */
+@keyframes ash-fall {
+    0% {
+        transform: translate(0, -15vh);
+        opacity: 0;
+    }
+    5% {
+        opacity: 0.6;
+    }
+    95% {
+        opacity: 0.5;
+    }
+    100% {
+        transform: translate(8vmin, 115vh);
+        opacity: 0;
+    }
+}
+
+/* Variant: drift left */
+@keyframes ash-fall-left {
+    0% {
+        transform: translate(0, -15vh);
+        opacity: 0;
+    }
+    5% {
+        opacity: 0.6;
+    }
+    95% {
+        opacity: 0.5;
+    }
+    100% {
+        transform: translate(-8vmin, 115vh);
+        opacity: 0;
+    }
+}
+
+/* Subtle glitch / static */
+@keyframes static-flicker {
+    0%, 90%, 100% { opacity: 0.02; }
+    92%, 94%, 96%, 98% { opacity: 0.04; }
+    91%, 93%, 95%, 97%, 99% { opacity: 0.01; }
+}
+
+/* Utility classes for homepage */
+.homepage-scanlines::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0, 0, 0, 0.15) 2px,
+        rgba(0, 0, 0, 0.15) 4px
+    );
+    pointer-events: none;
+    z-index: 1;
+}
+
+.text-glow {
+    text-shadow: 0 0 10px var(--color-neon-red), 0 0 20px var(--color-neon-red);
+}
+
+.animate-flicker {
+    animation: flicker 4s infinite;
+}
+
+.animate-glow-pulse {
+    animation: glow-pulse 2s ease-in-out infinite;
+}
+
+.animate-fade-in-up {
+    animation: fade-in-up 0.8s ease-out forwards;
+}
+
+/* ========== Stranger Things global effects (homepage) ========== */
+.homepage-effects {
+    position: relative;
+}
+
+/* Ash / snow layer – fixed over entire page */
+.homepage-ash {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 5;
+    overflow: hidden;
+}
+
+.homepage-ash-particle {
+    position: absolute;
+    top: 0;
+    width: 3px;
+    height: 3px;
+    background: rgba(220, 200, 180, 0.5);
+    border-radius: 50%;
+    box-shadow: 0 0 4px rgba(200, 180, 160, 0.3);
+    animation: ash-fall linear infinite;
+}
+
+/* Slightly larger “flakes” for variety */
+.homepage-ash-particle--medium {
+    width: 4px;
+    height: 4px;
+    background: rgba(200, 185, 170, 0.4);
+}
+
+.homepage-ash-particle--small {
+    width: 2px;
+    height: 2px;
+    background: rgba(230, 210, 190, 0.45);
+}
+
+.homepage-ash-particle--left {
+    animation-name: ash-fall-left;
+}
+
+/* Vignette – dark edges */
+.homepage-vignette {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 4;
+    background: radial-gradient(ellipse 80% 70% at 50% 50%, transparent 40%, rgba(0, 0, 0, 0.5) 100%);
+}
+
+/* Subtle static / CRT flicker overlay */
+.homepage-static {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 3;
+    background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 1px,
+        rgba(255, 255, 255, 0.01) 1px,
+        rgba(255, 255, 255, 0.01) 2px
+    );
+    animation: static-flicker 0.15s infinite;
+}
+
+/* Global scan lines (whole page) */
+.homepage-scanlines-global::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0, 0, 0, 0.12) 2px,
+        rgba(0, 0, 0, 0.12) 4px
+    );
+    pointer-events: none;
+    z-index: 2;
+}
+
+/* Stranger Things – subtle “gate” red glow line at bottom */
+.homepage-gate-glow {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    pointer-events: none;
+    z-index: 4;
+    background: linear-gradient(to top, rgba(229, 9, 20, 0.4), transparent);
+    box-shadow: 0 -2px 20px rgba(229, 9, 20, 0.25);
+}
