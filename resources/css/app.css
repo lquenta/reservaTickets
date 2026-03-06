@@ -165,6 +165,28 @@
     text-shadow: 0 0 10px var(--color-neon-red), 0 0 20px var(--color-neon-red);
 }
 
+/* Costo total – Stranger Things style glow, paso 1 y 2 */
+.cost-total-block {
+    font-size: 1.125rem;
+}
+.cost-total-block .cost-total-price {
+    font-size: 1.75rem;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    color: #e50914;
+    text-shadow:
+        0 0 6px rgba(229, 9, 20, 0.95),
+        0 0 16px rgba(229, 9, 20, 0.7),
+        0 0 28px rgba(229, 9, 20, 0.5),
+        0 0 42px rgba(229, 9, 20, 0.3);
+    animation: title-glow 3s ease-in-out infinite;
+}
+@media (min-width: 768px) {
+    .cost-total-block .cost-total-price {
+        font-size: 2.25rem;
+    }
+}
+
 .animate-flicker {
     animation: flicker 4s infinite;
 }

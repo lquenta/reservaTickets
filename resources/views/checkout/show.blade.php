@@ -55,7 +55,7 @@
             <h2 class="font-semibold text-white/90 mb-2">Resumen</h2>
             <p class="text-white/70 mb-3">{{ $reservation->reservationTickets->count() }} ticket(s)</p>
             @if(isset($totalPrice) && $totalPrice > 0)
-            <p class="text-white/90 font-semibold mb-3">Costo total: <span class="text-[#e50914]">{{ number_format($totalPrice, 2, ',', '.') }} Bs</span></p>
+            <p class="cost-total-block text-white/90 font-semibold mb-3">Costo total: <span class="cost-total-price block mt-1">{{ number_format($totalPrice, 2, ',', '.') }} Bs</span></p>
             @endif
             <ul class="space-y-2">
                 @foreach($reservation->reservationTickets as $t)

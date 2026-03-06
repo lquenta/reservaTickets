@@ -108,7 +108,7 @@
 
             <div class="rounded-2xl border border-red-900/50 bg-black/60 backdrop-blur p-6">
                 <p class="text-white/80 mb-2" x-show="totalTickets > 0">Total: <strong x-text="totalTickets"></strong> entrada(s).</p>
-                <p class="text-white/80 mb-2" x-show="totalTickets > 0 && totalCost > 0">Costo total: <strong class="text-[#e50914]" x-text="'Bs ' + (typeof totalCost === 'number' ? totalCost.toFixed(2) : '0.00')"></strong></p>
+                <p class="cost-total-block text-white/90 mb-2" x-show="totalTickets > 0 && totalCost > 0">Costo total: <span class="cost-total-price block mt-1" x-text="'Bs ' + (typeof totalCost === 'number' ? totalCost.toFixed(2) : '0.00')"></span></p>
                 <template x-for="id in selectedSeatIds" :key="id">
                     <input type="hidden" name="seat_ids[]" :value="id">
                 </template>
