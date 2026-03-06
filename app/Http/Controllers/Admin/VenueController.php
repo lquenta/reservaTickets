@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Section;
 use App\Models\Venue;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -52,6 +53,7 @@ class VenueController extends Controller
 
     public function edit(Venue $venue): View
     {
+        $venue->load('sections');
         return view('admin.venues.edit', compact('venue'));
     }
 
@@ -64,6 +66,13 @@ class VenueController extends Controller
             'seat_rows' => ['required', 'integer', 'min:1', 'max:50'],
             'seat_columns' => ['required', 'integer', 'min:1', 'max:50'],
             'plan_image' => ['nullable', 'image', 'max:4096'],
+            'sections' => ['nullable', 'array'],
+            'sections.*.id' => ['nullable', 'integer', 'exists:sections,id'],
+            'sections.*.name' => ['required_with:sections.*', 'string', 'max:255'],
+            'sections.*.has_seats' => ['nullable', 'boolean'],
+            'sections.*.capacity' => ['nullable', 'integer', 'min:0'],
+            'sections.*.row_start' => ['nullable', 'integer', 'min:1', 'max:50'],
+            'sections.*.row_end' => ['nullable', 'integer', 'min:1', 'max:50'],
         ]);
 
         $venue->name = $validated['name'];
@@ -79,8 +88,9 @@ class VenueController extends Controller
         $venue->save();
 
         $this->syncSeatsForVenue($venue);
+        $this->syncSectionsForVenue($venue, $request->input('sections', []));
 
-        return redirect()->route('admin.venues.index')->with('message', 'Lugar actualizado.');
+        return redirect()->route('admin.venues.edit', $venue)->with('message', 'Lugar actualizado.');
     }
 
     public function destroy(Venue $venue): RedirectResponse
@@ -111,5 +121,49 @@ class VenueController extends Controller
                 );
             }
         }
+    }
+
+    private function syncSectionsForVenue(Venue $venue, array $sectionsInput): void
+    {
+        $idsToKeep = [];
+        $sortOrder = 0;
+
+        // Quitar asignación de butacas a secciones que vamos a modificar
+        $venue->seats()->update(['section_id' => null]);
+
+        foreach ($sectionsInput as $input) {
+            if (empty($input['name'] ?? '')) {
+                continue;
+            }
+            $id = isset($input['id']) && $input['id'] !== '' ? (int) $input['id'] : null;
+            $hasSeats = ! empty($input['has_seats']);
+            $rowStart = isset($input['row_start']) && $input['row_start'] !== '' ? (int) $input['row_start'] : null;
+            $rowEnd = isset($input['row_end']) && $input['row_end'] !== '' ? (int) $input['row_end'] : null;
+            if ($rowStart !== null && $rowEnd !== null && $rowStart > $rowEnd) {
+                $rowEnd = $rowStart;
+            }
+            if ($id) {
+                $section = Section::where('id', $id)->where('venue_id', $venue->id)->first();
+                if (! $section) {
+                    continue;
+                }
+            } else {
+                $section = new Section(['venue_id' => $venue->id]);
+            }
+            $section->name = $input['name'];
+            $section->sort_order = $sortOrder++;
+            $section->has_seats = $hasSeats;
+            $section->capacity = $hasSeats ? null : (isset($input['capacity']) && $input['capacity'] !== '' ? (int) $input['capacity'] : null);
+            $section->row_start = $hasSeats ? $rowStart : null;
+            $section->row_end = $hasSeats ? $rowEnd : null;
+            $section->save();
+            $idsToKeep[] = $section->id;
+
+            if ($hasSeats && $rowStart !== null && $rowEnd !== null) {
+                $venue->seats()->whereBetween('row', [$rowStart, $rowEnd])->update(['section_id' => $section->id]);
+            }
+        }
+
+        $venue->sections()->whereNotIn('id', $idsToKeep)->delete();
     }
 }

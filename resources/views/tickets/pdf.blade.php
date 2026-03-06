@@ -14,8 +14,6 @@
         .ticket-seat { background: #f1f5f9; border: 1px dashed #94a3b8; border-radius: 8px; padding: 10px 12px; margin: 0 0 16px 0; }
         .ticket-seat-label { font-weight: bold; color: #1e293b; }
         .ticket-seat-value { font-family: monospace; color: #6d28d9; }
-        .ticket-price-line { font-size: 12px; margin: 0 0 12px 0; }
-        .ticket-price-line .label { font-weight: bold; color: #1e293b; }
         .ticket-qr { margin: 12px 0 0 0; }
         .ticket-qr img { display: block; width: 80px; height: 80px; }
     </style>
@@ -26,7 +24,6 @@
         $title = $design['title'] ?? 'Entrada';
         $subtitle = $design['subtitle'] ?? '';
         $seatLabel = $design['seat_label'] ?? 'Butaca';
-        $priceLabel = $design['price_label'] ?? 'Precio';
         $eventDate = $event->starts_at->translatedFormat('l d F Y, H:i');
         $eventVenue = $event->venue ?? '';
     @endphp
@@ -40,11 +37,8 @@
             <p class="ticket-datetime">{{ $eventDate }} · {{ $eventVenue }}</p>
             <p class="ticket-holder">Titular: <span>{{ $ticket->holder_name }}</span></p>
             <div class="ticket-seat">
-                <span class="ticket-seat-label">{{ $seatLabel }}</span>: <span class="ticket-seat-value">@if($ticket->seat){{ $ticket->seat->display_label }}@else—@endif</span>
+                <span class="ticket-seat-label">{{ $seatLabel }}</span>: <span class="ticket-seat-value">@if($ticket->seat){{ $ticket->seat->display_label }}@elseif($ticket->section){{ $ticket->section->name }}@else—@endif</span>
             </div>
-            @if(isset($price) && (float) $price > 0)
-                <p class="ticket-price-line"><span class="label">{{ $priceLabel }}</span>: {{ number_format((float) $price, 2, ',', '.') }} €</p>
-            @endif
             <p class="ticket-qr"><img src="{{ \App\Support\TicketQrCode::dataUri($reservation->payment_code, $ticket->position, 80) }}" alt="QR entrada" width="80" height="80" /></p>
         </div>
     @endforeach

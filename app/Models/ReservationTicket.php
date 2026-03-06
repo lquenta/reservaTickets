@@ -13,6 +13,7 @@ class ReservationTicket extends Model
     protected $fillable = [
         'reservation_id',
         'seat_id',
+        'section_id',
         'holder_name',
         'position',
     ];
@@ -25,5 +26,10 @@ class ReservationTicket extends Model
     public function seat(): BelongsTo
     {
         return $this->belongsTo(Seat::class);
+    }
+
+    public function section(): BelongsTo
+    {
+        return $this->belongsTo(Section::class);
     }
 }

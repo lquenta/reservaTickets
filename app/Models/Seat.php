@@ -13,6 +13,7 @@ class Seat extends Model
 
     protected $fillable = [
         'venue_id',
+        'section_id',
         'row',
         'number',
         'label',
@@ -31,6 +32,11 @@ class Seat extends Model
     public function venue(): BelongsTo
     {
         return $this->belongsTo(Venue::class);
+    }
+
+    public function section(): BelongsTo
+    {
+        return $this->belongsTo(Section::class);
     }
 
     public function reservationTickets(): HasMany

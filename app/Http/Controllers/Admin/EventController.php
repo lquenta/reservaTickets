@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Event;
+use App\Models\Section;
 use App\Models\Venue;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -61,7 +62,8 @@ class EventController extends Controller
 
     public function edit(Event $event): View
     {
-        $venues = Venue::orderBy('name')->get();
+        $event->load('sections');
+        $venues = Venue::with('sections')->orderBy('name')->get();
         return view('admin.events.edit', compact('event', 'venues'));
     }
 
@@ -77,6 +79,10 @@ class EventController extends Controller
             'is_active' => ['boolean'],
             'qr_image' => ['nullable', 'image', 'max:2048'],
             'cover_image' => ['nullable', 'image', 'max:4096'],
+            'event_sections' => ['nullable', 'array'],
+            'event_sections.*.section_id' => ['nullable', 'integer', 'exists:sections,id'],
+            'event_sections.*.use' => ['nullable', 'boolean'],
+            'event_sections.*.price' => ['nullable', 'numeric', 'min:0'],
         ]);
 
         $event->name = $validated['name'];
@@ -97,7 +103,36 @@ class EventController extends Controller
         }
         $event->save();
 
+        $this->syncEventSections($event, $request->input('event_sections', []));
+
         return redirect()->route('admin.events.index')->with('message', 'Evento actualizado.');
+    }
+
+    private function syncEventSections(Event $event, array $eventSectionsInput): void
+    {
+        if (! $event->venue_id) {
+            $event->sections()->detach();
+            return;
+        }
+        $venueId = $event->venue_id;
+        $sync = [];
+        $sortOrder = 0;
+        foreach ($eventSectionsInput as $input) {
+            if (! is_array($input)) {
+                continue;
+            }
+            $sectionId = isset($input['section_id']) ? (int) $input['section_id'] : 0;
+            if (! $sectionId || empty($input['use'] ?? false)) {
+                continue;
+            }
+            $section = Section::where('id', $sectionId)->where('venue_id', $venueId)->first();
+            if (! $section) {
+                continue;
+            }
+            $price = isset($input['price']) && $input['price'] !== '' ? (float) $input['price'] : null;
+            $sync[$section->id] = ['price' => $price, 'sort_order' => $sortOrder++];
+        }
+        $event->sections()->sync($sync);
     }
 
     public function destroy(Event $event): RedirectResponse

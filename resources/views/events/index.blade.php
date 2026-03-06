@@ -41,7 +41,13 @@
                             </a>
                         @else
                             @if($event->venue_id)
-                                <p class="text-white/60 text-xs mb-2">Reserva con elección de butaca en el checkout.</p>
+                                <p class="text-white/60 text-xs mb-2">
+                                    @if($event->hasSections())
+                                        Ver secciones y butacas en el checkout.
+                                    @else
+                                        Reserva con elección de butaca en el checkout.
+                                    @endif
+                                </p>
                             @endif
                             <a href="{{ route('reservations.create', $event) }}" class="inline-flex items-center justify-center rounded-xl bg-[#e50914] text-white font-semibold px-5 py-3 hover:bg-red-600 transition w-fit">
                                 Reservar tickets

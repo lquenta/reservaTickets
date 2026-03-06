@@ -18,7 +18,216 @@
     </div>
 </div>
 
-@if(empty($seats))
+@if(!empty($sectionsData))
+    {{-- Con secciones: por sector con/sin butacas --}}
+    @php
+        $maxSeats = \App\Services\ReservationService::MAX_SEATS;
+    @endphp
+    @php
+        $sectionIdsWithoutSeats = collect($sectionsData)->where('has_seats', false)->pluck('id')->values()->all();
+        $seatsMapFlat = $seatsMap ?? [];
+        $seatIdToPrice = $seatIdToPrice ?? [];
+        $sectionIdToPrice = $sectionIdToPrice ?? [];
+        $sectionIdToName = $sectionIdToName ?? [];
+    @endphp
+    <div class="max-w-4xl mx-auto" x-data="reservationSections({
+        maxSeats: {{ $maxSeats }},
+        sectionIdsWithoutSeats: {{ json_encode($sectionIdsWithoutSeats) }},
+        seatsMap: {{ json_encode($seatsMapFlat) }},
+        seatIdToPrice: {{ json_encode($seatIdToPrice) }},
+        sectionIdToPrice: {{ json_encode($sectionIdToPrice) }},
+        sectionIdToName: {{ json_encode($sectionIdToName) }},
+        oldSeatIds: {{ json_encode(array_map('intval', (array) old('seat_ids', []))) }},
+        oldSectionQuantities: {{ json_encode(old('section_quantities', [])) }},
+        oldSingleName: {{ old('single_name', true) ? 'true' : 'false' }},
+        oldNames: {{ json_encode(array_merge([0 => ''], array_map(fn ($i) => old("holder_name_{$i}", ''), range(1, $maxSeats)))) }}
+    })">
+        <h1 class="font-display text-3xl font-bold text-[#e50914] tracking-widest mb-2">CHECKOUT — PASO 1</h1>
+        <p class="text-xl text-white/80 mb-2">{{ $event->name }}</p>
+        <p class="text-white/60 text-sm mb-6">Elige butacas y/o entradas por sección. Máximo {{ $maxSeats }} entradas en total.</p>
+
+        <form id="reservation-form-sections" method="POST" action="{{ route('reservations.store') }}" class="space-y-8">
+            @csrf
+            <input type="hidden" name="event_id" value="{{ $event->id }}">
+
+            @if($errors->any())
+            <div class="rounded-xl border-2 border-red-500 bg-red-900/30 p-5 text-red-200" role="alert">
+                <p class="font-semibold mb-2">No se pudo continuar. Revisa los siguientes puntos:</p>
+                <ul class="list-disc list-inside text-sm space-y-1">
+                    @foreach($errors->all() as $err)
+                        <li>{{ $err }}</li>
+                    @endforeach
+                </ul>
+            </div>
+            @endif
+            @error('event_id')<p class="text-sm text-red-400">{{ $message }}</p>@enderror
+
+            @foreach($sectionsData as $section)
+                <div class="rounded-2xl border border-red-900/50 bg-black/60 backdrop-blur p-6">
+                    <h2 class="text-lg font-semibold text-[#e50914] mb-1">{{ $section['name'] }}</h2>
+                    @if(isset($section['price']) && $section['price'] !== null && $section['price'] > 0)
+                        <p class="text-white/60 text-sm mb-4">Precio: {{ number_format($section['price'], 2) }} Bs</p>
+                    @endif
+                    @if($section['has_seats'])
+                        <p class="text-white/70 text-sm mb-3">Elige butacas (máx. {{ $maxSeats }} en total entre todas las secciones).</p>
+                        @php
+                            $seatsByRow = $section['seats']->groupBy('row');
+                            $sectionAvailableIds = $section['availableSeatIds'];
+                        @endphp
+                        <div class="flex flex-col gap-2 items-center">
+                            @foreach($seatsByRow as $row => $rowSeats)
+                                @php $rowLetter = $rowSeats->first()->row_letter ?? chr(64 + (int)$row); @endphp
+                                <div class="flex gap-2 items-center justify-center">
+                                    <span class="w-8 text-center font-bold text-[#e50914] text-sm">{{ $rowLetter }}</span>
+                                    @foreach($rowSeats as $seat)
+                                        <button type="button"
+                                                class="seat-btn rounded-lg w-10 h-10 flex items-center justify-center text-sm font-mono transition"
+                                                :class="sectionSeatClass({{ $seat->id }}, {{ json_encode($section['availableSeatIds']) }})"
+                                                data-seat-id="{{ $seat->id }}"
+                                                data-section-id="{{ $section['id'] }}"
+                                                @click="toggleSeat({{ $seat->id }})">
+                                            {{ $seat->number }}
+                                        </button>
+                                    @endforeach
+                                </div>
+                            @endforeach
+                        </div>
+                    @else
+                        <p class="text-white/70 text-sm mb-3">Entrada general — {{ $section['availableCapacity'] }} disponibles</p>
+                        <div class="flex items-center gap-4">
+                            <label class="text-white/80">Cantidad</label>
+                            <select name="section_quantities[{{ $section['id'] }}]" x-model.number="sectionQuantities[{{ $section['id'] }}]" class="rounded-xl border border-red-900/50 bg-black/60 px-4 py-2 text-white">
+                                @for($q = 0; $q <= min($section['availableCapacity'] ?? 0, $maxSeats); $q++)
+                                    <option value="{{ $q }}">{{ $q }}</option>
+                                @endfor
+                            </select>
+                        </div>
+                    @endif
+                </div>
+            @endforeach
+
+            <div class="rounded-2xl border border-red-900/50 bg-black/60 backdrop-blur p-6">
+                <p class="text-white/80 mb-2" x-show="totalTickets > 0">Total: <strong x-text="totalTickets"></strong> entrada(s).</p>
+                <p class="text-white/80 mb-2" x-show="totalTickets > 0 && totalCost > 0">Costo total: <strong class="text-[#e50914]" x-text="'Bs ' + (typeof totalCost === 'number' ? totalCost.toFixed(2) : '0.00')"></strong></p>
+                <template x-for="id in selectedSeatIds" :key="id">
+                    <input type="hidden" name="seat_ids[]" :value="id">
+                </template>
+            </div>
+
+            <div class="rounded-2xl border border-red-900/50 bg-black/60 backdrop-blur p-6 space-y-4">
+                <p class="block text-sm font-medium text-white/80">Nombres en los tickets</p>
+                <label class="inline-flex items-center mr-6">
+                    <input type="radio" name="single_name" value="1" x-model="singleName" class="text-[#e50914] focus:ring-[#e50914] bg-black/60">
+                    <span class="ml-2 text-white/70">Un nombre para todos</span>
+                </label>
+                <label class="inline-flex items-center">
+                    <input type="radio" name="single_name" value="0" x-model="singleName" class="text-[#e50914] focus:ring-[#e50914] bg-black/60">
+                    <span class="ml-2 text-white/70">Un nombre por ticket</span>
+                </label>
+                <div x-show="singleName === '1' || singleName === true">
+                    <label for="holder_name" class="block text-sm font-medium text-white/80 mb-1">Nombre para todos</label>
+                    <input id="holder_name" type="text" name="holder_name" x-model="holderName" maxlength="255"
+                           class="w-full rounded-xl border border-red-900/50 bg-black/60 px-4 py-3 text-white">
+                </div>
+                <div x-show="singleName === '0' || singleName === false" x-cloak>
+                    <p class="text-white/60 text-sm mb-3">Asigna el nombre a cada entrada (butaca o sección):</p>
+                    <template x-for="(item, index) in ticketItems" :key="index">
+                        <div class="mb-4 p-4 rounded-xl border border-red-900/30 bg-black/40">
+                            <label :for="'holder_name_'+ (index+1)" class="block text-sm font-medium text-[#e50914] mb-1" x-text="'Ticket ' + (index+1) + ' — ' + item.label"></label>
+                            <input :id="'holder_name_'+ (index+1)" type="text" :name="'holder_name_' + (index+1)" maxlength="255"
+                                   :value="holderNames[index+1] || ''"
+                                   @input="holderNames[index+1] = $event.target.value"
+                                   class="w-full rounded-xl border border-red-900/50 bg-black/60 px-4 py-3 text-white placeholder-white/40">
+                        </div>
+                    </template>
+                </div>
+            </div>
+
+            @if(config('services.recaptcha.site_key'))
+            <div class="g-recaptcha" data-sitekey="{{ config('services.recaptcha.site_key') }}"></div>
+            @endif
+            @error('g-recaptcha-response')<p class="text-sm text-red-400">{{ $message }}</p>@enderror
+
+            <p class="text-amber-200/90 text-sm" x-show="totalTickets < 1">Elige al menos una entrada (butaca o cantidad en sección) para continuar.</p>
+            <button type="submit"
+                    class="w-full rounded-xl bg-[#e50914] px-5 py-4 text-white font-bold hover:bg-red-600 transition disabled:opacity-50"
+                    :disabled="totalTickets < 1">
+                Continuar al paso 2 — Comprobante de pago
+            </button>
+        </form>
+    </div>
+    <script>
+        function reservationSections(config) {
+            const maxSeats = config.maxSeats || 12;
+            const seatsMap = config.seatsMap || {};
+            const seatIdToPrice = config.seatIdToPrice || {};
+            const sectionIdToPrice = config.sectionIdToPrice || {};
+            const sectionIdToName = config.sectionIdToName || {};
+            const sectionIdsWithoutSeats = config.sectionIdsWithoutSeats || [];
+            const sectionQuantities = {};
+            sectionIdsWithoutSeats.forEach(id => {
+                sectionQuantities[id] = (config.oldSectionQuantities && (config.oldSectionQuantities[id] != null ? config.oldSectionQuantities[id] : config.oldSectionQuantities[String(id)])) || 0;
+            });
+            return {
+                selectedSeatIds: Array.isArray(config.oldSeatIds) ? config.oldSeatIds : [],
+                sectionQuantities: sectionQuantities,
+                singleName: config.oldSingleName !== false,
+                holderName: (config.oldNames && config.oldNames[1]) || '',
+                holderNames: config.oldNames || {},
+                get totalTickets() {
+                    const seatCount = this.selectedSeatIds.length;
+                    let sectionCount = 0;
+                    for (const k in this.sectionQuantities) sectionCount += parseInt(this.sectionQuantities[k], 10) || 0;
+                    return seatCount + sectionCount;
+                },
+                get ticketItems() {
+                    const items = [];
+                    this.selectedSeatIds.forEach(id => {
+                        items.push({ type: 'seat', label: 'Butaca ' + (seatsMap[id] || id) });
+                    });
+                    sectionIdsWithoutSeats.forEach(sid => {
+                        const qty = parseInt(this.sectionQuantities[sid], 10) || 0;
+                        const name = sectionIdToName[sid] || ('Sección ' + sid);
+                        for (let k = 0; k < qty; k++) items.push({ type: 'section', label: 'Sección ' + name });
+                    });
+                    return items;
+                },
+                get totalCost() {
+                    let sum = 0;
+                    this.selectedSeatIds.forEach(id => {
+                        const p = seatIdToPrice[id];
+                        if (p != null && p > 0) sum += parseFloat(p);
+                    });
+                    sectionIdsWithoutSeats.forEach(sid => {
+                        const qty = parseInt(this.sectionQuantities[sid], 10) || 0;
+                        const p = sectionIdToPrice[sid];
+                        if (p != null && p > 0 && qty > 0) sum += parseFloat(p) * qty;
+                    });
+                    return Math.round(sum * 100) / 100;
+                },
+                get nameRange() {
+                    const n = Math.min(maxSeats, this.totalTickets);
+                    return Array.from({ length: n }, (_, i) => i + 1);
+                },
+                sectionSeatClass(seatId, availableIds) {
+                    const id = parseInt(seatId, 10);
+                    const selected = this.selectedSeatIds.includes(id);
+                    const available = (availableIds || []).includes(id);
+                    if (selected) return 'bg-[#e50914] text-white ring-2 ring-white';
+                    if (available) return 'bg-emerald-600 hover:bg-emerald-500 text-white';
+                    return 'bg-slate-700 text-slate-500 cursor-not-allowed';
+                },
+                toggleSeat(seatId) {
+                    const id = parseInt(seatId, 10);
+                    const idx = this.selectedSeatIds.indexOf(id);
+                    if (idx >= 0) this.selectedSeatIds.splice(idx, 1);
+                    else if (this.selectedSeatIds.length < maxSeats) this.selectedSeatIds.push(id);
+                    this.selectedSeatIds.sort((a,b)=>a-b);
+                }
+            };
+        }
+    </script>
+@elseif(empty($seats))
     {{-- Sin venue: reserva por cantidad (legacy) --}}
     <div class="max-w-2xl mx-auto" x-data="{ quantity: {{ old('quantity', 1) }}, singleName: {{ old('single_name', true) ? 'true' : 'false' }} }">
         <h1 class="font-display text-3xl font-bold text-[#e50914] tracking-widest mb-2">CHECKOUT — PASO 1</h1>

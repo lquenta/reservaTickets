@@ -39,17 +39,36 @@ class StoreReservationRequest extends FormRequest
         ];
 
         if ($event && $event->venue_id) {
-            $rules['seat_ids'] = ['required', 'array', 'min:1', 'max:' . ReservationService::MAX_SEATS];
-            $rules['seat_ids.*'] = ['required', 'integer', 'exists:seats,id'];
-            $count = is_array($this->input('seat_ids')) ? count($this->input('seat_ids')) : 0;
-            if ($count > 0) {
-                if ($this->boolean('single_name')) {
-                    $rules['holder_name'] = ['required', 'string', 'max:255', 'regex:/^[\pL\pM\s\-\.\'\x{2019}\x{2018},]+$/u'];
-                } else {
-                    $seatIds = array_map('intval', (array) $this->input('seat_ids'));
-                    for ($i = 1; $i <= $count; $i++) {
-                        $rules["holder_name_{$i}"] = ['required', 'string', 'max:255', 'regex:/^[\pL\pM\s\-\.\'\x{2019}\x{2018},]+$/u'];
-                        $rules["seat_for_{$i}"] = ['required', 'integer', 'in:'.implode(',', $seatIds)];
+            if ($event->hasSections()) {
+                $rules['seat_ids'] = ['nullable', 'array', 'max:' . ReservationService::MAX_SEATS];
+                $rules['seat_ids.*'] = ['integer', 'exists:seats,id'];
+                $rules['section_quantities'] = ['nullable', 'array'];
+                $rules['section_quantities.*'] = ['nullable', 'integer', 'min:0'];
+                $seatCount = is_array($this->input('seat_ids')) ? count(array_filter($this->input('seat_ids'))) : 0;
+                $sectionQtys = is_array($this->input('section_quantities')) ? array_map('intval', $this->input('section_quantities')) : [];
+                $totalTickets = $seatCount + array_sum($sectionQtys);
+                if ($totalTickets > 0) {
+                    if ($this->boolean('single_name')) {
+                        $rules['holder_name'] = ['required', 'string', 'max:255', 'regex:/^[\pL\pM\s\-\.\'\x{2019}\x{2018},]+$/u'];
+                    } else {
+                        for ($i = 1; $i <= min($totalTickets, ReservationService::MAX_SEATS); $i++) {
+                            $rules["holder_name_{$i}"] = ['required', 'string', 'max:255', 'regex:/^[\pL\pM\s\-\.\'\x{2019}\x{2018},]+$/u'];
+                        }
+                    }
+                }
+            } else {
+                $rules['seat_ids'] = ['required', 'array', 'min:1', 'max:' . ReservationService::MAX_SEATS];
+                $rules['seat_ids.*'] = ['required', 'integer', 'exists:seats,id'];
+                $count = is_array($this->input('seat_ids')) ? count($this->input('seat_ids')) : 0;
+                if ($count > 0) {
+                    if ($this->boolean('single_name')) {
+                        $rules['holder_name'] = ['required', 'string', 'max:255', 'regex:/^[\pL\pM\s\-\.\'\x{2019}\x{2018},]+$/u'];
+                    } else {
+                        $seatIds = array_map('intval', (array) $this->input('seat_ids'));
+                        for ($i = 1; $i <= $count; $i++) {
+                            $rules["holder_name_{$i}"] = ['required', 'string', 'max:255', 'regex:/^[\pL\pM\s\-\.\'\x{2019}\x{2018},]+$/u'];
+                            $rules["seat_for_{$i}"] = ['required', 'integer', 'in:'.implode(',', $seatIds)];
+                        }
                     }
                 }
             }
@@ -71,11 +90,49 @@ class StoreReservationRequest extends FormRequest
     public function withValidator(ValidationValidator $validator): void
     {
         $validator->after(function (Validator $validator) {
-            $event = Event::with('venue')->find($this->input('event_id'));
+            $event = Event::with('venue', 'sections')->find($this->input('event_id'));
             if (! $event || ! $event->venue_id) {
                 return;
             }
-            $seatIds = is_array($this->input('seat_ids')) ? array_map('intval', $this->input('seat_ids')) : [];
+            $seatIds = is_array($this->input('seat_ids')) ? array_map('intval', array_filter($this->input('seat_ids'))) : [];
+            $sectionQuantities = is_array($this->input('section_quantities')) ? array_filter(array_map('intval', $this->input('section_quantities'))) : [];
+            $totalTickets = count($seatIds) + array_sum($sectionQuantities);
+
+            if ($event->hasSections()) {
+                if ($totalTickets < 1 || $totalTickets > ReservationService::MAX_SEATS) {
+                    $validator->errors()->add('seat_ids', 'El total de entradas debe ser entre 1 y ' . ReservationService::MAX_SEATS . '.');
+                }
+                if (! empty($seatIds)) {
+                    $venue = $event->getRelationValue('venue');
+                    if ($venue) {
+                        $venueSeatIds = $venue->seats()->pluck('id')->flip();
+                        foreach ($seatIds as $id) {
+                            if (! $venueSeatIds->has($id)) {
+                                $validator->errors()->add('seat_ids', 'Todas las butacas deben pertenecer al lugar de este evento.');
+                                return;
+                            }
+                        }
+                    }
+                    $availableIds = $event->sections->where('has_seats', true)->flatMap(function ($s) use ($event) {
+                        $ids = $event->availableSeats($s->id)->pluck('id');
+                        if ($ids->isEmpty() && $s->row_start !== null && $s->row_end !== null) {
+                            $ids = $event->availableSeats(null)->whereBetween('row', [$s->row_start, $s->row_end])->pluck('id');
+                        }
+                        if ($ids->isEmpty()) {
+                            $ids = $event->availableSeats(null)->pluck('id');
+                        }
+                        return $ids;
+                    })->flip();
+                    foreach ($seatIds as $id) {
+                        if (! $availableIds->has($id)) {
+                            $validator->errors()->add('seat_ids', 'Una o más butacas ya no están disponibles.');
+                            return;
+                        }
+                    }
+                }
+                return;
+            }
+
             if (empty($seatIds)) {
                 return;
             }

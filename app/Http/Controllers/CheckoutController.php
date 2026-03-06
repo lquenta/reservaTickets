@@ -24,8 +24,45 @@ class CheckoutController extends Controller
             return redirect()->route('home')->with('message', 'Tiempo agotado');
         }
 
-        $reservation->load(['event', 'reservationTickets.seat']);
-        return view('checkout.show', compact('reservation'));
+        $reservation->load(['event.sections', 'event.ticketTemplate', 'reservationTickets.seat', 'reservationTickets.section']);
+        $totalPrice = 0;
+        if ($reservation->event->hasSections()) {
+            foreach ($reservation->reservationTickets as $ticket) {
+                $eventSection = null;
+                if ($ticket->seat) {
+                    $sectionId = $ticket->seat->section_id;
+                    if ($sectionId) {
+                        $eventSection = $reservation->event->sections->firstWhere('id', $sectionId);
+                    }
+                    if (! $eventSection && $ticket->seat) {
+                        foreach ($reservation->event->sections as $es) {
+                            if (! $es->has_seats) {
+                                continue;
+                            }
+                            if ($es->row_start !== null && $es->row_end !== null && $ticket->seat->row >= $es->row_start && $ticket->seat->row <= $es->row_end) {
+                                $eventSection = $es;
+                                break;
+                            }
+                        }
+                    }
+                    if (! $eventSection) {
+                        $eventSection = $reservation->event->sections->where('has_seats', true)->first();
+                    }
+                } else {
+                    $eventSection = $ticket->section_id
+                        ? $reservation->event->sections->firstWhere('id', $ticket->section_id)
+                        : null;
+                }
+                if ($eventSection && $eventSection->pivot && $eventSection->pivot->price !== null) {
+                    $totalPrice += (float) $eventSection->pivot->price;
+                }
+            }
+        } else {
+            $template = $reservation->event->ticketTemplate;
+            $unitPrice = $template ? (float) $template->price : 0;
+            $totalPrice = $unitPrice * $reservation->reservationTickets->count();
+        }
+        return view('checkout.show', compact('reservation', 'totalPrice'));
     }
 
     public function confirm(Request $request, Reservation $reservation): RedirectResponse

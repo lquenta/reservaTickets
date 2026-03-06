@@ -29,20 +29,84 @@ class ReservationController extends Controller
             return redirect()->route('events.index')->with('message', 'Este evento no está disponible.');
         }
 
+        $event->load('sections.seats', 'venue.seats');
+
         $seats = [];
         $seatsMap = [];
         $availableSeatIds = [];
+        $sectionsData = [];
+        $seatIdToPrice = [];
+        $sectionIdToPrice = [];
+        $sectionIdToName = [];
+
         if ($event->venue_id) {
-            $event->load('venue.seats');
             $venue = $event->getRelationValue('venue');
             if ($venue) {
-                $seats = $venue->seats()->orderBy('row')->orderBy('number')->get();
-                $seatsMap = $seats->keyBy('id')->map(fn ($s) => ['label' => $s->display_label])->all();
+                if ($event->hasSections()) {
+                    foreach ($event->sections as $section) {
+                        $pivot = $section->pivot;
+                        $price = $pivot->price;
+                        if ($section->has_seats) {
+                            $sectionSeats = $section->seats()->orderBy('row')->orderBy('number')->get();
+                            if ($sectionSeats->isEmpty() && $section->row_start !== null && $section->row_end !== null) {
+                                $sectionSeats = $venue->seats()->whereBetween('row', [$section->row_start, $section->row_end])->orderBy('row')->orderBy('number')->get();
+                            }
+                            if ($sectionSeats->isEmpty()) {
+                                $sectionSeats = $venue->seats()->orderBy('row')->orderBy('number')->get();
+                            }
+                            $sectionAvailableIds = $event->availableSeats($section->id)->pluck('id')->all();
+                            if (empty($sectionAvailableIds) && $section->row_start !== null && $section->row_end !== null) {
+                                $sectionAvailableIds = $event->availableSeats(null)->whereBetween('row', [$section->row_start, $section->row_end])->pluck('id')->all();
+                            }
+                            if (empty($sectionAvailableIds)) {
+                                $sectionAvailableIds = $event->availableSeats(null)->pluck('id')->all();
+                            }
+                            $sectionsData[] = [
+                                'id' => $section->id,
+                                'name' => $section->name,
+                                'price' => $price,
+                                'has_seats' => true,
+                                'seats' => $sectionSeats,
+                                'availableSeatIds' => array_values($sectionAvailableIds),
+                            ];
+                        } else {
+                            $availableCapacity = $event->availableCapacityForSection($section);
+                            $sectionsData[] = [
+                                'id' => $section->id,
+                                'name' => $section->name,
+                                'price' => $price,
+                                'has_seats' => false,
+                                'capacity' => $section->capacity,
+                                'availableCapacity' => $availableCapacity,
+                            ];
+                        }
+                    }
+                    $seatsMap = [];
+                    $seatIdToPrice = [];
+                    $sectionIdToPrice = [];
+                    $sectionIdToName = [];
+                    foreach ($sectionsData as $sd) {
+                        $sectionIdToPrice[$sd['id']] = $sd['price'] ?? null;
+                        $sectionIdToName[$sd['id']] = $sd['name'];
+                        if (! empty($sd['seats'])) {
+                            foreach ($sd['seats'] as $seat) {
+                                $seatsMap[$seat->id] = $seat->display_label;
+                                $seatIdToPrice[$seat->id] = $sd['price'] ?? null;
+                            }
+                        }
+                    }
+                } else {
+                    $seats = $venue->seats()->orderBy('row')->orderBy('number')->get();
+                    $seatsMap = $seats->keyBy('id')->map(fn ($s) => ['label' => $s->display_label])->all();
+                    $availableSeatIds = $event->availableSeats()->pluck('id')->all();
+                    $seatIdToPrice = [];
+                    $sectionIdToPrice = [];
+                    $sectionIdToName = [];
+                }
             }
-            $availableSeatIds = $event->availableSeats()->pluck('id')->all();
         }
 
-        return view('reservations.create', compact('event', 'seats', 'seatsMap', 'availableSeatIds'));
+        return view('reservations.create', compact('event', 'seats', 'seatsMap', 'availableSeatIds', 'sectionsData', 'seatIdToPrice', 'sectionIdToPrice', 'sectionIdToName'));
     }
 
     public function store(StoreReservationRequest $request, ReservationService $service): RedirectResponse
@@ -55,16 +119,28 @@ class ReservationController extends Controller
         $singleName = $request->boolean('single_name');
 
         if ($event->venue_id) {
-            $seatIds = array_map('intval', $request->validated('seat_ids'));
-            $count = count($seatIds);
-            $names = $singleName
-                ? array_fill(0, $count, $request->validated('holder_name'))
-                : array_map(fn ($i) => $request->validated("holder_name_{$i}"), range(1, $count));
-            $seatAssignments = null;
-            if (! $singleName) {
-                $seatAssignments = array_map(fn ($i) => (int) $request->validated("seat_for_{$i}"), range(1, $count));
+            $seatIds = array_map('intval', $request->validated('seat_ids', []));
+            if ($event->hasSections()) {
+                $sectionQuantities = $request->validated('section_quantities', []);
+                $reservation = $service->createReservationWithSections(
+                    auth()->user(),
+                    $event,
+                    $seatIds,
+                    is_array($sectionQuantities) ? $sectionQuantities : [],
+                    $request->all(),
+                    $singleName
+                );
+            } else {
+                $count = count($seatIds);
+                $names = $singleName
+                    ? array_fill(0, $count, $request->validated('holder_name'))
+                    : array_map(fn ($i) => $request->validated("holder_name_{$i}", ''), range(1, max(1, $count)));
+                $seatAssignments = null;
+                if (! $singleName && $count > 0) {
+                    $seatAssignments = array_map(fn ($i) => (int) $request->validated("seat_for_{$i}"), range(1, $count));
+                }
+                $reservation = $service->createReservation(auth()->user(), $event, $seatIds, $singleName, $names, $seatAssignments);
             }
-            $reservation = $service->createReservation(auth()->user(), $event, $seatIds, $singleName, $names, $seatAssignments);
         } else {
             $quantity = (int) $request->validated('quantity');
             $names = $singleName
@@ -135,7 +211,7 @@ class ReservationController extends Controller
             abort(404, 'Solo puedes descargar los tickets de reservas confirmadas.');
         }
 
-        $reservation->load(['event.ticketTemplate', 'reservationTickets.seat']);
+        $reservation->load(['event.ticketTemplate', 'reservationTickets.seat', 'reservationTickets.section']);
         $template = $reservation->event->ticketTemplate;
         $design = $template ? $template->design : \App\Models\TicketTemplate::defaultDesign();
         $price = $template ? (float) $template->price : 0;

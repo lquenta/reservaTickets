@@ -47,6 +47,47 @@
             @error('venue_id')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
         </div>
 
+        @php
+            $selectedVenue = $venues->firstWhere('id', old('venue_id', $event->venue_id));
+        @endphp
+        @if($selectedVenue && $selectedVenue->sections->isNotEmpty())
+        <div class="rounded-xl border-2 border-violet-200/60 dark:border-violet-700/50 p-6 space-y-4">
+            <h2 class="text-lg font-semibold text-slate-800 dark:text-white">Plano del evento — Secciones</h2>
+            <p class="text-sm text-slate-600 dark:text-slate-400">Activa las secciones que estarán disponibles para este evento y opcionalmente asigna un precio por sección.</p>
+            <div class="space-y-3">
+                @php
+                    $eventSectionIds = $event->sections->pluck('id')->flip();
+                @endphp
+                @foreach($selectedVenue->sections as $section)
+                    @php
+                        $pivot = $event->sections->firstWhere('id', $section->id);
+                        $currentPrice = $pivot ? $pivot->pivot->price : null;
+                        $isUsed = $pivot !== null || old("event_sections.{$section->id}.use");
+                    @endphp
+                    <div class="flex flex-wrap items-center gap-4 rounded-lg border border-slate-200 dark:border-slate-600 p-4 bg-slate-50/50 dark:bg-slate-800/50">
+                        <label class="inline-flex items-center gap-2">
+                            <input type="hidden" name="event_sections[{{ $section->id }}][section_id]" value="{{ $section->id }}">
+                            <input type="checkbox" name="event_sections[{{ $section->id }}][use]" value="1" {{ old("event_sections.{$section->id}.use", $isUsed) ? 'checked' : '' }} class="rounded border-slate-300 text-violet-600">
+                            <span class="font-medium text-slate-800 dark:text-white">{{ $section->name }}</span>
+                        </label>
+                        <span class="text-sm text-slate-500 dark:text-slate-400">
+                            @if($section->has_seats)
+                                Con butacas (filas {{ $section->row_start ?? '?' }}-{{ $section->row_end ?? '?' }})
+                            @else
+                                Sin butacas @if($section->capacity) — Capacidad {{ $section->capacity }} @endif
+                            @endif
+                        </span>
+                        <div class="flex items-center gap-2">
+                            <label class="text-sm text-slate-600 dark:text-slate-400">Precio (opcional)</label>
+                            <input type="number" name="event_sections[{{ $section->id }}][price]" value="{{ old("event_sections.{$section->id}.price", $currentPrice) }}" min="0" step="0.01" placeholder="—"
+                                   class="w-24 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 px-3 py-1.5 text-sm">
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+        @endif
+
         <div>
             <label for="payment_code_prefix" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Prefijo código de pago (opcional)</label>
             <input id="payment_code_prefix" type="text" name="payment_code_prefix" value="{{ old('payment_code_prefix', $event->payment_code_prefix) }}" maxlength="50"

@@ -32,6 +32,11 @@ class Venue extends Model
         return $this->hasMany(Seat::class);
     }
 
+    public function sections(): HasMany
+    {
+        return $this->hasMany(Section::class)->orderBy('sort_order');
+    }
+
     public function events(): HasMany
     {
         return $this->hasMany(Event::class);

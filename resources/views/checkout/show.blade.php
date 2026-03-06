@@ -30,18 +30,20 @@
         <p class="text-white/60 text-sm mb-6">Resumen de tu reserva y comprobante de pago.</p>
 
         @php
-            $ticketsWithSeats = $reservation->reservationTickets->filter(fn ($t) => $t->seat !== null);
+            $ticketsWithSection = $reservation->reservationTickets->filter(fn ($t) => $t->seat || $t->section);
         @endphp
-        @if($ticketsWithSeats->isNotEmpty())
+        @if($ticketsWithSection->isNotEmpty())
         <div class="rounded-2xl border-2 border-[#e50914]/60 bg-[#e50914]/10 p-6 mb-8">
-            <h2 class="font-display text-xl font-bold text-[#e50914] tracking-wider mb-4">TUS BUTACAS ELEGIDAS</h2>
-            <p class="text-white/80 text-sm mb-4">Estas son las butacas que reservaste en el paso anterior:</p>
+            <h2 class="font-display text-xl font-bold text-[#e50914] tracking-wider mb-4">TUS ENTRADAS</h2>
+            <p class="text-white/80 text-sm mb-4">Resumen de butacas y secciones elegidas:</p>
             <ul class="space-y-3">
                 @foreach($reservation->reservationTickets as $t)
                     <li class="flex flex-wrap items-center gap-3 text-white">
                         <span class="font-medium">{{ $t->holder_name }}</span>
                         @if($t->seat)
                             <span class="inline-flex items-center rounded-lg bg-[#e50914] px-3 py-1.5 text-sm font-mono font-bold text-white">Butaca {{ $t->seat->display_label }}</span>
+                        @elseif($t->section)
+                            <span class="inline-flex items-center rounded-lg bg-[#e50914]/80 px-3 py-1.5 text-sm font-medium text-white">Sección {{ $t->section->name }}</span>
                         @endif
                     </li>
                 @endforeach
@@ -52,12 +54,17 @@
         <div class="rounded-xl bg-black/40 border border-red-900/30 p-4">
             <h2 class="font-semibold text-white/90 mb-2">Resumen</h2>
             <p class="text-white/70 mb-3">{{ $reservation->reservationTickets->count() }} ticket(s)</p>
+            @if(isset($totalPrice) && $totalPrice > 0)
+            <p class="text-white/90 font-semibold mb-3">Costo total: <span class="text-[#e50914]">{{ number_format($totalPrice, 2, ',', '.') }} Bs</span></p>
+            @endif
             <ul class="space-y-2">
                 @foreach($reservation->reservationTickets as $t)
                     <li class="flex flex-wrap items-baseline gap-x-2 text-white/90">
                         <span class="font-medium">{{ $t->holder_name }}</span>
                         @if($t->seat)
                             <span class="inline-flex items-center rounded-md bg-[#e50914]/20 px-2 py-0.5 text-sm font-mono text-[#e50914]">Butaca {{ $t->seat->display_label }}</span>
+                        @elseif($t->section)
+                            <span class="inline-flex items-center rounded-md bg-[#e50914]/20 px-2 py-0.5 text-sm text-[#e50914]">Sección {{ $t->section->name }}</span>
                         @else
                             <span class="text-white/50 text-sm">Sin butaca asignada</span>
                         @endif
