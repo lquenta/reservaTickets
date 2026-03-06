@@ -27,6 +27,7 @@
                 <tr>
                     <th class="text-left px-5 py-4 text-slate-700 dark:text-slate-300 font-semibold">Usuario / Evento / Butacas</th>
                     <th class="text-left px-5 py-4 text-slate-700 dark:text-slate-300 font-semibold">Estado</th>
+                    <th class="text-left px-5 py-4 text-slate-700 dark:text-slate-300 font-semibold">Última acción</th>
                     <th class="text-left px-5 py-4 text-slate-700 dark:text-slate-300 font-semibold">Comprobante</th>
                     <th class="text-right px-5 py-4 text-slate-700 dark:text-slate-300 font-semibold">Acciones</th>
                 </tr>
@@ -56,6 +57,12 @@
                             @endif
                         </td>
                         <td class="px-5 py-4">
+                            <p class="text-sm text-slate-700 dark:text-slate-300" title="{{ $r->updated_at->isoFormat('LLLL') }}">{{ $r->updated_at->translatedFormat('d/m/Y H:i') }}</p>
+                            @if($r->status === 'INICIADO' && $r->expires_at)
+                                <p class="text-xs text-amber-600 dark:text-amber-400 mt-0.5">Expira: {{ $r->expires_at->translatedFormat('H:i') }}</p>
+                            @endif
+                        </td>
+                        <td class="px-5 py-4">
                             @if($r->payment_receipt_path)
                                 <a href="{{ asset('storage/'.$r->payment_receipt_path) }}" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-violet-600 dark:text-violet-400 hover:bg-violet-100 dark:hover:bg-violet-900/40 transition">
                                     <span aria-hidden="true">🖼️</span> Ver comprobante
@@ -65,7 +72,14 @@
                             @endif
                         </td>
                         <td class="px-5 py-4 text-right">
-                            @if($r->status === 'PENDIENTE_PAGO')
+                            @if($r->status === 'INICIADO')
+                                <div class="flex flex-wrap items-center justify-end gap-2">
+                                    <form method="POST" action="{{ route('admin.reservations.cancel', $r) }}" class="inline" onsubmit="return confirm('¿Cancelar esta reserva en proceso? Las butacas quedarán liberadas.');">
+                                        @csrf
+                                        <button type="submit" class="rounded-xl bg-red-600 px-4 py-2 text-white font-semibold hover:bg-red-700 transition">Cancelar</button>
+                                    </form>
+                                </div>
+                            @elseif($r->status === 'PENDIENTE_PAGO')
                                 <div class="flex flex-wrap items-center justify-end gap-2">
                                     <form method="POST" action="{{ route('admin.reservations.authorize', $r) }}" class="inline">
                                         @csrf

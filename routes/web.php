@@ -59,6 +59,7 @@ Route::prefix('admin')->middleware(['auth', 'admin'])->name('admin.')->group(fun
     Route::get('reservations', [\App\Http\Controllers\Admin\ReservationController::class, 'index'])->name('reservations.index');
     Route::post('reservations/{reservation}/authorize', [\App\Http\Controllers\Admin\ReservationController::class, 'authorizeReservation'])->name('reservations.authorize');
     Route::post('reservations/{reservation}/reject', [\App\Http\Controllers\Admin\ReservationController::class, 'rejectReservation'])->name('reservations.reject');
+    Route::post('reservations/{reservation}/cancel', [\App\Http\Controllers\Admin\ReservationController::class, 'cancelReservation'])->name('reservations.cancel');
     Route::get('reservations/{reservation}/tickets-pdf', [\App\Http\Controllers\Admin\ReservationController::class, 'ticketsPdf'])->name('reservations.tickets-pdf');
     Route::post('reservations/{reservation}/resend-tickets', [\App\Http\Controllers\Admin\ReservationController::class, 'resendTickets'])->name('reservations.resend-tickets');
     Route::get('users', [\App\Http\Controllers\Admin\UserController::class, 'index'])->name('users.index');

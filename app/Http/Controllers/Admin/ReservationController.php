@@ -62,6 +62,26 @@ class ReservationController extends Controller
         return redirect()->route('admin.reservations.index')->with('message', 'Reserva rechazada. Las butacas quedan liberadas.');
     }
 
+    public function cancelReservation(Reservation $reservation): RedirectResponse
+    {
+        if ($reservation->status !== Reservation::STATUS_INICIADO) {
+            return redirect()->route('admin.reservations.index')->with('message', 'Solo se pueden cancelar reservas en proceso (INICIADO).');
+        }
+
+        $reservation->update(['status' => Reservation::STATUS_CANCELADO]);
+
+        $reservation->load('event');
+        app(ReservationAuditService::class)->log(
+            ReservationAuditLog::ACTION_REJECTED,
+            ReservationAuditLog::RESULT_SUCCESS,
+            auth()->user(),
+            $reservation->event,
+            $reservation
+        );
+
+        return redirect()->route('admin.reservations.index')->with('message', 'Reserva cancelada. Las butacas quedan liberadas.');
+    }
+
     public function ticketsPdf(Request $request, Reservation $reservation): Response
     {
         if ($reservation->status !== Reservation::STATUS_CONFIRMADO) {
