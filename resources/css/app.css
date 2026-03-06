@@ -30,6 +30,67 @@
     50% { filter: drop-shadow(0 0 8px var(--color-neon-red)) drop-shadow(0 0 24px var(--color-neon-red)); }
 }
 
+/* Glow ochentero Stranger Things – títulos de sección */
+@keyframes title-glow {
+    0%, 100% {
+        text-shadow:
+            0 0 4px rgba(229, 9, 20, 0.9),
+            0 0 12px rgba(229, 9, 20, 0.6),
+            0 0 24px rgba(229, 9, 20, 0.4),
+            0 0 40px rgba(229, 9, 20, 0.25);
+    }
+    50% {
+        text-shadow:
+            0 0 8px rgba(229, 9, 20, 1),
+            0 0 20px rgba(229, 9, 20, 0.8),
+            0 0 40px rgba(229, 9, 20, 0.5),
+            0 0 60px rgba(229, 9, 20, 0.3);
+    }
+}
+
+/* Glow ochentero – botones CTA */
+@keyframes btn-glow {
+    0%, 100% {
+        box-shadow:
+            0 0 8px rgba(229, 9, 20, 0.6),
+            0 0 20px rgba(229, 9, 20, 0.35),
+            inset 0 0 12px rgba(229, 9, 20, 0.15);
+        text-shadow: 0 0 8px rgba(255, 255, 255, 0.4), 0 0 16px rgba(229, 9, 20, 0.5);
+    }
+    50% {
+        box-shadow:
+            0 0 16px rgba(229, 9, 20, 0.8),
+            0 0 32px rgba(229, 9, 20, 0.45),
+            inset 0 0 16px rgba(229, 9, 20, 0.2);
+        text-shadow: 0 0 12px rgba(255, 255, 255, 0.5), 0 0 24px rgba(229, 9, 20, 0.7);
+    }
+}
+
+.st-glow-title {
+    text-shadow:
+        0 0 4px rgba(229, 9, 20, 0.9),
+        0 0 12px rgba(229, 9, 20, 0.6),
+        0 0 24px rgba(229, 9, 20, 0.4),
+        0 0 40px rgba(229, 9, 20, 0.25);
+    animation: title-glow 3s ease-in-out infinite;
+}
+
+.st-glow-btn {
+    box-shadow:
+        0 0 8px rgba(229, 9, 20, 0.6),
+        0 0 20px rgba(229, 9, 20, 0.35),
+        inset 0 0 12px rgba(229, 9, 20, 0.15);
+    text-shadow: 0 0 8px rgba(255, 255, 255, 0.4), 0 0 16px rgba(229, 9, 20, 0.5);
+    animation: btn-glow 2.5s ease-in-out infinite;
+}
+.st-glow-btn:hover {
+    box-shadow:
+        0 0 20px rgba(229, 9, 20, 0.9),
+        0 0 40px rgba(229, 9, 20, 0.5),
+        inset 0 0 20px rgba(229, 9, 20, 0.25);
+    text-shadow: 0 0 12px rgba(255, 255, 255, 0.6), 0 0 28px rgba(229, 9, 20, 0.8);
+}
+
 @keyframes fade-in-up {
     from {
         opacity: 0;
@@ -121,12 +182,12 @@
     position: relative;
 }
 
-/* Ash / snow layer – fixed over entire page */
+/* Ash / snow layer – fixed over entire page, encima del contenido pero bajo el nav (z-40) */
 .homepage-ash {
     position: fixed;
     inset: 0;
     pointer-events: none;
-    z-index: 5;
+    z-index: 25;
     overflow: hidden;
 }
 
@@ -210,4 +271,55 @@
     z-index: 4;
     background: linear-gradient(to top, rgba(229, 9, 20, 0.4), transparent);
     box-shadow: 0 -2px 20px rgba(229, 9, 20, 0.25);
+}
+
+/* ========== Section dynamic background (Quiénes somos, Eventos, etc.) – Stranger Things ========== */
+.section-stranger-bg {
+    position: relative;
+    overflow: hidden;
+}
+
+.section-stranger-bg__inner {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background: linear-gradient(180deg, #0a0202 0%, #0d0202 25%, #120303 50%, #0d0202 75%, #050101 100%);
+    background-size: 100% 400%;
+    animation: section-bg-drift 25s ease-in-out infinite;
+}
+
+.section-stranger-bg__inner::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+        linear-gradient(rgba(229, 9, 20, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(229, 9, 20, 0.03) 1px, transparent 1px);
+    background-size: 48px 48px;
+    animation: section-grid-move 40s linear infinite;
+    pointer-events: none;
+}
+
+.section-stranger-bg__inner::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 100% 80% at 50% 120%, rgba(229, 9, 20, 0.12) 0%, transparent 50%);
+    animation: section-glow-pulse 8s ease-in-out infinite;
+    pointer-events: none;
+}
+
+@keyframes section-bg-drift {
+    0%, 100% { background-position: 0 0; }
+    50% { background-position: 0 75%; }
+}
+
+@keyframes section-grid-move {
+    0% { transform: translate(0, 0); }
+    100% { transform: translate(48px, 48px); }
+}
+
+@keyframes section-glow-pulse {
+    0%, 100% { opacity: 0.7; }
+    50% { opacity: 1; }
 }

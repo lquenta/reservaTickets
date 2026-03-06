@@ -87,6 +87,7 @@
     {{-- Con venue: mapa de butacas --}}
     @php
         $seatsByRow = $seats->groupBy('row');
+        $maxCols = $seatsByRow->isEmpty() ? 1 : $seatsByRow->max(fn ($r) => $r->count());
         $maxSeats = \App\Services\ReservationService::MAX_SEATS;
         $oldSeatIds = array_map('intval', (array) old('seat_ids', []));
         $oldNames = [];
@@ -147,12 +148,20 @@
                 <p class="text-sm font-medium text-white/70 mb-3 text-center">Escenario</p>
                 <div class="h-2 rounded bg-red-900/50 mb-8 mx-auto max-w-md"></div>
 
-                <div class="flex flex-col gap-3 items-center">
+                {{-- Plano escalado al viewport: todas las butacas visibles, proporción correcta --}}
+                @php
+                    $labelW = 2.5;
+                    $gapLabel = 0.75;
+                    $gapSeat = 0.5;
+                    $paddingVw = 5;
+                @endphp
+                <div class="w-full seat-plan-grid overflow-hidden" style="--cols: {{ $maxCols }}; --seat-size: min(2.5rem, max(1rem, calc((100vw - {{ $paddingVw }}rem - {{ $labelW }}rem - {{ $gapLabel }}rem - (var(--cols) - 1) * {{ $gapSeat }}rem) / var(--cols))));">
+                    <div class="flex flex-col gap-3 items-center">
                     @foreach($seatsByRow as $row => $rowSeats)
                         @php $rowLetter = $rowSeats->first()->row_letter ?? chr(64 + (int)$row); @endphp
-                        <div class="flex gap-3 items-center justify-center w-full" style="max-width: 100%;">
-                            <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-red-900/50 bg-black/40 text-sm font-bold text-[#e50914]" aria-label="Fila {{ $rowLetter }}">{{ $rowLetter }}</span>
-                            <div class="flex gap-2 justify-center flex-wrap">
+                        <div class="flex gap-3 items-center justify-center flex-nowrap">
+                            <span class="seat-plan-label flex shrink-0 items-center justify-center rounded-lg border border-red-900/50 bg-black/40 font-bold text-[#e50914]" style="width: var(--seat-size); height: var(--seat-size); font-size: min(0.875rem, var(--seat-size)); line-height: 1;" aria-label="Fila {{ $rowLetter }}">{{ $rowLetter }}</span>
+                            <div class="flex gap-2 justify-center flex-nowrap shrink-0">
                                 @foreach($rowSeats as $seat)
                                     <button type="button"
                                             @click="toggle({{ json_encode($seat) }})"
@@ -162,7 +171,8 @@
                                                 'bg-[#e50914] text-white ring-2 ring-white': isSelected({{ $seat->id }}),
                                                 'bg-slate-700 text-slate-500 cursor-not-allowed': isBlocked({{ json_encode($seat) }}) || (!isAvailable({{ $seat->id }}) && !isSelected({{ $seat->id }}))
                                             }"
-                                            class="w-10 h-10 rounded-lg font-mono text-sm font-bold transition shrink-0 disabled:opacity-70"
+                                            class="seat-plan-cell rounded-lg font-mono font-bold transition shrink-0 disabled:opacity-70 flex items-center justify-center"
+                                            style="width: var(--seat-size); height: var(--seat-size); min-width: var(--seat-size); font-size: min(0.875rem, var(--seat-size)); line-height: 1;"
                                             title="Fila {{ $seat->row_letter }} Butaca {{ $seat->number }} {{ $seat->blocked ? '(bloqueada)' : '' }}">
                                         {{ $seat->number }}
                                     </button>
@@ -170,6 +180,7 @@
                             </div>
                         </div>
                     @endforeach
+                    </div>
                 </div>
 
                 {{-- Envío de seat_ids: inputs ocultos + copia en textarea por si Alpine no incluye los inputs en el submit --}}

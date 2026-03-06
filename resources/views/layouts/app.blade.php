@@ -8,6 +8,7 @@
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=bebas-neue:400|outfit:400,500,600,700" rel="stylesheet" />
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <script>document.addEventListener('alpine:init', () => { Alpine.store('scrollSpy', { activeSection: '' }); });</script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     @if(config('services.recaptcha.site_key'))
     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
@@ -41,17 +42,19 @@
         </template>
     </div>
 
-    <header class="fixed top-0 left-0 right-0 z-40 transition-all duration-300" x-data="{ scrolled: false }" x-init="window.addEventListener('scroll', () => scrolled = window.scrollY > 60)">
+    <div x-data="{ scrolled: false }"
+         x-init="window.addEventListener('scroll', () => { scrolled = window.scrollY > 60; }); @if(request()->routeIs('home')) $nextTick(() => { const ids = ['hero', 'quienes-somos', 'nuestros-eventos', 'contacto', 'boletin']; const observer = new IntersectionObserver((entries) => { const visible = entries.filter(e => e.isIntersecting).sort((a,b) => a.boundingClientRect.top - b.boundingClientRect.top); if (visible.length) Alpine.store('scrollSpy').activeSection = visible[0].target.id; }, { rootMargin: '-15% 0px -55% 0px', threshold: 0 }); ids.forEach(id => { const el = document.getElementById(id); if (el) observer.observe(el); }); }); @endif">
+    <header class="fixed top-0 left-0 right-0 z-40 transition-all duration-300">
         <nav class="px-4 sm:px-6 lg:px-8 py-4" :class="scrolled ? 'bg-black/95 backdrop-blur border-b border-red-900/50' : 'bg-transparent'">
             <div class="max-w-7xl mx-auto flex justify-between items-center">
                 <a href="{{ route('home') }}" class="text-xl font-bold tracking-widest text-[#e50914] hover:text-red-400 transition font-display">
                     NOVA
                 </a>
-                <div class="flex items-center gap-4 sm:gap-6">
-                    <a href="{{ route('home') }}#quienes-somos" class="text-sm text-white/80 hover:text-[#e50914] transition tracking-wide hidden sm:inline">Quiénes somos</a>
-                    <a href="{{ route('home') }}#nuestros-eventos" class="text-sm text-white/80 hover:text-[#e50914] transition tracking-wide hidden sm:inline">Eventos</a>
-                    <a href="{{ route('home') }}#contacto" class="text-sm text-white/80 hover:text-[#e50914] transition tracking-wide hidden sm:inline">Contacto</a>
-                    <a href="{{ route('home') }}#boletin" class="text-sm text-white/80 hover:text-[#e50914] transition tracking-wide hidden sm:inline">Boletín</a>
+                <div class="flex items-center gap-4 sm:gap-6" x-data x-effect="$store.scrollSpy.activeSection">
+                    <a href="{{ route('home') }}#quienes-somos" class="text-sm transition tracking-wide hidden sm:inline" :class="$store.scrollSpy.activeSection === 'quienes-somos' ? 'text-[#e50914] font-semibold' : 'text-white/80 hover:text-[#e50914]'">Quiénes somos</a>
+                    <a href="{{ route('home') }}#nuestros-eventos" class="text-sm transition tracking-wide hidden sm:inline" :class="$store.scrollSpy.activeSection === 'nuestros-eventos' ? 'text-[#e50914] font-semibold' : 'text-white/80 hover:text-[#e50914]'">Eventos</a>
+                    <a href="{{ route('home') }}#contacto" class="text-sm transition tracking-wide hidden sm:inline" :class="$store.scrollSpy.activeSection === 'contacto' ? 'text-[#e50914] font-semibold' : 'text-white/80 hover:text-[#e50914]'">Contacto</a>
+                    <a href="{{ route('home') }}#boletin" class="text-sm transition tracking-wide hidden sm:inline" :class="$store.scrollSpy.activeSection === 'boletin' ? 'text-[#e50914] font-semibold' : 'text-white/80 hover:text-[#e50914]'">Boletín</a>
                     <a href="{{ route('events.index') }}" class="text-sm font-semibold text-[#e50914] border border-[#e50914] px-4 py-2 rounded hover:bg-[#e50914] hover:text-black transition">Eventos</a>
                     @auth
                         @if(!auth()->user()->isAdmin())
@@ -102,6 +105,7 @@
         </div>
     </footer>
 
+    </div>
     @stack('scripts')
 </body>
 </html>

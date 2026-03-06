@@ -43,6 +43,16 @@ Route::prefix('admin')->middleware(['auth', 'admin'])->name('admin.')->group(fun
     Route::get('/', function () {
         return view('admin.dashboard');
     })->name('dashboard');
+    Route::get('hero-slides', [\App\Http\Controllers\Admin\HeroSlideController::class, 'index'])->name('hero-slides.index');
+    Route::post('hero-slides', [\App\Http\Controllers\Admin\HeroSlideController::class, 'store'])->name('hero-slides.store');
+    Route::post('hero-slides/video', [\App\Http\Controllers\Admin\HeroSlideController::class, 'storeVideo'])->name('hero-slides.store-video');
+    Route::post('hero-slides/use-slider', [\App\Http\Controllers\Admin\HeroSlideController::class, 'useSlider'])->name('hero-slides.use-slider');
+    Route::delete('hero-slides/{hero_slide}', [\App\Http\Controllers\Admin\HeroSlideController::class, 'destroy'])->name('hero-slides.destroy');
+    Route::patch('hero-slides/reorder', [\App\Http\Controllers\Admin\HeroSlideController::class, 'reorder'])->name('hero-slides.reorder');
+    Route::get('site-content/quienes-somos', [\App\Http\Controllers\Admin\SiteContentController::class, 'quienesSomos'])->name('site-content.quienes-somos');
+    Route::put('site-content/quienes-somos', [\App\Http\Controllers\Admin\SiteContentController::class, 'updateQuienesSomos'])->name('site-content.update-quienes-somos');
+    Route::get('site-content/hero', [\App\Http\Controllers\Admin\SiteContentController::class, 'hero'])->name('site-content.hero');
+    Route::put('site-content/hero', [\App\Http\Controllers\Admin\SiteContentController::class, 'updateHero'])->name('site-content.update-hero');
     Route::resource('venues', \App\Http\Controllers\Admin\VenueController::class)->except(['show']);
     Route::get('events/{event}/seats', [\App\Http\Controllers\Admin\EventController::class, 'seats'])->name('events.seats');
     Route::resource('events', \App\Http\Controllers\Admin\EventController::class)->except(['show']);

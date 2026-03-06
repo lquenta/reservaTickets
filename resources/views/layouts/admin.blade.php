@@ -36,6 +36,21 @@
                         <span aria-hidden="true">📈</span> Reportes
                     </a>
                 </li>
+                <li>
+                    <a href="{{ route('admin.hero-slides.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-xl text-white/80 hover:bg-red-900/30 hover:text-[#e50914] font-medium transition {{ request()->routeIs('admin.hero-slides.*') ? 'bg-red-900/30 text-[#e50914]' : '' }}">
+                        <span aria-hidden="true">🖼️</span> Slider inicio
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('admin.site-content.quienes-somos') }}" class="flex items-center gap-2 px-3 py-2 rounded-xl text-white/80 hover:bg-red-900/30 hover:text-[#e50914] font-medium transition {{ request()->routeIs('admin.site-content.quienes-somos') ? 'bg-red-900/30 text-[#e50914]' : '' }}">
+                        <span aria-hidden="true">📝</span> Quiénes somos
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('admin.site-content.hero') }}" class="flex items-center gap-2 px-3 py-2 rounded-xl text-white/80 hover:bg-red-900/30 hover:text-[#e50914] font-medium transition {{ request()->routeIs('admin.site-content.hero') ? 'bg-red-900/30 text-[#e50914]' : '' }}">
+                        <span aria-hidden="true">🏠</span> Texto Hero
+                    </a>
+                </li>
             </ul>
             <div class="mt-4 pt-3 border-t border-red-900/50">
                 <a href="{{ route('home') }}" class="flex items-center gap-2 px-3 py-2 rounded-xl text-white/50 hover:bg-red-900/20 hover:text-[#e50914] text-sm transition">← Volver al sitio</a>

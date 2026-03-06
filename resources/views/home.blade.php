@@ -8,11 +8,29 @@
 {{-- Global section reveal state --}}
 <div x-data="homeReveal()" x-init="init()">
     {{-- Hero: pull up so it’s full viewport under fixed nav --}}
-    <section class="relative min-h-screen flex items-center justify-center homepage-scanlines -mt-24 pt-24" id="hero">
-        <div class="absolute inset-0 bg-gradient-to-b from-black via-[#1a0505] to-black"></div>
-        <div class="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_0%,rgba(229,9,20,0.15),transparent)]"></div>
+    <section class="relative min-h-screen flex items-center justify-center homepage-scanlines -mt-24 pt-24 overflow-hidden" id="hero"
+             x-data="heroSlider({{ count($hero_slides ?? []) }}, {{ json_encode($hero_slides ?? []) }})"
+             x-init="start()">
+        @if(!empty($hero_video_url))
+            <div class="absolute inset-0 z-0">
+                <video class="absolute inset-0 w-full h-full object-cover" autoplay muted loop playsinline aria-hidden="true"
+                       src="{{ $hero_video_url }}"></video>
+            </div>
+            <div class="absolute inset-0 bg-black/50 z-[1]" aria-hidden="true"></div>
+        @elseif(!empty($hero_slides))
+            <template x-for="(url, i) in slides" :key="i">
+                <div class="absolute inset-0 bg-cover bg-center transition-opacity duration-1000"
+                     :style="'background-image: url(\'' + url + '\')'"
+                     :class="{ 'opacity-100 z-0': activeIndex === i, 'opacity-0 z-0': activeIndex !== i }"
+                     aria-hidden="true"></div>
+            </template>
+            <div class="absolute inset-0 bg-black/50 z-[1]" aria-hidden="true"></div>
+        @else
+            <div class="absolute inset-0 bg-gradient-to-b from-black via-[#1a0505] to-black z-0"></div>
+        @endif
+        <div class="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_0%,rgba(229,9,20,0.15),transparent)] z-[1]" aria-hidden="true"></div>
         <div class="relative z-10 text-center px-4 max-w-4xl mx-auto" x-data="{ visible: false }" x-init="const o = new IntersectionObserver(([e]) => { if (e.isIntersecting) { visible = true; o.disconnect() } }, { threshold: 0.1 }); o.observe($el)">
-            <h1 class="font-display text-5xl sm:text-7xl md:text-8xl lg:text-9xl tracking-widest text-[#e50914] animate-flicker text-glow mb-6"
+            <h1 class="font-display text-5xl sm:text-7xl md:text-8xl lg:text-9xl tracking-widest text-[#e50914] animate-flicker text-glow st-glow-title mb-6"
                 x-show="visible"
                 x-transition:enter="transition ease-out duration-1000"
                 x-transition:enter-start="opacity-0 scale-95"
@@ -24,43 +42,48 @@
                 x-transition:enter="transition ease-out duration-700 delay-200"
                 x-transition:enter-start="opacity-0 translate-y-4"
                 x-transition:enter-end="opacity-100 translate-y-0">
-                Tus entradas. Tu experiencia.
+                {{ $hero_content?->title ?? 'Tus entradas. Tu experiencia.' }}
             </p>
             <a href="{{ route('events.index') }}"
-                class="inline-block mt-8 px-10 py-4 bg-[#e50914] text-white font-bold tracking-widest text-lg rounded border-2 border-[#e50914] hover:bg-transparent hover:text-[#e50914] transition-all duration-300 animate-glow-pulse"
+                class="inline-block mt-8 px-10 py-4 bg-[#e50914] text-white font-bold tracking-widest text-lg rounded border-2 border-[#e50914] hover:bg-transparent hover:text-[#e50914] transition-all duration-300 st-glow-btn"
                 x-show="visible"
                 x-transition:enter="transition ease-out duration-700 delay-300"
                 x-transition:enter-start="opacity-0 translate-y-4"
                 x-transition:enter-end="opacity-100 translate-y-0">
-                ENTRAR
+                {{ $hero_content?->content ?? 'ENTRAR' }}
             </a>
         </div>
     </section>
 
-    {{-- Quiénes somos --}}
-    <section id="quienes-somos" class="relative min-h-screen flex items-center justify-center py-20 px-4" x-data="{ visible: false }" x-init="const o = new IntersectionObserver(([e]) => { if (e.isIntersecting) visible = true }, { threshold: 0.1 }); o.observe($el)">
-        <div class="absolute inset-0 bg-gradient-to-b from-black via-[#0d0202] to-black"></div>
+    {{-- Quiénes somos: contenido editable por admin --}}
+    <section id="quienes-somos" class="relative min-h-screen flex items-center justify-center py-20 px-4 section-stranger-bg" x-data="{ visible: false }" x-init="const o = new IntersectionObserver(([e]) => { if (e.isIntersecting) visible = true }, { threshold: 0.1 }); o.observe($el)">
+        <div class="section-stranger-bg__inner"></div>
         <div class="relative z-10 max-w-3xl mx-auto text-center"
             x-show="visible"
             x-transition:enter="transition ease-out duration-700"
             x-transition:enter-start="opacity-0 translate-y-8"
             x-transition:enter-end="opacity-100 translate-y-0">
-            <h2 class="font-display text-4xl sm:text-5xl md:text-6xl tracking-widest text-[#e50914] mb-8">QUIÉNES SOMOS</h2>
-            <p class="text-white/90 text-lg leading-relaxed mb-6">
-                NOVA es tu plataforma para descubrir eventos y reservar tickets de forma rápida y segura.
-                Conectamos organizadores con el público: elige tu evento, reserva de 1 a 4 entradas con un código único de pago y recibe tus tickets por correo.
-            </p>
-            <p class="text-white/70 text-base">
-                Simple, transparente y pensado para que no te pierdas nada.
-            </p>
+            <h2 class="font-display text-4xl sm:text-5xl md:text-6xl tracking-widest text-[#e50914] mb-8 st-glow-title">{{ $quienes_somos?->title ?? 'QUIÉNES SOMOS' }}</h2>
+            <div class="text-white/90 text-lg leading-relaxed space-y-4 text-left">
+                @if($quienes_somos && $quienes_somos->content)
+                    @foreach(explode("\n\n", $quienes_somos->content) as $paragraph)
+                        @if(trim($paragraph))
+                            <p class="text-white/90">{{ trim($paragraph) }}</p>
+                        @endif
+                    @endforeach
+                @else
+                    <p class="text-white/90">NOVA es tu plataforma para descubrir eventos y reservar tickets de forma rápida y segura. Conectamos organizadores con el público: elige tu evento, reserva de 1 a 4 entradas con un código único de pago y recibe tus tickets por correo.</p>
+                    <p class="text-white/70 text-base">Simple, transparente y pensado para que no te pierdas nada.</p>
+                @endif
+            </div>
         </div>
     </section>
 
     {{-- Nuestros eventos --}}
-    <section id="nuestros-eventos" class="relative min-h-screen flex flex-col items-center justify-center py-20 px-4" x-data="{ visible: false }" x-init="const o = new IntersectionObserver(([e]) => { if (e.isIntersecting) visible = true }, { threshold: 0.1 }); o.observe($el)">
-        <div class="absolute inset-0 bg-gradient-to-b from-black via-[#1a0505] to-black"></div>
+    <section id="nuestros-eventos" class="relative min-h-screen flex flex-col items-center justify-center py-20 px-4 section-stranger-bg" x-data="{ visible: false }" x-init="const o = new IntersectionObserver(([e]) => { if (e.isIntersecting) visible = true }, { threshold: 0.1 }); o.observe($el)">
+        <div class="section-stranger-bg__inner"></div>
         <div class="relative z-10 w-full max-w-6xl mx-auto" x-show="visible" x-transition:enter="transition ease-out duration-700" x-transition:enter-start="opacity-0 translate-y-8" x-transition:enter-end="opacity-100 translate-y-0">
-            <h2 class="font-display text-4xl sm:text-5xl md:text-6xl tracking-widest text-[#e50914] text-center mb-12">
+            <h2 class="font-display text-4xl sm:text-5xl md:text-6xl tracking-widest text-[#e50914] text-center mb-12 st-glow-title">
                 NUESTROS EVENTOS
             </h2>
 
@@ -92,7 +115,7 @@
             @endif
 
             <div class="text-center">
-                <a href="{{ route('events.index') }}" class="inline-block px-8 py-3 bg-[#e50914] text-white font-bold tracking-widest rounded hover:bg-red-600 transition">
+                <a href="{{ route('events.index') }}" class="inline-block px-8 py-3 bg-[#e50914] text-white font-bold tracking-widest rounded hover:bg-red-600 transition st-glow-btn">
                     VER TODOS LOS EVENTOS
                 </a>
             </div>
@@ -100,10 +123,10 @@
     </section>
 
     {{-- Contáctenos --}}
-    <section id="contacto" class="relative min-h-screen flex items-center justify-center py-20 px-4" x-data="{ visible: false }" x-init="const o = new IntersectionObserver(([e]) => { if (e.isIntersecting) visible = true }, { threshold: 0.1 }); o.observe($el)">
-        <div class="absolute inset-0 bg-gradient-to-b from-black via-[#0d0202] to-black"></div>
+    <section id="contacto" class="relative min-h-screen flex items-center justify-center py-20 px-4 section-stranger-bg" x-data="{ visible: false }" x-init="const o = new IntersectionObserver(([e]) => { if (e.isIntersecting) visible = true }, { threshold: 0.1 }); o.observe($el)">
+        <div class="section-stranger-bg__inner"></div>
         <div class="relative z-10 w-full max-w-2xl mx-auto" x-show="visible" x-transition:enter="transition ease-out duration-700" x-transition:enter-start="opacity-0 translate-y-8" x-transition:enter-end="opacity-100 translate-y-0">
-            <h2 class="font-display text-4xl sm:text-5xl tracking-widest text-[#e50914] text-center mb-10">
+            <h2 class="font-display text-4xl sm:text-5xl tracking-widest text-[#e50914] text-center mb-10 st-glow-title">
                 CONTÁCTENOS
             </h2>
 
@@ -138,7 +161,7 @@
                         class="w-full px-4 py-3 bg-black/60 border border-red-900/50 rounded text-white placeholder-white/40 focus:border-[#e50914] focus:ring-1 focus:ring-[#e50914] outline-none transition resize-none">{{ old('message') }}</textarea>
                     @error('message')<p class="mt-1 text-sm text-red-400">{{ $message }}</p>@enderror
                 </div>
-                <button type="submit" class="w-full py-3 bg-[#e50914] text-white font-bold tracking-widest rounded hover:bg-red-600 transition">
+                <button type="submit" class="w-full py-3 bg-[#e50914] text-white font-bold tracking-widest rounded hover:bg-red-600 transition st-glow-btn">
                     ENVIAR
                 </button>
             </form>
@@ -146,10 +169,10 @@
     </section>
 
     {{-- Boletín --}}
-    <section id="boletin" class="relative min-h-screen flex items-center justify-center py-20 px-4" x-data="{ visible: false }" x-init="const o = new IntersectionObserver(([e]) => { if (e.isIntersecting) visible = true }, { threshold: 0.1 }); o.observe($el)">
-        <div class="absolute inset-0 bg-gradient-to-b from-black via-[#1a0505] to-black"></div>
+    <section id="boletin" class="relative min-h-screen flex items-center justify-center py-20 px-4 section-stranger-bg" x-data="{ visible: false }" x-init="const o = new IntersectionObserver(([e]) => { if (e.isIntersecting) visible = true }, { threshold: 0.1 }); o.observe($el)">
+        <div class="section-stranger-bg__inner"></div>
         <div class="relative z-10 w-full max-w-xl mx-auto text-center" x-show="visible" x-transition:enter="transition ease-out duration-700" x-transition:enter-start="opacity-0 translate-y-8" x-transition:enter-end="opacity-100 translate-y-0">
-            <h2 class="font-display text-4xl sm:text-5xl tracking-widest text-[#e50914] mb-4">
+            <h2 class="font-display text-4xl sm:text-5xl tracking-widest text-[#e50914] mb-4 st-glow-title">
                 BOLETÍN
             </h2>
             <p class="text-white/80 mb-8">
@@ -160,7 +183,7 @@
                 @csrf
                 <input type="email" name="email" placeholder="tu@correo.com" required
                     class="flex-1 px-4 py-3 bg-black/60 border border-red-900/50 rounded text-white placeholder-white/40 focus:border-[#e50914] focus:ring-1 focus:ring-[#e50914] outline-none transition">
-                <button type="submit" class="px-8 py-3 bg-[#e50914] text-white font-bold tracking-widest rounded hover:bg-red-600 transition whitespace-nowrap">
+                <button type="submit" class="px-8 py-3 bg-[#e50914] text-white font-bold tracking-widest rounded hover:bg-red-600 transition whitespace-nowrap st-glow-btn">
                     SUSCRIBIRME
                 </button>
             </form>
@@ -171,11 +194,11 @@
     </section>
 
     {{-- Cierre CTA --}}
-    <section class="relative py-24 px-4 flex flex-col items-center justify-center min-h-[50vh]" x-data="{ visible: false }" x-init="const o = new IntersectionObserver(([e]) => { if (e.isIntersecting) visible = true }, { threshold: 0.1 }); o.observe($el)">
-        <div class="absolute inset-0 bg-black"></div>
+    <section class="relative py-24 px-4 flex flex-col items-center justify-center min-h-[50vh] section-stranger-bg" x-data="{ visible: false }" x-init="const o = new IntersectionObserver(([e]) => { if (e.isIntersecting) visible = true }, { threshold: 0.1 }); o.observe($el)">
+        <div class="section-stranger-bg__inner"></div>
         <div class="relative z-10 text-center" x-show="visible" x-transition:enter="transition ease-out duration-700" x-transition:enter-start="opacity-0 translate-y-8" x-transition:enter-end="opacity-100 translate-y-0">
             <p class="text-white/80 text-lg mb-6">No te quedes fuera.</p>
-            <a href="{{ route('events.index') }}" class="inline-block px-10 py-4 bg-[#e50914] text-white font-bold tracking-widest rounded border-2 border-[#e50914] hover:bg-transparent hover:text-[#e50914] transition">
+            <a href="{{ route('events.index') }}" class="inline-block px-10 py-4 bg-[#e50914] text-white font-bold tracking-widest rounded border-2 border-[#e50914] hover:bg-transparent hover:text-[#e50914] transition st-glow-btn">
                 RESERVAR ENTRADAS
             </a>
         </div>
@@ -184,9 +207,20 @@
 
 <script>
 function homeReveal() {
+    return { init() {} };
+}
+function heroSlider(count, slides) {
     return {
-        init() {}
-    }
+        slides: Array.isArray(slides) ? slides : [],
+        activeIndex: 0,
+        interval: null,
+        start() {
+            if (this.slides.length <= 1) return;
+            this.interval = setInterval(() => {
+                this.activeIndex = (this.activeIndex + 1) % this.slides.length;
+            }, 5500);
+        }
+    };
 }
 </script>
 @endsection
