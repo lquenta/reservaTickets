@@ -15,9 +15,42 @@
         <p class="text-white/50 text-sm mt-2">Vuelve pronto para ver nuevas fechas.</p>
     </div>
 @else
+    <div x-data="{
+        isOpen: false,
+        selected: { name: '', description: '', date: '', venue: '', cover: '', reserve_url: '', login_url: '', admin_url: '' },
+        open(el) {
+            if (!el || !el.dataset) return;
+            const d = el.dataset;
+            this.selected = {
+                name: d.eventName || '',
+                description: d.eventDescription || '',
+                date: d.eventDate || '',
+                venue: d.eventVenue || '',
+                cover: d.eventCover || '',
+                reserve_url: d.eventReserveUrl || '',
+                login_url: d.eventLoginUrl || '',
+                admin_url: d.eventAdminUrl || ''
+            };
+            this.isOpen = true;
+            document.body.style.overflow = 'hidden';
+        },
+        close() {
+            this.isOpen = false;
+            document.body.style.overflow = '';
+        }
+    }">
     <div class="grid gap-8 md:grid-cols-2 xl:grid-cols-3">
         @foreach($events as $event)
-            <article class="group relative overflow-hidden rounded-2xl border border-red-900/50 hover:border-[#e50914]/50 transition-all duration-300 hover:-translate-y-1 min-h-[320px] flex flex-col">
+            <article class="group relative overflow-hidden rounded-2xl border border-red-900/50 hover:border-[#e50914]/50 transition-all duration-300 hover:-translate-y-1 min-h-[320px] flex flex-col cursor-pointer"
+                     data-event-name="{{ e($event->name) }}"
+                     data-event-description="{{ e($event->description ?? '') }}"
+                     data-event-date="{{ e($event->starts_at->translatedFormat('l d \d\e F \d\e Y, H:i')) }}"
+                     data-event-venue="{{ e($event->venue ?? '') }}"
+                     data-event-cover="{{ $event->cover_image_path ? asset('storage/'.$event->cover_image_path) : '' }}"
+                     data-event-reserve-url="{{ auth()->check() && !auth()->user()->isAdmin() ? route('reservations.create', $event) : '' }}"
+                     data-event-login-url="{{ !auth()->check() ? route('login') : '' }}"
+                     data-event-admin-url="{{ auth()->check() && auth()->user()->isAdmin() ? route('admin.dashboard') : '' }}"
+                     @click="open($event.currentTarget)">
                 <div class="absolute inset-0 bg-cover bg-center bg-no-repeat transition-transform duration-500 group-hover:scale-105
                      @if(!$event->cover_image_path) bg-gradient-to-br from-[#1a0505] to-[#e50914]/20 @endif"
                      @if($event->cover_image_path) style="background-image: url('{{ asset('storage/'.$event->cover_image_path) }}');" @endif>
@@ -30,13 +63,13 @@
                         <span aria-hidden="true">📅</span>
                         {{ $event->starts_at->translatedFormat('l d F Y, H:i') }}
                     </p>
-                    <p class="text-white/80 text-sm mb-5 flex items-center gap-1">
+                    <p class="text-white/80 text-sm mb-2 flex items-center gap-1">
                         <span aria-hidden="true">📍</span>
                         {{ $event->venue }}
                     </p>
                     @auth
                         @if(auth()->user()->isAdmin())
-                            <a href="{{ route('admin.dashboard') }}" class="inline-flex items-center justify-center rounded-xl bg-white/10 text-white font-medium px-5 py-3 border border-white/30 hover:bg-white/20 transition w-fit backdrop-blur">
+                            <a href="{{ route('admin.dashboard') }}" @click.stop class="inline-flex items-center justify-center rounded-xl bg-white/10 text-white font-medium px-5 py-3 border border-white/30 hover:bg-white/20 transition w-fit backdrop-blur mt-2">
                                 Panel de administración
                             </a>
                         @else
@@ -49,18 +82,84 @@
                                     @endif
                                 </p>
                             @endif
-                            <a href="{{ route('reservations.create', $event) }}" class="inline-flex items-center justify-center rounded-xl bg-[#e50914] text-white font-semibold px-5 py-3 hover:bg-red-600 transition w-fit">
+                            <a href="{{ route('reservations.create', $event) }}" @click.stop class="inline-flex items-center justify-center rounded-xl bg-[#e50914] text-white font-semibold px-5 py-3 hover:bg-red-600 transition w-fit mt-1">
                                 Reservar tickets
                             </a>
                         @endif
                     @else
-                        <a href="{{ route('login') }}" class="inline-flex items-center justify-center rounded-xl bg-white/10 text-white font-medium px-5 py-3 border border-white/30 hover:bg-white/20 transition w-fit backdrop-blur">
+                        <a href="{{ route('login') }}" @click.stop class="inline-flex items-center justify-center rounded-xl bg-white/10 text-white font-medium px-5 py-3 border border-white/30 hover:bg-white/20 transition w-fit backdrop-blur mt-2">
                             Inicia sesión para reservar
                         </a>
                     @endauth
                 </div>
             </article>
         @endforeach
+    </div>
+
+    {{-- Modal evento: flyer atrás, detalle y botón reservar (sin teleport para mantener scope Alpine) --}}
+    <div x-show="isOpen" x-cloak
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="transition ease-in duration-150"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"
+             class="fixed inset-0 z-50 flex items-center justify-center p-4"
+             @keydown.escape.window="close()"
+             role="dialog" aria-modal="true" aria-labelledby="event-modal-title">
+            <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" @click="close()"></div>
+            <div class="relative w-full max-w-2xl max-h-[90vh] overflow-hidden rounded-2xl border-2 border-red-900/50 bg-black/90 shadow-2xl flex flex-col"
+                 @click.stop
+                 x-show="isOpen"
+                 x-transition:enter="transition ease-out duration-200"
+                 x-transition:enter-start="opacity-0 scale-95"
+                 x-transition:enter-end="opacity-100 scale-100"
+                 x-transition:leave="transition ease-in duration-150"
+                 x-transition:leave-start="opacity-100 scale-100"
+                 x-transition:leave-end="opacity-0 scale-95">
+                {{-- Flyer de fondo --}}
+                <div class="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-30"
+                     :style="selected.cover ? { backgroundImage: 'url(' + selected.cover + ')' } : { background: 'linear-gradient(135deg, #1a0505 0%, rgba(229,9,20,0.2) 100%)' }"></div>
+                <div class="absolute inset-0 bg-gradient-to-t from-black via-black/80 to-black/60"></div>
+
+                <div class="relative flex flex-col flex-1 overflow-y-auto p-6 md:p-8">
+                    <div class="flex justify-end mb-2">
+                        <button type="button" @click="close()" class="rounded-full p-2 text-white/80 hover:text-white hover:bg-white/10 transition" aria-label="Cerrar">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                    </div>
+                    <h2 id="event-modal-title" class="font-display text-3xl md:text-4xl font-bold text-[#e50914] tracking-wider mb-4" x-text="selected.name"></h2>
+                    <p class="text-white/90 flex items-center gap-2 mb-2">
+                        <span aria-hidden="true">📅</span>
+                        <span x-text="selected.date"></span>
+                    </p>
+                    <p class="text-white/80 flex items-center gap-2 mb-4" x-show="selected.venue">
+                        <span aria-hidden="true">📍</span>
+                        <span x-text="selected.venue"></span>
+                    </p>
+                    <div class="prose prose-invert prose-sm max-w-none mb-6" x-show="selected.description">
+                        <p class="text-white/80 whitespace-pre-wrap" x-text="selected.description"></p>
+                    </div>
+                    <div class="mt-auto pt-4 flex flex-wrap gap-3">
+                        <template x-if="selected.reserve_url">
+                            <a :href="selected.reserve_url" class="inline-flex items-center justify-center rounded-xl bg-[#e50914] text-white font-semibold px-6 py-3 hover:bg-red-600 transition">
+                                Reservar tickets
+                            </a>
+                        </template>
+                        <template x-if="selected.login_url">
+                            <a :href="selected.login_url" class="inline-flex items-center justify-center rounded-xl bg-white/10 text-white font-medium px-6 py-3 border border-white/30 hover:bg-white/20 transition">
+                                Inicia sesión para reservar
+                            </a>
+                        </template>
+                        <template x-if="selected.admin_url">
+                            <a :href="selected.admin_url" class="inline-flex items-center justify-center rounded-xl bg-white/10 text-white font-medium px-6 py-3 border border-white/30 hover:bg-white/20 transition">
+                                Panel de administración
+                            </a>
+                        </template>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
     @if($events->hasPages())
         <div class="mt-10 flex justify-center [&_.bg-white]:bg-black/60 [&_.text-slate-700]:text-white [&_a]:text-[#e50914] [&_a:hover]:text-red-400">{{ $events->links() }}</div>
