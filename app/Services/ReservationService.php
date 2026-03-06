@@ -15,7 +15,7 @@ use Illuminate\Support\Str;
 
 class ReservationService
 {
-    public const MAX_SEATS = 12;
+    public const MAX_SEATS = 4;
 
     /** Máximo de reservas pendientes (INICIADO o PENDIENTE_PAGO) por usuario y evento. */
     public const MAX_PENDING_RESERVATIONS_PER_USER_EVENT = 1;
