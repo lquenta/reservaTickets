@@ -3,17 +3,17 @@
 @section('title', 'Checkout - ' . $event->name)
 
 @section('content')
-{{-- Indicador de pasos del checkout --}}
-<div class="max-w-2xl mx-auto mb-8">
-    <div class="flex items-center justify-center gap-4">
-        <div class="flex items-center gap-2">
-            <span class="flex h-10 w-10 items-center justify-center rounded-full bg-[#e50914] text-sm font-bold text-white">1</span>
-            <span class="text-sm font-medium text-[#e50914]">Elige butacas / datos</span>
+{{-- Indicador de pasos del checkout (responsive: texto corto en móvil, completo en sm+) --}}
+<div class="max-w-2xl mx-auto mb-6 sm:mb-8 px-1">
+    <div class="flex flex-wrap items-center justify-center gap-x-2 gap-y-2 sm:gap-x-4">
+        <div class="flex items-center gap-2 min-w-0">
+            <span class="flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-full bg-[#e50914] text-xs sm:text-sm font-bold text-white">1</span>
+            <span class="text-xs sm:text-sm font-medium text-[#e50914]"><span class="sm:hidden">Butacas / datos</span><span class="hidden sm:inline">Elige butacas / datos</span></span>
         </div>
-        <div class="h-px w-12 bg-red-900/50" aria-hidden="true"></div>
-        <div class="flex items-center gap-2">
-            <span class="flex h-10 w-10 items-center justify-center rounded-full border-2 border-red-900/60 bg-black/40 text-sm font-medium text-white/60">2</span>
-            <span class="text-sm text-white/50">Comprobante de pago</span>
+        <div class="h-px w-8 sm:w-12 bg-red-900/50 shrink-0" aria-hidden="true"></div>
+        <div class="flex items-center gap-2 min-w-0">
+            <span class="flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-full border-2 border-red-900/60 bg-black/40 text-xs sm:text-sm font-medium text-white/60">2</span>
+            <span class="text-xs sm:text-sm text-white/50"><span class="sm:hidden">Comprobante</span><span class="hidden sm:inline">Comprobante de pago</span></span>
         </div>
     </div>
 </div>
@@ -42,9 +42,9 @@
         oldSingleName: {{ old('single_name', true) ? 'true' : 'false' }},
         oldNames: {{ json_encode(array_merge([0 => ''], array_map(fn ($i) => old("holder_name_{$i}", ''), range(1, $maxSeats)))) }}
     })">
-        <h1 class="font-display text-3xl font-bold text-[#e50914] tracking-widest mb-2">CHECKOUT — PASO 1</h1>
-        <p class="text-xl text-white/80 mb-2">{{ $event->name }}</p>
-        <p class="text-white/60 text-sm mb-6">Elige butacas y/o entradas por sección. Máximo {{ $maxSeats }} entradas en total.</p>
+        <h1 class="font-display text-2xl sm:text-3xl font-bold text-[#e50914] tracking-widest mb-2">CHECKOUT — PASO 1</h1>
+        <p class="text-lg sm:text-xl text-white/80 mb-2">{{ $event->name }}</p>
+        <p class="text-white/60 text-sm mb-4 sm:mb-6">Elige butacas y/o entradas por sección. Máximo {{ $maxSeats }} entradas en total.</p>
 
         <form id="reservation-form-sections" method="POST" action="{{ route('reservations.store') }}" class="space-y-8">
             @csrf
@@ -63,7 +63,7 @@
             @error('event_id')<p class="text-sm text-red-400">{{ $message }}</p>@enderror
 
             @foreach($sectionsData as $section)
-                <div class="rounded-2xl border border-red-900/50 bg-black/60 backdrop-blur p-6">
+                <div class="rounded-2xl border border-red-900/50 bg-black/60 backdrop-blur px-4 py-5 sm:p-6">
                     <h2 class="text-lg font-semibold text-[#e50914] mb-1">{{ $section['name'] }}</h2>
                     @if(isset($section['price']) && $section['price'] !== null && $section['price'] > 0)
                         <p class="text-white/60 text-sm mb-4">Precio: {{ number_format($section['price'], 2) }} Bs</p>
@@ -74,14 +74,24 @@
                             $seatsByRow = $section['seats']->groupBy('row');
                             $sectionAvailableIds = $section['availableSeatIds'];
                         @endphp
-                        <div class="flex flex-col gap-2 items-center">
+                        {{-- Tamaño de butaca proporcional al dispositivo (clamp: móvil pequeño → desktop) --}}
+                        <div class="flex flex-col gap-2 items-center section-seat-plan" style="--section-seat-size: clamp(0.875rem, 6vw, 2.5rem);">
+                            {{-- Línea y label ESCENARIO encima de la primera fila --}}
+                            <div class="flex gap-2 items-center justify-center w-full mb-1">
+                                <span class="shrink-0 flex items-center justify-center font-bold text-[#e50914]" style="width: var(--section-seat-size); height: var(--section-seat-size); font-size: min(0.875rem, var(--section-seat-size)); line-height: 1;" aria-hidden="true"></span>
+                                <div class="flex flex-col items-center gap-1 shrink-0">
+                                    <div class="w-full max-w-[12rem] rounded-sm bg-red-700 min-h-[3px]" style="height: 3px;" role="img" aria-label="Línea de escenario"></div>
+                                    <span class="text-[10px] font-medium text-red-400 uppercase tracking-wider">ESCENARIO</span>
+                                </div>
+                            </div>
                             @foreach($seatsByRow as $row => $rowSeats)
                                 @php $rowLetter = $rowSeats->first()->row_letter ?? chr(64 + (int)$row); @endphp
                                 <div class="flex gap-2 items-center justify-center">
-                                    <span class="w-8 text-center font-bold text-[#e50914] text-sm">{{ $rowLetter }}</span>
+                                    <span class="shrink-0 flex items-center justify-center font-bold text-[#e50914]" style="width: var(--section-seat-size); height: var(--section-seat-size); font-size: min(0.875rem, var(--section-seat-size)); line-height: 1;">{{ $rowLetter }}</span>
                                     @foreach($rowSeats as $seat)
                                         <button type="button"
-                                                class="seat-btn rounded-lg w-10 h-10 flex items-center justify-center text-sm font-mono transition disabled:opacity-70 disabled:cursor-not-allowed"
+                                                class="seat-btn rounded-lg flex items-center justify-center font-mono transition disabled:opacity-70 disabled:cursor-not-allowed shrink-0"
+                                                style="width: var(--section-seat-size); height: var(--section-seat-size); min-width: var(--section-seat-size); font-size: min(0.875rem, var(--section-seat-size)); line-height: 1;"
                                                 :class="sectionSeatClass({{ $seat->id }}, {{ json_encode($section['availableSeatIds']) }})"
                                                 :disabled="!canSelectSectionSeat({{ $seat->id }}, {{ json_encode($section['availableSeatIds']) }})"
                                                 data-seat-id="{{ $seat->id }}"
@@ -107,7 +117,7 @@
                 </div>
             @endforeach
 
-            <div class="rounded-2xl border border-red-900/50 bg-black/60 backdrop-blur p-6">
+            <div class="rounded-2xl border border-red-900/50 bg-black/60 backdrop-blur px-4 py-5 sm:p-6">
                 <p class="text-white/80 mb-2" x-show="totalTickets > 0">Total: <strong x-text="totalTickets"></strong> entrada(s).</p>
                 <p class="cost-total-block text-white/90 mb-2" x-show="totalTickets > 0 && totalCost > 0">Costo total: <span class="cost-total-price block mt-1" x-text="'Bs ' + (typeof totalCost === 'number' ? totalCost.toFixed(2) : '0.00')"></span></p>
                 <template x-for="id in selectedSeatIds" :key="id">
@@ -115,16 +125,18 @@
                 </template>
             </div>
 
-            <div class="rounded-2xl border border-red-900/50 bg-black/60 backdrop-blur p-6 space-y-4">
+            <div class="rounded-2xl border border-red-900/50 bg-black/60 backdrop-blur px-4 py-5 sm:p-6 space-y-4">
                 <p class="block text-sm font-medium text-white/80">Nombres en los tickets</p>
-                <label class="inline-flex items-center mr-6">
-                    <input type="radio" name="single_name" value="1" x-model="singleName" class="text-[#e50914] focus:ring-[#e50914] bg-black/60">
-                    <span class="ml-2 text-white/70">Un nombre para todos</span>
-                </label>
-                <label class="inline-flex items-center">
-                    <input type="radio" name="single_name" value="0" x-model="singleName" class="text-[#e50914] focus:ring-[#e50914] bg-black/60">
-                    <span class="ml-2 text-white/70">Un nombre por ticket</span>
-                </label>
+                <div class="flex flex-col gap-3 sm:flex-row sm:gap-6">
+                    <label class="inline-flex items-center gap-2 cursor-pointer">
+                        <input type="radio" name="single_name" value="1" x-model="singleName" class="text-[#e50914] focus:ring-[#e50914] bg-black/60">
+                        <span class="text-white/70">Un nombre para todos</span>
+                    </label>
+                    <label class="inline-flex items-center gap-2 cursor-pointer">
+                        <input type="radio" name="single_name" value="0" x-model="singleName" class="text-[#e50914] focus:ring-[#e50914] bg-black/60">
+                        <span class="text-white/70">Un nombre por ticket</span>
+                    </label>
+                </div>
                 <div x-show="singleName === '1' || singleName === true">
                     <label for="holder_name" class="block text-sm font-medium text-white/80 mb-1">Nombre para todos</label>
                     <input id="holder_name" type="text" name="holder_name" x-model="holderName" maxlength="255"
@@ -239,13 +251,13 @@
     </script>
 @elseif(empty($seats))
     {{-- Sin venue: reserva por cantidad (legacy) --}}
-    <div class="max-w-2xl mx-auto" x-data="{ quantity: {{ old('quantity', 1) }}, singleName: {{ old('single_name', true) ? 'true' : 'false' }} }">
-        <h1 class="font-display text-3xl font-bold text-[#e50914] tracking-widest mb-2">CHECKOUT — PASO 1</h1>
-        <p class="text-xl text-white/80 mb-2">{{ $event->name }}</p>
+    <div class="max-w-2xl mx-auto px-1" x-data="{ quantity: {{ old('quantity', 1) }}, singleName: {{ old('single_name', true) ? 'true' : 'false' }} }">
+        <h1 class="font-display text-2xl sm:text-3xl font-bold text-[#e50914] tracking-widest mb-2">CHECKOUT — PASO 1</h1>
+        <p class="text-lg sm:text-xl text-white/80 mb-2">{{ $event->name }}</p>
         <p class="text-white/60 text-sm mb-2">Cantidad y nombres para los tickets.</p>
-        <p class="text-amber-200/90 text-sm mb-8">Este evento no tiene selección de butacas; solo elige la cantidad. En el paso 2 verás el resumen y subirás el comprobante.</p>
+        <p class="text-amber-200/90 text-sm mb-6 sm:mb-8">Este evento no tiene selección de butacas; solo elige la cantidad. En el paso 2 verás el resumen y subirás el comprobante.</p>
 
-        <form method="POST" action="{{ route('reservations.store') }}" class="rounded-2xl border border-red-900/50 bg-black/60 backdrop-blur p-8 md:p-10 space-y-6">
+        <form method="POST" action="{{ route('reservations.store') }}" class="rounded-2xl border border-red-900/50 bg-black/60 backdrop-blur px-4 py-6 sm:p-8 md:p-10 space-y-6">
             @csrf
             <input type="hidden" name="event_id" value="{{ $event->id }}">
             @error('event_id')<p class="text-sm text-red-400">{{ $message }}</p>@enderror
@@ -262,14 +274,16 @@
 
             <div>
                 <p class="block text-sm font-medium text-white/80 mb-2">Nombres en los tickets</p>
-                <label class="inline-flex items-center mr-6">
-                    <input type="radio" name="single_name" value="1" x-model="singleName" class="text-[#e50914] focus:ring-[#e50914] bg-black/60">
-                    <span class="ml-2 text-white/70">Un nombre para todos</span>
-                </label>
-                <label class="inline-flex items-center">
-                    <input type="radio" name="single_name" value="0" x-model="singleName" class="text-[#e50914] focus:ring-[#e50914] bg-black/60">
-                    <span class="ml-2 text-white/70">Un nombre por ticket</span>
-                </label>
+                <div class="flex flex-col gap-3 sm:flex-row sm:gap-6">
+                    <label class="inline-flex items-center gap-2 cursor-pointer">
+                        <input type="radio" name="single_name" value="1" x-model="singleName" class="text-[#e50914] focus:ring-[#e50914] bg-black/60">
+                        <span class="text-white/70">Un nombre para todos</span>
+                    </label>
+                    <label class="inline-flex items-center gap-2 cursor-pointer">
+                        <input type="radio" name="single_name" value="0" x-model="singleName" class="text-[#e50914] focus:ring-[#e50914] bg-black/60">
+                        <span class="text-white/70">Un nombre por ticket</span>
+                    </label>
+                </div>
             </div>
 
             <div x-show="singleName === '1' || singleName === true">
@@ -367,9 +381,9 @@
             syncSeatFor();
             $watch('selectedIds', syncSeatFor, { deep: true });
          ">
-        <h1 class="font-display text-3xl font-bold text-[#e50914] tracking-widest mb-2">CHECKOUT — PASO 1</h1>
-        <p class="text-xl text-white/80 mb-2">{{ $event->name }}</p>
-        <p class="text-white/60 text-sm mb-6">Elige tus butacas haciendo clic (máximo {{ $maxSeats }}). Luego los nombres. Al continuar pasarás al paso 2 para subir el comprobante.</p>
+        <h1 class="font-display text-2xl sm:text-3xl font-bold text-[#e50914] tracking-widest mb-2">CHECKOUT — PASO 1</h1>
+        <p class="text-lg sm:text-xl text-white/80 mb-2">{{ $event->name }}</p>
+        <p class="text-white/60 text-sm mb-4 sm:mb-6">Elige tus butacas haciendo clic (máximo {{ $maxSeats }}). Luego los nombres. Al continuar pasarás al paso 2 para subir el comprobante.</p>
 
         <form method="POST" action="{{ route('reservations.store') }}" class="space-y-6"
               @submit="const t = $el.querySelector('[name=seat_ids_csv]'); if (t && Array.isArray(selectedIds)) t.value = selectedIds.join(',');">
@@ -387,13 +401,7 @@
                 </div>
             @endif
 
-            <div class="rounded-2xl border border-red-900/50 bg-black/60 backdrop-blur p-6">
-                {{-- Indicador de escenario: sticky en móvil para que siempre se vea al hacer scroll --}}
-                <div class="sticky top-0 z-10 -mx-2 px-2 pt-1 pb-2 mb-4 md:mb-6 bg-black/80 md:bg-transparent backdrop-blur-sm md:backdrop-blur-none rounded-b-lg md:rounded-none border-b border-red-900/30 md:border-0">
-                    <p class="text-sm font-medium text-white/90 md:text-white/70 mb-2 text-center" aria-hidden="true">Escenario</p>
-                    <div class="h-2 md:h-2 rounded bg-red-900/60 md:bg-red-900/50 mb-0 mx-auto w-full md:max-w-md" role="img" aria-label="Escenario (las butacas están debajo)"></div>
-                </div>
-
+            <div class="rounded-2xl border border-red-900/50 bg-black/60 backdrop-blur px-4 py-5 sm:p-6">
                 {{-- Plano escalado al viewport: todas las butacas visibles, proporción correcta --}}
                 @php
                     $labelW = 2.5;
@@ -401,13 +409,15 @@
                     $gapSeat = 0.5;
                     $paddingVw = 5;
                 @endphp
-                <div class="w-full seat-plan-grid overflow-hidden" style="--cols: {{ $maxCols }}; --seat-size: min(2.5rem, max(1rem, calc((100vw - {{ $paddingVw }}rem - {{ $labelW }}rem - {{ $gapLabel }}rem - (var(--cols) - 1) * {{ $gapSeat }}rem) / var(--cols))));">
+                {{-- Tamaño de butaca proporcional al dispositivo: mínimo 0.875rem en móvil, máximo 3rem en desktop --}}
+                <div class="w-full seat-plan-grid overflow-hidden" style="--cols: {{ $maxCols }}; --seat-size: clamp(0.875rem, calc((100vw - {{ $paddingVw }}rem - {{ $labelW }}rem - {{ $gapLabel }}rem - (var(--cols) - 1) * {{ $gapSeat }}rem) / var(--cols)), 3rem);">
                     <div class="flex flex-col gap-3 items-center">
-                    {{-- En móvil: recordatorio de escenario encima de la primera fila para que siempre se vea al hacer scroll --}}
-                    <div class="flex gap-3 items-center justify-center flex-nowrap w-full md:hidden mb-1">
+                    {{-- Línea y label ESCENARIO encima de la primera fila; misma estructura (label + zona central) para no romper alineación --}}
+                    <div class="flex gap-3 items-center justify-center flex-nowrap w-full mb-1">
                         <span class="shrink-0 invisible" style="width: var(--seat-size); height: var(--seat-size);" aria-hidden="true"></span>
-                        <div class="flex justify-center shrink-0">
-                            <span class="text-xs font-medium text-red-400/90 uppercase tracking-wider">↑ Escenario</span>
+                        <div class="flex flex-col items-center justify-center shrink-0 gap-1 w-full min-w-0">
+                            <div class="w-full max-w-[14rem] rounded-sm bg-red-700 min-h-[3px]" style="height: 3px;" role="img" aria-label="Línea de escenario"></div>
+                            <span class="text-[10px] sm:text-xs font-medium text-red-400 uppercase tracking-wider">ESCENARIO</span>
                         </div>
                     </div>
                     @foreach($seatsByRow as $row => $rowSeats)
@@ -448,16 +458,18 @@
             </p>
             @error('seat_ids')<p class="text-sm text-red-400">{{ $message }}</p>@enderror
 
-            <div class="rounded-2xl border border-red-900/50 bg-black/60 backdrop-blur p-6 space-y-4">
+            <div class="rounded-2xl border border-red-900/50 bg-black/60 backdrop-blur px-4 py-5 sm:p-6 space-y-4">
                 <p class="block text-sm font-medium text-white/80">Nombres en los tickets</p>
-                <label class="inline-flex items-center mr-6">
-                    <input type="radio" name="single_name" value="1" x-model="singleName" class="text-[#e50914] focus:ring-[#e50914] bg-black/60">
-                    <span class="ml-2 text-white/70">Un nombre para todos</span>
-                </label>
-                <label class="inline-flex items-center">
-                    <input type="radio" name="single_name" value="0" x-model="singleName" class="text-[#e50914] focus:ring-[#e50914] bg-black/60">
-                    <span class="ml-2 text-white/70">Un nombre por ticket</span>
-                </label>
+                <div class="flex flex-col gap-3 sm:flex-row sm:gap-6">
+                    <label class="inline-flex items-center gap-2 cursor-pointer">
+                        <input type="radio" name="single_name" value="1" x-model="singleName" class="text-[#e50914] focus:ring-[#e50914] bg-black/60">
+                        <span class="text-white/70">Un nombre para todos</span>
+                    </label>
+                    <label class="inline-flex items-center gap-2 cursor-pointer">
+                        <input type="radio" name="single_name" value="0" x-model="singleName" class="text-[#e50914] focus:ring-[#e50914] bg-black/60">
+                        <span class="text-white/70">Un nombre por ticket</span>
+                    </label>
+                </div>
 
                 <div x-show="singleName === '1' || singleName === true">
                     <label for="holder_name" class="block text-sm font-medium text-white/80 mb-1">Nombre para todos los tickets</label>

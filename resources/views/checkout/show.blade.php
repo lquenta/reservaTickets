@@ -3,28 +3,28 @@
 @section('title', 'Checkout - ' . $reservation->event->name)
 
 @section('content')
-{{-- Indicador de pasos del checkout --}}
-<div class="max-w-2xl mx-auto mb-8">
-    <div class="flex items-center justify-center gap-4">
-        <div class="flex items-center gap-2">
-            <span class="flex h-10 w-10 items-center justify-center rounded-full border-2 border-[#e50914]/60 bg-[#e50914]/20 text-sm font-medium text-[#e50914]">1</span>
-            <span class="text-sm text-white/50">Elige butacas / datos</span>
+{{-- Indicador de pasos del checkout (responsive: texto corto en móvil, completo en sm+) --}}
+<div class="max-w-2xl mx-auto mb-6 sm:mb-8 px-1">
+    <div class="flex flex-wrap items-center justify-center gap-x-2 gap-y-2 sm:gap-x-4">
+        <div class="flex items-center gap-2 min-w-0">
+            <span class="flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-full border-2 border-[#e50914]/60 bg-[#e50914]/20 text-xs sm:text-sm font-medium text-[#e50914]">1</span>
+            <span class="text-xs sm:text-sm text-white/50"><span class="sm:hidden">Butacas / datos</span><span class="hidden sm:inline">Elige butacas / datos</span></span>
         </div>
-        <div class="h-px w-12 bg-red-900/50" aria-hidden="true"></div>
-        <div class="flex items-center gap-2">
-            <span class="flex h-10 w-10 items-center justify-center rounded-full bg-[#e50914] text-sm font-bold text-white">2</span>
-            <span class="text-sm font-medium text-[#e50914]">Comprobante de pago</span>
+        <div class="h-px w-8 sm:w-12 bg-red-900/50 shrink-0" aria-hidden="true"></div>
+        <div class="flex items-center gap-2 min-w-0">
+            <span class="flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-full bg-[#e50914] text-xs sm:text-sm font-bold text-white">2</span>
+            <span class="text-xs sm:text-sm font-medium text-[#e50914]"><span class="sm:hidden">Comprobante</span><span class="hidden sm:inline">Comprobante de pago</span></span>
         </div>
     </div>
 </div>
 
-<div class="max-w-2xl mx-auto" x-data="checkoutTimer({{ $reservation->expires_at->timestamp * 1000 }})" x-init="start()">
-    <div class="rounded-2xl border border-amber-500/50 bg-amber-900/20 p-6 mb-8 text-center">
+<div class="max-w-2xl mx-auto px-1" x-data="checkoutTimer({{ $reservation->expires_at->timestamp * 1000 }})" x-init="start()">
+    <div class="rounded-2xl border border-amber-500/50 bg-amber-900/20 px-4 py-5 sm:p-6 mb-6 sm:mb-8 text-center">
         <p class="text-sm font-semibold text-amber-200 mb-2 uppercase tracking-wide">Tiempo restante para completar la reserva</p>
-        <p class="text-4xl md:text-5xl font-mono font-bold text-amber-100 tabular-nums" x-text="display" x-transition></p>
+        <p class="text-3xl sm:text-4xl md:text-5xl font-mono font-bold text-amber-100 tabular-nums" x-text="display" x-transition></p>
     </div>
 
-    <div class="rounded-2xl border border-red-900/50 bg-black/60 backdrop-blur p-8 md:p-10 space-y-8">
+    <div class="rounded-2xl border border-red-900/50 bg-black/60 backdrop-blur px-4 py-6 sm:p-8 md:p-10 space-y-8">
         <h1 class="font-display text-2xl md:text-3xl font-bold text-[#e50914] tracking-widest">CHECKOUT — PASO 2</h1>
         <p class="text-xl text-white/80 mb-2">{{ $reservation->event->name }}</p>
         <p class="text-white/60 text-sm mb-6">Resumen de tu reserva y comprobante de pago.</p>
