@@ -388,8 +388,11 @@
             @endif
 
             <div class="rounded-2xl border border-red-900/50 bg-black/60 backdrop-blur p-6">
-                <p class="text-sm font-medium text-white/70 mb-3 text-center">Escenario</p>
-                <div class="h-2 rounded bg-red-900/50 mb-8 mx-auto max-w-md"></div>
+                {{-- Indicador de escenario: sticky en móvil para que siempre se vea al hacer scroll --}}
+                <div class="sticky top-0 z-10 -mx-2 px-2 pt-1 pb-2 mb-4 md:mb-6 bg-black/80 md:bg-transparent backdrop-blur-sm md:backdrop-blur-none rounded-b-lg md:rounded-none border-b border-red-900/30 md:border-0">
+                    <p class="text-sm font-medium text-white/90 md:text-white/70 mb-2 text-center" aria-hidden="true">Escenario</p>
+                    <div class="h-2 md:h-2 rounded bg-red-900/60 md:bg-red-900/50 mb-0 mx-auto w-full md:max-w-md" role="img" aria-label="Escenario (las butacas están debajo)"></div>
+                </div>
 
                 {{-- Plano escalado al viewport: todas las butacas visibles, proporción correcta --}}
                 @php
@@ -400,6 +403,13 @@
                 @endphp
                 <div class="w-full seat-plan-grid overflow-hidden" style="--cols: {{ $maxCols }}; --seat-size: min(2.5rem, max(1rem, calc((100vw - {{ $paddingVw }}rem - {{ $labelW }}rem - {{ $gapLabel }}rem - (var(--cols) - 1) * {{ $gapSeat }}rem) / var(--cols))));">
                     <div class="flex flex-col gap-3 items-center">
+                    {{-- En móvil: recordatorio de escenario encima de la primera fila para que siempre se vea al hacer scroll --}}
+                    <div class="flex gap-3 items-center justify-center flex-nowrap w-full md:hidden mb-1">
+                        <span class="shrink-0 invisible" style="width: var(--seat-size); height: var(--seat-size);" aria-hidden="true"></span>
+                        <div class="flex justify-center shrink-0">
+                            <span class="text-xs font-medium text-red-400/90 uppercase tracking-wider">↑ Escenario</span>
+                        </div>
+                    </div>
                     @foreach($seatsByRow as $row => $rowSeats)
                         @php $rowLetter = $rowSeats->first()->row_letter ?? chr(64 + (int)$row); @endphp
                         <div class="flex gap-3 items-center justify-center flex-nowrap">
