@@ -50,6 +50,27 @@ php artisan serve
 
 Panel admin: acceder con un usuario que tenga `is_admin = true` en base de datos.
 
+## Producción (crontab)
+
+Para que se ejecuten las tareas programadas (cancelar reservas expiradas y **procesar la cola de correos**), configura un único cron que ejecute el scheduler de Laravel cada minuto:
+
+```bash
+crontab -e
+```
+
+Añade esta línea (ajusta la ruta a tu proyecto):
+
+```cron
+* * * * * cd /ruta/completa/reservaTickets && php artisan schedule:run >> /dev/null 2>&1
+```
+
+Con eso, cada minuto Laravel ejecutará:
+
+- `reservations:cancel-expired` — cancela reservas en proceso pasados 10 minutos.
+- `queue:work database --stop-when-empty` — procesa los jobs de la cola (envío de tickets por correo, etc.) y termina cuando no hay más.
+
+No hace falta un worker permanente ni otro cron; todo va con este único entry.
+
 ## Licencia
 
 GPL-3.0. Ver [LICENSE](LICENSE).
