@@ -81,11 +81,12 @@
                                     <span class="w-8 text-center font-bold text-[#e50914] text-sm">{{ $rowLetter }}</span>
                                     @foreach($rowSeats as $seat)
                                         <button type="button"
-                                                class="seat-btn rounded-lg w-10 h-10 flex items-center justify-center text-sm font-mono transition"
+                                                class="seat-btn rounded-lg w-10 h-10 flex items-center justify-center text-sm font-mono transition disabled:opacity-70 disabled:cursor-not-allowed"
                                                 :class="sectionSeatClass({{ $seat->id }}, {{ json_encode($section['availableSeatIds']) }})"
+                                                :disabled="!canSelectSectionSeat({{ $seat->id }}, {{ json_encode($section['availableSeatIds']) }})"
                                                 data-seat-id="{{ $seat->id }}"
                                                 data-section-id="{{ $section['id'] }}"
-                                                @click="toggleSeat({{ $seat->id }})">
+                                                @click="toggleSeat({{ $seat->id }}, {{ json_encode($section['availableSeatIds']) }})">
                                             {{ $seat->number }}
                                         </button>
                                     @endforeach
@@ -217,11 +218,20 @@
                     if (available) return 'bg-emerald-600 hover:bg-emerald-500 text-white';
                     return 'bg-slate-700 text-slate-500 cursor-not-allowed';
                 },
-                toggleSeat(seatId) {
+                canSelectSectionSeat(seatId, availableIds) {
+                    const id = parseInt(seatId, 10);
+                    const selected = this.selectedSeatIds.includes(id);
+                    const available = (availableIds || []).includes(id);
+                    return selected || (available && this.selectedSeatIds.length < maxSeats);
+                },
+                toggleSeat(seatId, availableIds) {
                     const id = parseInt(seatId, 10);
                     const idx = this.selectedSeatIds.indexOf(id);
                     if (idx >= 0) this.selectedSeatIds.splice(idx, 1);
-                    else if (this.selectedSeatIds.length < maxSeats) this.selectedSeatIds.push(id);
+                    else {
+                        const available = (availableIds || []).includes(id);
+                        if (available && this.selectedSeatIds.length < maxSeats) this.selectedSeatIds.push(id);
+                    }
                     this.selectedSeatIds.sort((a,b)=>a-b);
                 }
             };
@@ -305,6 +315,10 @@
             $oldNames[$i] = old("holder_name_{$i}", '');
             $oldSeatFor[$i] = old("seat_for_{$i}");
         }
+        $seatFor = [];
+        for ($i = 1; $i <= count($oldSeatIds); $i++) {
+            $seatFor[$i] = isset($oldSeatFor[$i]) ? (int) $oldSeatFor[$i] : ($oldSeatIds[$i - 1] ?? null);
+        }
     @endphp
     @php
         $alpineDataJson = json_encode([
@@ -315,6 +329,7 @@
             'oldNames' => $oldNames,
             'oldSeatFor' => $oldSeatFor,
             'seatsMap' => $seatsMap ?? [],
+            'seatFor' => $seatFor,
         ], JSON_THROW_ON_ERROR | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT);
     @endphp
     <div class="max-w-4xl mx-auto"
@@ -330,9 +345,28 @@
                 const idx = this.selectedIds.indexOf(id);
                 if (idx >= 0) { this.selectedIds.splice(idx, 1); }
                 else { this.selectedIds.push(id); this.selectedIds.sort((a,b)=>a-b); }
+            },
+            onSeatAssign(ticketNum, newVal) {
+                newVal = parseInt(newVal, 10);
+                const oldVal = this.seatFor[ticketNum];
+                const otherKey = Object.keys(this.seatFor).find(k => parseInt(k, 10) !== ticketNum && this.seatFor[k] === newVal);
+                if (otherKey) this.seatFor[otherKey] = oldVal;
+                this.seatFor[ticketNum] = newVal;
             }
          }"
-         x-init="if (!Array.isArray(selectedIds)) selectedIds = [];">
+         x-init="
+            if (!Array.isArray(selectedIds)) selectedIds = [];
+            if (typeof seatFor !== 'object') seatFor = {};
+            const syncSeatFor = () => {
+                const ids = selectedIds || [];
+                for (let i = 0; i < ids.length; i++) {
+                    const j = i + 1;
+                    if (seatFor[j] === undefined || !ids.includes(seatFor[j])) seatFor[j] = ids[i];
+                }
+            };
+            syncSeatFor();
+            $watch('selectedIds', syncSeatFor, { deep: true });
+         ">
         <h1 class="font-display text-3xl font-bold text-[#e50914] tracking-widest mb-2">CHECKOUT — PASO 1</h1>
         <p class="text-xl text-white/80 mb-2">{{ $event->name }}</p>
         <p class="text-white/60 text-sm mb-6">Elige tus butacas haciendo clic (máximo {{ $maxSeats }}). Luego los nombres. Al continuar pasarás al paso 2 para subir el comprobante.</p>
@@ -382,7 +416,7 @@
                                             }"
                                             class="seat-plan-cell rounded-lg font-mono font-bold transition shrink-0 disabled:opacity-70 flex items-center justify-center"
                                             style="width: var(--seat-size); height: var(--seat-size); min-width: var(--seat-size); font-size: min(0.875rem, var(--seat-size)); line-height: 1;"
-                                            title="Fila {{ $seat->row_letter }} Butaca {{ $seat->number }} {{ $seat->blocked ? '(bloqueada)' : '' }}">
+                                            :title="'Fila {{ $seat->row_letter }} Butaca {{ $seat->number }}' + (isBlocked({{ json_encode($seat) }}) ? ' (bloqueada)' : (!isAvailable({{ $seat->id }}) ? ' (reservada)' : ''))">
                                         {{ $seat->number }}
                                     </button>
                                 @endforeach
@@ -437,9 +471,11 @@
                             <div>
                                 <label :for="'seat_for_'+ (i+1)" class="block text-sm font-medium text-white/80 mb-1">Butaca</label>
                                 <select :id="'seat_for_'+ (i+1)" :name="'seat_for_' + (i+1)" required
+                                        :value="seatFor[i+1]"
+                                        @input="onSeatAssign(i+1, $event.target.value)"
                                         class="w-full rounded-xl border border-red-900/50 bg-black/60 px-4 py-3 text-white focus:ring-2 focus:ring-[#e50914]">
                                     <template x-for="sid in selectedIds" :key="sid">
-                                        <option :value="sid" :selected="sid === (oldSeatFor[i+1] ? parseInt(oldSeatFor[i+1], 10) : id)" x-text="seatsMap[sid] ? seatsMap[sid].label : sid"></option>
+                                        <option :value="sid" x-text="seatsMap[sid] ? seatsMap[sid].label : sid"></option>
                                     </template>
                                 </select>
                             </div>

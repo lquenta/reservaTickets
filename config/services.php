@@ -40,4 +40,20 @@ return [
         'secret_key' => env('RECAPTCHA_SECRET_KEY'),
     ],
 
+    'smtpkit' => [
+        'api_key' => env('SMTPKIT_API_KEY'),
+        'api_url' => env('SMTPKIT_API_URL', 'https://smtpkit.com/api/v1/send-email'),
+    ],
+
+    'sendgrid' => [
+        'api_key' => env('SENDGRID_API_KEY'),
+        'verify_ssl' => filter_var(env('SENDGRID_VERIFY_SSL', true), FILTER_VALIDATE_BOOLEAN),
+    ],
+
+    'mailgun' => [
+        'domain' => env('MAILGUN_DOMAIN'),
+        'secret' => env('MAILGUN_API_KEY'),
+        'endpoint' => env('MAILGUN_ENDPOINT', 'https://api.mailgun.net'),
+    ],
+
 ];

@@ -191,6 +191,9 @@ class ReservationService
         if (empty($seatIds)) {
             return;
         }
+        if (count($seatIds) !== count(array_unique($seatIds))) {
+            throw ValidationException::withMessages(['seat_ids' => ['Cada butaca solo puede asignarse a una persona. No elijas la misma butaca más de una vez.']]);
+        }
         $seats = Seat::whereIn('id', $seatIds)->where('venue_id', $event->venue_id)->get();
         if ($seats->count() !== count($seatIds)) {
             throw ValidationException::withMessages(['seat_ids' => ['Algunas butacas no pertenecen al lugar de este evento.']]);
@@ -249,6 +252,9 @@ class ReservationService
     {
         if (! $event->venue_id) {
             throw ValidationException::withMessages(['seat_ids' => ['Este evento no tiene reserva por butacas.']]);
+        }
+        if (count($seatIds) !== count(array_unique($seatIds))) {
+            throw ValidationException::withMessages(['seat_ids' => ['Cada butaca solo puede asignarse a una persona. No elijas la misma butaca más de una vez.']]);
         }
         if (count($seatIds) < 1 || count($seatIds) > self::MAX_SEATS) {
             throw ValidationException::withMessages(['seat_ids' => ['Debes elegir entre 1 y ' . self::MAX_SEATS . ' butacas.']]);

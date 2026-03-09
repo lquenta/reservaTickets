@@ -98,6 +98,11 @@ class StoreReservationRequest extends FormRequest
             $sectionQuantities = is_array($this->input('section_quantities')) ? array_filter(array_map('intval', $this->input('section_quantities'))) : [];
             $totalTickets = count($seatIds) + array_sum($sectionQuantities);
 
+            if (! empty($seatIds) && count($seatIds) !== count(array_unique($seatIds))) {
+                $validator->errors()->add('seat_ids', 'Cada butaca solo puede asignarse a una persona. No elijas la misma butaca más de una vez.');
+                return;
+            }
+
             if ($event->hasSections()) {
                 if ($totalTickets < 1 || $totalTickets > ReservationService::MAX_SEATS) {
                     $validator->errors()->add('seat_ids', 'El total de entradas debe ser entre 1 y ' . ReservationService::MAX_SEATS . '.');

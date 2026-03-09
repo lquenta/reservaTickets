@@ -72,6 +72,26 @@ return [
             'path' => env('MAIL_SENDMAIL_PATH', '/usr/sbin/sendmail -bs -i'),
         ],
 
+        'smtpkit' => [
+            'transport' => 'smtpkit',
+            'api_key' => env('SMTPKIT_API_KEY'),
+            'api_url' => env('SMTPKIT_API_URL', 'https://smtpkit.com/api/v1/send-email'),
+            'verify_ssl' => filter_var(env('SMTPKIT_VERIFY_SSL', true), FILTER_VALIDATE_BOOLEAN),
+        ],
+
+        'sendgrid' => [
+            'transport' => 'sendgrid',
+            'api_key' => env('SENDGRID_API_KEY'),
+            'verify_ssl' => filter_var(env('SENDGRID_VERIFY_SSL', true), FILTER_VALIDATE_BOOLEAN),
+        ],
+
+        'mailgun' => [
+            'transport' => 'mailgun',
+            'api_key' => env('MAILGUN_API_KEY'),
+            'domain' => env('MAILGUN_DOMAIN'),
+            'endpoint' => env('MAILGUN_ENDPOINT', 'https://api.mailgun.net'),
+        ],
+
         'log' => [
             'transport' => 'log',
             'channel' => env('MAIL_LOG_CHANNEL'),

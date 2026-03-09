@@ -73,4 +73,6 @@ Route::prefix('admin')->middleware(['auth', 'admin'])->name('admin.')->group(fun
     Route::get('reports/pdf/clientes-por-evento', [\App\Http\Controllers\Admin\ReportController::class, 'downloadClientesPorEventoPdf'])->name('reports.pdf.clientes-por-evento');
     Route::get('reports/audit', [\App\Http\Controllers\Admin\ReportController::class, 'audit'])->name('reports.audit');
     Route::get('reports/pdf/audit', [\App\Http\Controllers\Admin\ReportController::class, 'downloadAuditPdf'])->name('reports.pdf.audit');
+    Route::get('mail-settings', [\App\Http\Controllers\Admin\MailSettingsController::class, 'index'])->name('mail-settings.index');
+    Route::put('mail-settings', [\App\Http\Controllers\Admin\MailSettingsController::class, 'update'])->name('mail-settings.update');
 });

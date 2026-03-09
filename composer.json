@@ -11,7 +11,11 @@
         "endroid/qr-code": "^6.0",
         "google/recaptcha": "^1.3",
         "laravel/framework": "^12.0",
-        "laravel/tinker": "^2.10.1"
+        "laravel/tinker": "^2.10.1",
+        "mailgun/mailgun-php": "^4.3",
+        "nyholm/psr7": "^1.8",
+        "sendgrid/sendgrid": "~7",
+        "symfony/http-client": "^7.4"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",

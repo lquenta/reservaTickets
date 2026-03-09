@@ -87,6 +87,45 @@
                 </div>
             </div>
         @endif
+
+        @auth
+            @if(!auth()->user()->isAdmin() && ($hasReservationInProgress ?? false) && !request()->routeIs('reservations.index') && !request()->routeIs('checkout.*'))
+                <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
+                     x-data="{ open: true }"
+                     x-show="open"
+                     x-transition:enter="transition ease-out duration-200"
+                     x-transition:enter-start="opacity-0"
+                     x-transition:enter-end="opacity-100"
+                     x-transition:leave="transition ease-in duration-150"
+                     x-transition:leave-start="opacity-100"
+                     x-transition:leave-end="opacity-0"
+                     role="dialog"
+                     aria-modal="true"
+                     aria-labelledby="reservation-modal-title">
+                    <div class="relative w-full max-w-md rounded-2xl border border-red-900/50 bg-black/95 shadow-2xl p-8 text-center"
+                         x-show="open"
+                         x-transition:enter="transition ease-out duration-200"
+                         x-transition:enter-start="opacity-0 scale-95"
+                         x-transition:enter-end="opacity-100 scale-100"
+                         @click.stop>
+                        <h2 id="reservation-modal-title" class="font-display text-2xl tracking-widest text-[#e50914] mb-3">Reserva en proceso</h2>
+                        <p class="text-white/80 text-sm mb-6">Tienes una reserva sin completar. Completa el pago antes de que expire para no perder tus entradas.</p>
+                        <div class="flex flex-col sm:flex-row gap-3 justify-center">
+                            <a href="{{ route('reservations.index') }}"
+                               class="inline-flex items-center justify-center px-6 py-3 rounded-xl bg-[#e50914] text-white font-semibold hover:bg-red-600 transition">
+                                Ir a Mis reservas
+                            </a>
+                            <button type="button"
+                                    @click="open = false"
+                                    class="inline-flex items-center justify-center px-6 py-3 rounded-xl border border-white/30 text-white/80 hover:bg-white/10 transition">
+                                Cerrar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            @endif
+        @endauth
+
         @yield('content')
     </main>
 

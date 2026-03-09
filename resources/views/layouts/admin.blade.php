@@ -51,6 +51,11 @@
                         <span aria-hidden="true">🏠</span> Texto Hero
                     </a>
                 </li>
+                <li>
+                    <a href="{{ route('admin.mail-settings.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-xl text-white/80 hover:bg-red-900/30 hover:text-[#e50914] font-medium transition {{ request()->routeIs('admin.mail-settings.*') ? 'bg-red-900/30 text-[#e50914]' : '' }}">
+                        <span aria-hidden="true">✉️</span> Correo / SMTP
+                    </a>
+                </li>
             </ul>
             <div class="mt-4 pt-3 border-t border-red-900/50">
                 <a href="{{ route('home') }}" class="flex items-center gap-2 px-3 py-2 rounded-xl text-white/50 hover:bg-red-900/20 hover:text-[#e50914] text-sm transition">← Volver al sitio</a>
