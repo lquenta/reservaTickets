@@ -5,13 +5,15 @@ namespace App\Jobs;
 use App\Mail\TicketsSentMail;
 use App\Models\Reservation;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Mail;
 
-class SendReservationTicketsJob
+class SendReservationTicketsJob implements ShouldQueue
 {
-    use Dispatchable, SerializesModels;
+    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public function __construct(
         public Reservation $reservation

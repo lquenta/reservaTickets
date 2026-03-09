@@ -37,9 +37,9 @@ class ReservationController extends Controller
         }
 
         $reservation->update(['status' => Reservation::STATUS_CONFIRMADO]);
-        SendReservationTicketsJob::dispatch($reservation);
+        SendReservationTicketsJob::dispatch($reservation)->onConnection('database');
 
-        return redirect()->route('admin.reservations.index')->with('message', 'Reserva autorizada. Se han enviado los tickets por correo.');
+        return redirect()->route('admin.reservations.index')->with('message', 'Reserva autorizada. Los tickets se enviarán por correo en breve.');
     }
 
     public function rejectReservation(Reservation $reservation): RedirectResponse
@@ -116,8 +116,8 @@ class ReservationController extends Controller
             return redirect()->route('admin.reservations.index')->with('error', 'Solo se pueden reenviar tickets de reservas confirmadas.');
         }
 
-        SendReservationTicketsJob::dispatch($reservation);
+        SendReservationTicketsJob::dispatch($reservation)->onConnection('database');
 
-        return redirect()->route('admin.reservations.index')->with('message', 'Tickets reenviados por correo a ' . $reservation->user->email);
+        return redirect()->route('admin.reservations.index')->with('message', 'Tickets en cola. Se reenviarán por correo a ' . $reservation->user->email . ' en breve.');
     }
 }
