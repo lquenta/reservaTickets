@@ -8,6 +8,7 @@ use App\Services\MailConfigService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use Illuminate\Support\Facades\Mail;
 
 class MailSettingsController extends Controller
 {
@@ -78,6 +79,7 @@ class MailSettingsController extends Controller
         }
 
         MailConfigService::applyToConfig();
+        Mail::purge(); // forzar uso del nuevo driver en la misma petición / cola
 
         return redirect()->route('admin.mail-settings.index')->with('message', 'Configuración de correo guardada correctamente.');
     }
