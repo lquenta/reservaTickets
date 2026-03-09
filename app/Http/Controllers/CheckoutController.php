@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\NotifyAdminNewReservationJob;
 use App\Models\Reservation;
 use App\Models\ReservationAuditLog;
 use App\Services\ReservationAuditService;
@@ -99,6 +100,8 @@ class CheckoutController extends Controller
             $reservation->event,
             $reservation
         );
+
+        NotifyAdminNewReservationJob::dispatch($reservation)->onConnection('database');
 
         return redirect()->route('reservations.index')->with('message', 'Reserva registrada. Recibirás los tickets por correo una vez se autorice el pago.');
     }
