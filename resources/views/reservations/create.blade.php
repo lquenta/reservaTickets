@@ -73,15 +73,24 @@
                         @php
                             $seatsByRow = $section['seats']->groupBy('row');
                             $sectionAvailableIds = $section['availableSeatIds'];
+                            $sectionMaxCols = $seatsByRow->isEmpty() ? 1 : $seatsByRow->max(fn ($r) => $r->count());
                         @endphp
                         {{-- Tamaño de butaca proporcional al dispositivo (clamp: móvil pequeño → desktop) --}}
                         <div class="flex flex-col gap-2 items-center section-seat-plan" style="--section-seat-size: clamp(0.875rem, 6vw, 2.5rem);">
-                            {{-- Línea y label ESCENARIO encima de la primera fila --}}
-                            <div class="flex gap-2 items-center justify-center w-full mb-1">
-                                <span class="shrink-0 flex items-center justify-center font-bold text-[#e50914]" style="width: var(--section-seat-size); height: var(--section-seat-size); font-size: min(0.875rem, var(--section-seat-size)); line-height: 1;" aria-hidden="true"></span>
-                                <div class="flex flex-col items-center gap-1 shrink-0">
-                                    <div class="w-full max-w-[12rem] rounded-sm bg-red-700 min-h-[3px]" style="height: 3px;" role="img" aria-label="Línea de escenario"></div>
-                                    <span class="text-[10px] font-medium text-red-400 uppercase tracking-wider">ESCENARIO</span>
+                            {{-- Escenario: misma fila — PARLANTE (círculo) en col 1 y última, línea + ESCENARIO centrada entre ambos --}}
+                            <div class="flex gap-2 items-end flex-nowrap mb-1">
+                                <span class="shrink-0" style="width: var(--section-seat-size); height: var(--section-seat-size);" aria-hidden="true"></span>
+                                <div class="flex items-end gap-2 shrink-0 min-w-0" style="width: calc(var(--section-seat-size) * {{ $sectionMaxCols }} + ({{ $sectionMaxCols }} - 1) * 0.5rem);">
+                                    <div class="flex flex-col items-center justify-center rounded-lg border border-amber-600/50 bg-amber-900/20 shrink-0 py-1 px-1.5 gap-0.5" style="width: var(--section-seat-size); min-height: var(--section-seat-size);" role="img" aria-label="Parlante">
+                                        <span class="text-[9px] sm:text-[10px] font-semibold text-amber-400/90 uppercase leading-tight"><span class="sm:hidden">P</span><span class="hidden sm:inline">PARLANTE</span></span>
+                                    </div>
+                                    <div class="flex-1 flex flex-col items-center justify-end gap-0.5 min-w-0 pb-0.5">
+                                        <div class="w-full rounded-sm bg-red-700 min-h-[3px]" style="height: 3px;" role="img" aria-label="Línea de escenario"></div>
+                                        <span class="text-[10px] font-medium text-red-400 uppercase tracking-wider">ESCENARIO</span>
+                                    </div>
+                                    <div class="flex flex-col items-center justify-center rounded-lg border border-amber-600/50 bg-amber-900/20 shrink-0 py-1 px-1.5 gap-0.5" style="width: var(--section-seat-size); min-height: var(--section-seat-size);" role="img" aria-label="Parlante">
+                                        <span class="text-[9px] sm:text-[10px] font-semibold text-amber-400/90 uppercase leading-tight"><span class="sm:hidden">P</span><span class="hidden sm:inline">PARLANTE</span></span>
+                                    </div>
                                 </div>
                             </div>
                             @foreach($seatsByRow as $row => $rowSeats)
@@ -412,12 +421,20 @@
                 {{-- Tamaño de butaca proporcional al dispositivo: mínimo 0.875rem en móvil, máximo 3rem en desktop --}}
                 <div class="w-full seat-plan-grid overflow-hidden" style="--cols: {{ $maxCols }}; --seat-size: clamp(0.875rem, calc((100vw - {{ $paddingVw }}rem - {{ $labelW }}rem - {{ $gapLabel }}rem - (var(--cols) - 1) * {{ $gapSeat }}rem) / var(--cols)), 3rem);">
                     <div class="flex flex-col gap-3 items-center">
-                    {{-- Línea y label ESCENARIO encima de la primera fila; misma estructura (label + zona central) para no romper alineación --}}
-                    <div class="flex gap-3 items-center justify-center flex-nowrap w-full mb-1">
+                    {{-- Escenario: misma fila — PARLANTE (círculo) en A1 y A7, línea roja + ESCENARIO centrada entre ambos --}}
+                    <div class="flex gap-3 items-end flex-nowrap mb-1">
                         <span class="shrink-0 invisible" style="width: var(--seat-size); height: var(--seat-size);" aria-hidden="true"></span>
-                        <div class="flex flex-col items-center justify-center shrink-0 gap-1 w-full min-w-0">
-                            <div class="w-full max-w-[14rem] rounded-sm bg-red-700 min-h-[3px]" style="height: 3px;" role="img" aria-label="Línea de escenario"></div>
-                            <span class="text-[10px] sm:text-xs font-medium text-red-400 uppercase tracking-wider">ESCENARIO</span>
+                        <div class="flex items-end gap-2 shrink-0 min-w-0" style="width: calc(var(--seat-size) * {{ $maxCols }} + ({{ $maxCols }} - 1) * 0.5rem);">
+                            <div class="flex flex-col items-center justify-center rounded-lg border border-amber-600/50 bg-amber-900/20 shrink-0 py-1 px-1.5 gap-0.5" style="width: var(--seat-size); min-height: var(--seat-size);" role="img" aria-label="Parlante">
+                                <span class="text-[9px] sm:text-[10px] font-semibold text-amber-400/90 uppercase leading-tight"><span class="sm:hidden">P</span><span class="hidden sm:inline">PARLANTE</span></span>
+                            </div>
+                            <div class="flex-1 flex flex-col items-center justify-end gap-0.5 min-w-0 pb-0.5">
+                                <div class="w-full rounded-sm bg-red-700 min-h-[3px]" style="height: 3px;" role="img" aria-label="Línea de escenario"></div>
+                                <span class="text-[10px] sm:text-xs font-medium text-red-400 uppercase tracking-wider">ESCENARIO</span>
+                            </div>
+                            <div class="flex flex-col items-center justify-center rounded-lg border border-amber-600/50 bg-amber-900/20 shrink-0 py-1 px-1.5 gap-0.5" style="width: var(--seat-size); min-height: var(--seat-size);" role="img" aria-label="Parlante">
+                                <span class="text-[9px] sm:text-[10px] font-semibold text-amber-400/90 uppercase leading-tight"><span class="sm:hidden">P</span><span class="hidden sm:inline">PARLANTE</span></span>
+                            </div>
                         </div>
                     </div>
                     @foreach($seatsByRow as $row => $rowSeats)
