@@ -48,18 +48,62 @@ class ReportController extends Controller
             ->get();
 
         $eventIds = $ticketsByEvent->pluck('event_id')->unique()->values()->all();
-        $eventsWithPrice = Event::with('ticketTemplate')->whereIn('id', $eventIds)->get()->keyBy('id');
+        $eventsWithPrice = Event::with(['sections', 'ticketTemplate'])->whereIn('id', $eventIds)->get()->keyBy('id');
 
-        $salesByEvent = $ticketsByEvent->map(function ($row) use ($eventsWithPrice) {
+        // Tickets confirmados con reserva y evento (para eventos con secciones: precio por sección)
+        $confirmedTickets = ReservationTicket::query()
+            ->whereHas('reservation', fn ($q) => $q->where('status', Reservation::STATUS_CONFIRMADO)->whereIn('event_id', $eventIds))
+            ->with(['seat', 'reservation' => fn ($q) => $q->select('id', 'event_id')->with(['event' => fn ($q) => $q->with('sections')])])
+            ->get();
+
+        $salesByEvent = $ticketsByEvent->map(function ($row) use ($eventsWithPrice, $confirmedTickets) {
             $event = $eventsWithPrice->get($row->event_id);
-            $unitPrice = $event && $event->ticketTemplate ? (float) $event->ticketTemplate->price : 0.0;
             $ticketsSold = (int) $row->tickets_sold;
+            $total = 0.0;
+            $unitPrice = 0.0;
+
+            if ($event && $event->hasSections()) {
+                $eventTickets = $confirmedTickets->filter(fn ($t) => $t->reservation && (int) $t->reservation->event_id === (int) $row->event_id);
+                foreach ($eventTickets as $ticket) {
+                    $eventSection = null;
+                    if ($ticket->seat) {
+                        $seat = $ticket->seat;
+                        if ($seat->section_id) {
+                            $eventSection = $event->sections->firstWhere('id', $seat->section_id);
+                        }
+                        if (! $eventSection && $event->sections) {
+                            foreach ($event->sections as $es) {
+                                if (! $es->has_seats) {
+                                    continue;
+                                }
+                                if ($es->row_start !== null && $es->row_end !== null && $seat->row >= $es->row_start && $seat->row <= $es->row_end) {
+                                    $eventSection = $es;
+                                    break;
+                                }
+                            }
+                        }
+                        if (! $eventSection && $event->sections) {
+                            $eventSection = $event->sections->where('has_seats', true)->first();
+                        }
+                    } else {
+                        $eventSection = $ticket->section_id ? $event->sections->firstWhere('id', $ticket->section_id) : null;
+                    }
+                    if ($eventSection && $eventSection->pivot && $eventSection->pivot->price !== null) {
+                        $total += (float) $eventSection->pivot->price;
+                    }
+                }
+                $unitPrice = $ticketsSold > 0 ? $total / $ticketsSold : 0.0;
+            } else {
+                $unitPrice = $event && $event->ticketTemplate ? (float) $event->ticketTemplate->price : 0.0;
+                $total = $ticketsSold * $unitPrice;
+            }
+
             return (object) [
                 'event_id' => $row->event_id,
                 'event_name' => $event ? $event->name : 'Evento #'.$row->event_id,
                 'tickets_sold' => $ticketsSold,
                 'unit_price' => $unitPrice,
-                'total' => $ticketsSold * $unitPrice,
+                'total' => $total,
             ];
         });
 
