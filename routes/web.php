@@ -51,6 +51,15 @@ Route::prefix('admin')->middleware(['auth', 'admin'])->name('admin.')->group(fun
     Route::patch('hero-slides/reorder', [\App\Http\Controllers\Admin\HeroSlideController::class, 'reorder'])->name('hero-slides.reorder');
     Route::get('site-content/quienes-somos', [\App\Http\Controllers\Admin\SiteContentController::class, 'quienesSomos'])->name('site-content.quienes-somos');
     Route::put('site-content/quienes-somos', [\App\Http\Controllers\Admin\SiteContentController::class, 'updateQuienesSomos'])->name('site-content.update-quienes-somos');
+    Route::get('team-members', [\App\Http\Controllers\Admin\TeamMemberController::class, 'index'])->name('team-members.index');
+    Route::get('team-members/create', [\App\Http\Controllers\Admin\TeamMemberController::class, 'create'])->name('team-members.create');
+    Route::get('team-members/bulk-create', [\App\Http\Controllers\Admin\TeamMemberController::class, 'bulkCreate'])->name('team-members.bulk-create');
+    Route::post('team-members/bulk-store', [\App\Http\Controllers\Admin\TeamMemberController::class, 'bulkStore'])->name('team-members.bulk-store');
+    Route::post('team-members', [\App\Http\Controllers\Admin\TeamMemberController::class, 'store'])->name('team-members.store');
+    Route::get('team-members/{team_member}/edit', [\App\Http\Controllers\Admin\TeamMemberController::class, 'edit'])->name('team-members.edit');
+    Route::put('team-members/{team_member}', [\App\Http\Controllers\Admin\TeamMemberController::class, 'update'])->name('team-members.update');
+    Route::delete('team-members/{team_member}', [\App\Http\Controllers\Admin\TeamMemberController::class, 'destroy'])->name('team-members.destroy');
+    Route::patch('team-members/reorder', [\App\Http\Controllers\Admin\TeamMemberController::class, 'reorder'])->name('team-members.reorder');
     Route::get('site-content/hero', [\App\Http\Controllers\Admin\SiteContentController::class, 'hero'])->name('site-content.hero');
     Route::put('site-content/hero', [\App\Http\Controllers\Admin\SiteContentController::class, 'updateHero'])->name('site-content.update-hero');
     Route::resource('venues', \App\Http\Controllers\Admin\VenueController::class)->except(['show']);

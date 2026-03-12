@@ -6,6 +6,7 @@ use App\Models\Event;
 use App\Models\HeroSetting;
 use App\Models\HeroSlide;
 use App\Models\SiteContent;
+use App\Models\TeamMember;
 use Illuminate\View\View;
 
 class HomeController extends Controller
@@ -32,7 +33,8 @@ class HomeController extends Controller
 
         $quienes_somos = SiteContent::quienesSomos();
         $hero_content = SiteContent::hero();
+        $team_members = TeamMember::orderBy('sort_order')->orderBy('id')->get();
 
-        return view('home', compact('featured_events', 'hero_video_url', 'hero_slides', 'quienes_somos', 'hero_content'));
+        return view('home', compact('featured_events', 'hero_video_url', 'hero_slides', 'quienes_somos', 'hero_content', 'team_members'));
     }
 }

@@ -47,6 +47,11 @@
                     </a>
                 </li>
                 <li>
+                    <a href="{{ route('admin.team-members.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-xl text-white/80 hover:bg-red-900/30 hover:text-[#e50914] font-medium transition {{ request()->routeIs('admin.team-members.*') ? 'bg-red-900/30 text-[#e50914]' : '' }}">
+                        <span aria-hidden="true">👤</span> Integrantes
+                    </a>
+                </li>
+                <li>
                     <a href="{{ route('admin.site-content.hero') }}" class="flex items-center gap-2 px-3 py-2 rounded-xl text-white/80 hover:bg-red-900/30 hover:text-[#e50914] font-medium transition {{ request()->routeIs('admin.site-content.hero') ? 'bg-red-900/30 text-[#e50914]' : '' }}">
                         <span aria-hidden="true">🏠</span> Texto Hero
                     </a>

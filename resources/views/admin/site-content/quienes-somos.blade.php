@@ -27,9 +27,14 @@
             @error('content')<p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
             <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">Se mostrará en la portada. Puedes usar varias líneas; se respetarán los párrafos.</p>
         </div>
-        <button type="submit" class="rounded-xl bg-violet-600 hover:bg-violet-500 px-5 py-2.5 text-white font-semibold transition">
-            Guardar cambios
-        </button>
+        <div class="flex flex-wrap items-center gap-4">
+            <button type="submit" class="rounded-xl bg-violet-600 hover:bg-violet-500 px-5 py-2.5 text-white font-semibold transition">
+                Guardar cambios
+            </button>
+            <a href="{{ route('admin.team-members.index') }}" class="rounded-xl border border-violet-500/60 text-violet-600 dark:text-violet-400 hover:bg-violet-50 dark:hover:bg-violet-900/20 px-5 py-2.5 font-medium transition">
+                Gestionar fotos de integrantes (slider)
+            </a>
+        </div>
     </form>
 </div>
 @endsection

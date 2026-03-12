@@ -55,27 +55,104 @@
         </div>
     </section>
 
-    {{-- Quiénes somos: contenido editable por admin --}}
-    <section id="quienes-somos" class="relative min-h-screen flex items-center justify-center py-20 px-4 section-stranger-bg" x-data="{ visible: false }" x-init="const o = new IntersectionObserver(([e]) => { if (e.isIntersecting) visible = true }, { threshold: 0.1 }); o.observe($el)">
+    {{-- Quiénes somos: contenido editable por admin + slider integrantes --}}
+    <section id="quienes-somos" class="relative min-h-screen flex flex-col items-center justify-center py-20 px-4 section-stranger-bg" x-data="{ visible: false }" x-init="const o = new IntersectionObserver(([e]) => { if (e.isIntersecting) visible = true }, { threshold: 0.1 }); o.observe($el)">
         <div class="section-stranger-bg__inner"></div>
-        <div class="relative z-10 max-w-3xl mx-auto text-center"
+        <div class="relative z-10 w-full max-w-6xl mx-auto"
             x-show="visible"
             x-transition:enter="transition ease-out duration-700"
             x-transition:enter-start="opacity-0 translate-y-8"
             x-transition:enter-end="opacity-100 translate-y-0">
-            <h2 class="font-display text-4xl sm:text-5xl md:text-6xl tracking-widest text-[#e50914] mb-8 st-glow-title">{{ $quienes_somos?->title ?? 'QUIÉNES SOMOS' }}</h2>
-            <div class="text-white/90 text-lg leading-relaxed space-y-4 text-left">
-                @if($quienes_somos && $quienes_somos->content)
-                    @foreach(explode("\n\n", $quienes_somos->content) as $paragraph)
-                        @if(trim($paragraph))
-                            <p class="text-white/90">{{ trim($paragraph) }}</p>
-                        @endif
-                    @endforeach
-                @else
-                    <p class="text-white/90">NOVA es tu plataforma para descubrir eventos y reservar tickets de forma rápida y segura. Conectamos organizadores con el público: elige tu evento, reserva de 1 a 4 entradas con un código único de pago y recibe tus tickets por correo.</p>
-                    <p class="text-white/70 text-base">Simple, transparente y pensado para que no te pierdas nada.</p>
-                @endif
+            <h2 class="font-display text-4xl sm:text-5xl md:text-6xl tracking-widest text-[#e50914] mb-8 text-center st-glow-title">{{ $quienes_somos?->title ?? 'QUIÉNES SOMOS' }}</h2>
+            <div class="max-w-3xl mx-auto text-center mb-8">
+                <div class="text-white/90 text-lg leading-relaxed space-y-4 text-left">
+                    @if($quienes_somos && $quienes_somos->content)
+                        @foreach(explode("\n\n", $quienes_somos->content) as $paragraph)
+                            @if(trim($paragraph))
+                                <p class="text-white/90">{{ trim($paragraph) }}</p>
+                            @endif
+                        @endforeach
+                    @else
+                        <p class="text-white/90">NOVA es tu plataforma para descubrir eventos y reservar tickets de forma rápida y segura. Conectamos organizadores con el público: elige tu evento, reserva de 1 a 4 entradas con un código único de pago y recibe tus tickets por correo.</p>
+                        <p class="text-white/70 text-base">Simple, transparente y pensado para que no te pierdas nada.</p>
+                    @endif
+                </div>
             </div>
+
+            @if($team_members->isNotEmpty())
+            <div class="mt-6 w-full"
+                 x-data="{ modalOpen: false, activeIndex: 0 }"
+                 x-effect="document.body.style.overflow = modalOpen ? 'hidden' : ''">
+                {{-- Franja horizontal: en mobile (<768px) scroll horizontal con tarjetas anchas; en desktop igual que antes --}}
+                <div class="flex flex-nowrap min-h-[400px] bg-black/30 overflow-x-auto overflow-y-hidden md:overflow-hidden scroll-snap-x md:scroll-snap-none scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" style="width: 100vw; margin-left: calc(50% - 50vw); height: 100vh;">
+                    <div class="flex flex-nowrap h-full min-w-full md:min-w-0 w-max md:w-full">
+                    @foreach($team_members as $i => $member)
+                        <button type="button"
+                                class="flex-none w-[78vw] min-w-[78vw] h-full relative overflow-hidden text-left focus:outline-none focus:ring-2 focus:ring-[#e50914]/50 focus:ring-inset cursor-pointer scroll-snap-center shrink-0 md:flex-1 md:min-w-0 md:w-auto"
+                                @click.prevent="activeIndex = {{ $i }}; modalOpen = true">
+                            <img src="{{ asset('storage/'.$member->photo_path) }}"
+                                 alt="{{ $member->name ?: 'Integrante' }}"
+                                 class="absolute inset-0 w-full h-full object-cover object-center">
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/80 from-30% to-transparent pointer-events-none"></div>
+                            @if($member->name || $member->role)
+                                <div class="absolute bottom-0 left-0 right-0 z-10 px-2 py-2 sm:px-3 sm:py-3">
+                                    @if($member->name)
+                                        <p class="font-semibold text-white text-xs sm:text-sm truncate">{{ $member->name }}</p>
+                                    @endif
+                                    @if($member->role)
+                                        <p class="text-[#e50914] text-xs mt-0.5 truncate">{{ $member->role }}</p>
+                                    @endif
+                                </div>
+                            @endif
+                        </button>
+                    @endforeach
+                    </div>
+                </div>
+
+                {{-- Modal: imagen al hacer clic; clic fuera cierra; sin desplazar la página --}}
+                <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/95 overflow-y-auto overscroll-contain"
+                     x-show="modalOpen"
+                     x-transition:enter="transition ease-out duration-200"
+                     x-transition:enter-start="opacity-0"
+                     x-transition:enter-end="opacity-100"
+                     x-transition:leave="transition ease-in duration-150"
+                     x-transition:leave-start="opacity-100"
+                     x-transition:leave-end="opacity-0"
+                     @click.self="modalOpen = false"
+                     @keydown.escape.window="modalOpen = false"
+                     role="dialog"
+                     aria-modal="true"
+                     aria-label="Ver imagen"
+                     x-cloak
+                     style="display: none;">
+                    <button type="button" @click="modalOpen = false" class="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors" aria-label="Cerrar">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                    @foreach($team_members as $i => $member)
+                        <div class="flex flex-col items-center shrink-0"
+                             x-show="modalOpen && activeIndex === {{ $i }}"
+                             x-transition:enter="transition ease-out duration-200"
+                             x-transition:enter-start="opacity-0 scale-95"
+                             x-transition:enter-end="opacity-100 scale-100"
+                             @click.stop>
+                            <img src="{{ asset('storage/'.$member->photo_path) }}"
+                                 alt="{{ $member->name ?: 'Integrante' }}"
+                                 class="max-w-[85vw] max-h-[65vh] w-auto h-auto object-contain rounded-lg shadow-2xl">
+                            @if($member->name || $member->role)
+                                <div class="mt-3 text-center">
+                                    @if($member->name)
+                                        <p class="font-semibold text-white text-base sm:text-lg">{{ $member->name }}</p>
+                                    @endif
+                                    @if($member->role)
+                                        <p class="text-[#e50914] text-sm mt-0.5">{{ $member->role }}</p>
+                                    @endif
+                                </div>
+                            @endif
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+            @endif
         </div>
     </section>
 
