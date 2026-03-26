@@ -13,7 +13,7 @@
     </a>
 </div>
 
-<div x-data="{ tab: 'entradas' }" class="space-y-6">
+<div x-data="{ tab: @js(request('tab', 'entradas')) }" class="space-y-6">
     {{-- Tabs --}}
     <div class="flex flex-wrap gap-2 border-b border-slate-200 dark:border-slate-700 pb-2">
         <button type="button"
@@ -39,6 +39,12 @@
                 :class="tab === 'clientes-por-evento' ? 'bg-violet-600 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600'"
                 class="rounded-xl px-4 py-2.5 font-semibold transition">
             📋 Clientes por evento
+        </button>
+        <button type="button"
+                @click="tab = 'nombres-por-evento'"
+                :class="tab === 'nombres-por-evento' ? 'bg-violet-600 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600'"
+                class="rounded-xl px-4 py-2.5 font-semibold transition">
+            📝 Nombres por evento
         </button>
     </div>
 
@@ -164,6 +170,76 @@
                 </div>
             @else
                 <p class="text-slate-500 dark:text-slate-400">No hay eventos con reservas confirmadas.</p>
+            @endif
+        </div>
+    </div>
+
+    {{-- Reporte: Nombres por evento --}}
+    <div x-show="tab === 'nombres-por-evento'" x-transition class="rounded-2xl border-2 border-violet-200/60 dark:border-violet-700/50 bg-white dark:bg-slate-800/80 overflow-hidden shadow-lg">
+        <div class="p-6 border-b border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 flex flex-wrap items-center justify-between gap-4">
+            <div>
+                <h2 class="text-xl font-bold text-slate-800 dark:text-white">Nombres por evento</h2>
+                <p class="text-slate-600 dark:text-slate-400 text-sm mt-1">Titulares y butaca asignada (reservas confirmadas) para un evento vigente.</p>
+            </div>
+        </div>
+        <div class="p-6">
+            <form method="GET" action="{{ route('admin.reports.index') }}" class="flex flex-wrap items-end gap-3 mb-5">
+                <input type="hidden" name="tab" value="nombres-por-evento">
+                <div class="min-w-[260px]">
+                    <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">Evento vigente</label>
+                    <select name="event_id" class="w-full rounded-xl border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white focus:border-violet-500 focus:ring-violet-500" onchange="this.form.submit()">
+                        @forelse($vigenteEvents as $ev)
+                            <option value="{{ $ev->id }}" @selected((int)$selectedEventId === (int)$ev->id)>
+                                {{ $ev->name }} — {{ $ev->starts_at?->translatedFormat('d/m/Y H:i') ?? '—' }}
+                            </option>
+                        @empty
+                            <option value="">No hay eventos vigentes</option>
+                        @endforelse
+                    </select>
+                </div>
+
+                <div class="ml-auto">
+                    <a href="{{ $selectedEventId ? route('admin.reports.pdf.nombres-por-evento', ['event_id' => $selectedEventId]) : '#' }}"
+                       target="_blank"
+                       class="inline-flex items-center gap-2 rounded-xl bg-red-600 hover:bg-red-700 px-4 py-2.5 text-white font-semibold transition {{ $selectedEventId ? '' : 'pointer-events-none opacity-50' }}">
+                        <span aria-hidden="true">📄</span> Descargar PDF
+                    </a>
+                </div>
+            </form>
+
+            @if($selectedEvent)
+                <div class="mb-4 rounded-xl bg-violet-50 dark:bg-violet-900/30 border border-violet-200/60 dark:border-violet-700/50 p-4">
+                    <p class="font-semibold text-violet-800 dark:text-violet-200">
+                        {{ $selectedEvent->name }} — {{ $selectedEvent->starts_at?->translatedFormat('d/m/Y H:i') ?? '—' }}
+                    </p>
+                </div>
+            @endif
+
+            @if($reservationsForSelectedEvent->isNotEmpty())
+                <div class="overflow-x-auto">
+                    <table class="w-full min-w-[520px]">
+                        <thead class="bg-slate-100 dark:bg-slate-700/50">
+                            <tr>
+                                <th class="text-left px-4 py-3 text-slate-700 dark:text-slate-300 font-semibold">Reserva</th>
+                                <th class="text-left px-4 py-3 text-slate-700 dark:text-slate-300 font-semibold">Nombre completo</th>
+                                <th class="text-left px-4 py-3 text-slate-700 dark:text-slate-300 font-semibold">Butaca</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($reservationsForSelectedEvent as $res)
+                                @foreach($res->reservationTickets as $t)
+                                    <tr class="border-t border-slate-200 dark:border-slate-700">
+                                        <td class="px-4 py-3 text-sm text-slate-700 dark:text-slate-300">{{ $res->payment_code ?? ('#'.$res->id) }}</td>
+                                        <td class="px-4 py-3 font-medium text-slate-800 dark:text-white">{{ $t->holder_name ?: '—' }}</td>
+                                        <td class="px-4 py-3 text-slate-700 dark:text-slate-300">{{ $t->seat?->display_label ?? 'Sin butaca' }}</td>
+                                    </tr>
+                                @endforeach
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            @else
+                <p class="text-slate-500 dark:text-slate-400">No hay reservas confirmadas para el evento seleccionado.</p>
             @endif
         </div>
     </div>

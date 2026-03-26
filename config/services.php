@@ -56,4 +56,11 @@ return [
         'endpoint' => env('MAILGUN_ENDPOINT', 'https://api.mailgun.net'),
     ],
 
+    'ticket_validator' => [
+        'enabled' => filter_var(env('TICKET_VALIDATOR_API_ENABLED', true), FILTER_VALIDATE_BOOLEAN),
+        'api_key' => env('TICKET_VALIDATOR_API_KEY'),
+        'test_mode' => filter_var(env('TICKET_VALIDATOR_TEST_MODE', false), FILTER_VALIDATE_BOOLEAN),
+        'test_force_valid' => env('TICKET_VALIDATOR_TEST_FORCE_VALID'),
+    ],
+
 ];

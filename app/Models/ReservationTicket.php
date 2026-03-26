@@ -16,7 +16,15 @@ class ReservationTicket extends Model
         'section_id',
         'holder_name',
         'position',
+        'validated_at',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'validated_at' => 'datetime',
+        ];
+    }
 
     public function reservation(): BelongsTo
     {

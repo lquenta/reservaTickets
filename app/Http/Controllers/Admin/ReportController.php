@@ -16,6 +16,14 @@ use Illuminate\View\View;
 
 class ReportController extends Controller
 {
+    private function getVigenteEvents()
+    {
+        return Event::query()
+            ->where('is_active', true)
+            ->orderBy('starts_at', 'desc')
+            ->get(['id', 'name', 'starts_at']);
+    }
+
     private function getReportData(): array
     {
         $ticketsSoldTotal = ReservationTicket::query()
@@ -129,10 +137,32 @@ class ReportController extends Controller
         );
     }
 
-    public function index(): View
+    public function index(Request $request): View
     {
         $data = $this->getReportData();
-        return view('admin.reports.index', $data);
+
+        $vigenteEvents = $this->getVigenteEvents();
+        $selectedEventId = (int) ($request->integer('event_id') ?: ($vigenteEvents->first()?->id ?? 0));
+        $selectedEvent = $selectedEventId ? Event::query()->whereKey($selectedEventId)->first(['id', 'name', 'starts_at']) : null;
+
+        $reservationsForSelectedEvent = collect();
+        if ($selectedEvent) {
+            $reservationsForSelectedEvent = Reservation::query()
+                ->where('status', Reservation::STATUS_CONFIRMADO)
+                ->where('event_id', $selectedEvent->id)
+                ->with([
+                    'reservationTickets' => fn ($q) => $q->with('seat')->orderBy('position'),
+                ])
+                ->orderBy('created_at', 'desc')
+                ->get();
+        }
+
+        return view('admin.reports.index', $data + compact(
+            'vigenteEvents',
+            'selectedEventId',
+            'selectedEvent',
+            'reservationsForSelectedEvent'
+        ));
     }
 
     public function downloadEntradasPdf(): Response
@@ -165,6 +195,35 @@ class ReportController extends Controller
         $pdf = Pdf::loadView('admin.reports.pdf.clientes-por-evento', $data);
         $pdf->setPaper('a4', 'portrait');
         return $pdf->download('reporte-clientes-por-evento-' . now()->format('Y-m-d') . '.pdf');
+    }
+
+    /**
+     * Reporte: titulares (holder_name) y butaca asignada por evento (reservas confirmadas).
+     */
+    private function getNombresPorEventoReportData(int $eventId)
+    {
+        $event = Event::query()->whereKey($eventId)->firstOrFail(['id', 'name', 'starts_at']);
+
+        $reservations = Reservation::query()
+            ->where('status', Reservation::STATUS_CONFIRMADO)
+            ->where('event_id', $event->id)
+            ->with([
+                'reservationTickets' => fn ($q) => $q->with('seat')->orderBy('position'),
+            ])
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return [$event, $reservations];
+    }
+
+    public function downloadNombresPorEventoPdf(Request $request): Response
+    {
+        $eventId = (int) $request->integer('event_id');
+        [$event, $reservations] = $this->getNombresPorEventoReportData($eventId);
+
+        $pdf = Pdf::loadView('admin.reports.pdf.nombres-por-evento', compact('event', 'reservations'));
+        $pdf->setPaper('a4', 'portrait');
+        return $pdf->download('reporte-nombres-por-evento-' . now()->format('Y-m-d') . '.pdf');
     }
 
     public function audit(Request $request): View

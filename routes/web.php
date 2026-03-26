@@ -80,6 +80,7 @@ Route::prefix('admin')->middleware(['auth', 'admin'])->name('admin.')->group(fun
     Route::get('reports/pdf/clientes', [\App\Http\Controllers\Admin\ReportController::class, 'downloadClientesPdf'])->name('reports.pdf.clientes');
     Route::get('reports/pdf/ventas', [\App\Http\Controllers\Admin\ReportController::class, 'downloadVentasPdf'])->name('reports.pdf.ventas');
     Route::get('reports/pdf/clientes-por-evento', [\App\Http\Controllers\Admin\ReportController::class, 'downloadClientesPorEventoPdf'])->name('reports.pdf.clientes-por-evento');
+    Route::get('reports/pdf/nombres-por-evento', [\App\Http\Controllers\Admin\ReportController::class, 'downloadNombresPorEventoPdf'])->name('reports.pdf.nombres-por-evento');
     Route::get('reports/audit', [\App\Http\Controllers\Admin\ReportController::class, 'audit'])->name('reports.audit');
     Route::get('reports/pdf/audit', [\App\Http\Controllers\Admin\ReportController::class, 'downloadAuditPdf'])->name('reports.pdf.audit');
     Route::get('mail-settings', [\App\Http\Controllers\Admin\MailSettingsController::class, 'index'])->name('mail-settings.index');
