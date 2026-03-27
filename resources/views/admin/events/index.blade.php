@@ -51,6 +51,19 @@
                                 @if($event->venue_id)
                                     <a href="{{ route('admin.events.seats', $event) }}" class="rounded-lg px-3 py-1.5 text-sm font-medium text-violet-600 dark:text-violet-400 hover:bg-violet-100 dark:hover:bg-violet-900/40 transition">Ver butacas</a>
                                 @endif
+                                @if($event->is_active)
+                                    <form method="POST" action="{{ route('admin.events.sold-out', $event) }}" class="inline" onsubmit="return confirm('¿Marcar este evento como SOLD OUT? Se bloquearán nuevas reservas.');">
+                                        @csrf
+                                        @method('PATCH')
+                                        <button type="submit" class="rounded-lg px-3 py-1.5 text-sm font-semibold text-red-700 dark:text-red-300 bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-900/50 transition">SOLD OUT</button>
+                                    </form>
+                                @else
+                                    <form method="POST" action="{{ route('admin.events.reopen-sales', $event) }}" class="inline" onsubmit="return confirm('¿Reabrir ventas para este evento?');">
+                                        @csrf
+                                        @method('PATCH')
+                                        <button type="submit" class="rounded-lg px-3 py-1.5 text-sm font-semibold text-emerald-700 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-900/30 hover:bg-emerald-200 dark:hover:bg-emerald-900/50 transition">Reabrir ventas</button>
+                                    </form>
+                                @endif
                                 <a href="{{ route('admin.ticket-templates.edit', $event) }}" class="rounded-lg px-3 py-1.5 text-sm font-medium text-violet-600 dark:text-violet-400 hover:bg-violet-100 dark:hover:bg-violet-900/40 transition">Ticket</a>
                                 <a href="{{ route('admin.events.edit', $event) }}" class="rounded-lg px-3 py-1.5 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 transition">Editar</a>
                                 <form method="POST" action="{{ route('admin.events.destroy', $event) }}" class="inline" onsubmit="return confirm('¿Eliminar este evento?');">

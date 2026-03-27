@@ -141,6 +141,28 @@ class EventController extends Controller
         return redirect()->route('admin.events.index')->with('message', 'Evento eliminado.');
     }
 
+    public function markSoldOut(Event $event): RedirectResponse
+    {
+        if (! $event->is_active) {
+            return redirect()->route('admin.events.index')->with('message', 'El evento ya estaba marcado como SOLD OUT.');
+        }
+
+        $event->update(['is_active' => false]);
+
+        return redirect()->route('admin.events.index')->with('message', 'Evento marcado como SOLD OUT. Se bloquearon nuevas reservas.');
+    }
+
+    public function reopenSales(Event $event): RedirectResponse
+    {
+        if ($event->is_active) {
+            return redirect()->route('admin.events.index')->with('message', 'El evento ya está habilitado.');
+        }
+
+        $event->update(['is_active' => true]);
+
+        return redirect()->route('admin.events.index')->with('message', 'Evento habilitado nuevamente para reservas.');
+    }
+
     public function seats(Event $event): View|RedirectResponse
     {
         if (! $event->venue_id) {

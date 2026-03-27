@@ -10,8 +10,8 @@ class EventController extends Controller
     public function index(): View
     {
         $events = Event::with('sections')
-            ->where('is_active', true)
             ->where('starts_at', '>', now())
+            ->orderByDesc('is_active')
             ->orderBy('starts_at')
             ->paginate(12);
 

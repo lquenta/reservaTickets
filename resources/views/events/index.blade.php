@@ -21,6 +21,7 @@
         open(el) {
             if (!el || !el.dataset) return;
             const d = el.dataset;
+            if ((d.eventSoldOut || '') === '1') return;
             this.selected = {
                 name: d.eventName || '',
                 description: d.eventDescription || '',
@@ -41,13 +42,15 @@
     }">
     <div class="grid gap-8 md:grid-cols-2 xl:grid-cols-3">
         @foreach($events as $event)
+            @php($isSoldOut = ! $event->is_active)
             <article class="group relative overflow-hidden rounded-2xl border border-red-900/50 hover:border-[#e50914]/50 transition-all duration-300 hover:-translate-y-1 min-h-[320px] flex flex-col cursor-pointer"
                      data-event-name="{{ e($event->name) }}"
                      data-event-description="{{ e($event->description ?? '') }}"
                      data-event-date="{{ e($event->starts_at->translatedFormat('l d \d\e F \d\e Y, H:i')) }}"
                      data-event-venue="{{ e($event->venue ?? '') }}"
                      data-event-cover="{{ $event->cover_image_path ? asset('storage/'.$event->cover_image_path) : '' }}"
-                     data-event-reserve-url="{{ auth()->check() && !auth()->user()->isAdmin() ? route('reservations.create', $event) : '' }}"
+                     data-event-sold-out="{{ $isSoldOut ? '1' : '0' }}"
+                     data-event-reserve-url="{{ auth()->check() && !auth()->user()->isAdmin() && !$isSoldOut ? route('reservations.create', $event) : '' }}"
                      data-event-login-url="{{ !auth()->check() ? route('login') : '' }}"
                      data-event-admin-url="{{ auth()->check() && auth()->user()->isAdmin() ? route('admin.dashboard') : '' }}"
                      @click="open($event.currentTarget)">
@@ -58,7 +61,12 @@
                 <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent"></div>
 
                 <div class="relative flex flex-col flex-1 p-6 justify-end">
-                    <h2 class="text-2xl font-bold text-white mb-1 drop-shadow-lg">{{ $event->name }}</h2>
+                    <div class="flex items-center gap-2 mb-1">
+                        <h2 class="text-2xl font-bold text-white drop-shadow-lg">{{ $event->name }}</h2>
+                        @if($isSoldOut)
+                            <span class="inline-flex rounded-full bg-red-600/90 text-white px-2.5 py-1 text-xs font-bold tracking-wide">SOLD OUT</span>
+                        @endif
+                    </div>
                     <p class="text-white/90 text-sm mb-1 flex items-center gap-1">
                         <span aria-hidden="true">📅</span>
                         {{ $event->starts_at->translatedFormat('l d F Y, H:i') }}
@@ -73,7 +81,7 @@
                                 Panel de administración
                             </a>
                         @else
-                            @if($event->venue_id)
+                            @if($event->venue_id && !$isSoldOut)
                                 <p class="text-white/60 text-xs mb-2">
                                     @if($event->hasSections())
                                         Ver secciones y butacas en el checkout.
@@ -82,14 +90,26 @@
                                     @endif
                                 </p>
                             @endif
-                            <a href="{{ route('reservations.create', $event) }}" @click.stop class="inline-flex items-center justify-center rounded-xl bg-[#e50914] text-white font-semibold px-5 py-3 hover:bg-red-600 transition w-fit mt-1">
-                                Reservar tickets
-                            </a>
+                            @if($isSoldOut)
+                                <span class="inline-flex items-center justify-center rounded-xl bg-white/10 text-white/70 font-semibold px-5 py-3 border border-white/20 w-fit mt-1 cursor-not-allowed">
+                                    SOLD OUT
+                                </span>
+                            @else
+                                <a href="{{ route('reservations.create', $event) }}" @click.stop class="inline-flex items-center justify-center rounded-xl bg-[#e50914] text-white font-semibold px-5 py-3 hover:bg-red-600 transition w-fit mt-1">
+                                    Reservar tickets
+                                </a>
+                            @endif
                         @endif
                     @else
-                        <a href="{{ route('login') }}" @click.stop class="inline-flex items-center justify-center rounded-xl bg-white/10 text-white font-medium px-5 py-3 border border-white/30 hover:bg-white/20 transition w-fit backdrop-blur mt-2">
-                            Inicia sesión para reservar
-                        </a>
+                        @if($isSoldOut)
+                            <span class="inline-flex items-center justify-center rounded-xl bg-white/10 text-white/70 font-semibold px-5 py-3 border border-white/20 w-fit mt-2 cursor-not-allowed">
+                                SOLD OUT
+                            </span>
+                        @else
+                            <a href="{{ route('login') }}" @click.stop class="inline-flex items-center justify-center rounded-xl bg-white/10 text-white font-medium px-5 py-3 border border-white/30 hover:bg-white/20 transition w-fit backdrop-blur mt-2">
+                                Inicia sesión para reservar
+                            </a>
+                        @endif
                     @endauth
                 </div>
             </article>
