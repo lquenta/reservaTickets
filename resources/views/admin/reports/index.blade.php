@@ -179,21 +179,21 @@
         <div class="p-6 border-b border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 flex flex-wrap items-center justify-between gap-4">
             <div>
                 <h2 class="text-xl font-bold text-slate-800 dark:text-white">Nombres por evento</h2>
-                <p class="text-slate-600 dark:text-slate-400 text-sm mt-1">Titulares y butaca asignada (reservas confirmadas) para un evento vigente.</p>
+                <p class="text-slate-600 dark:text-slate-400 text-sm mt-1">Titulares y butaca asignada (reservas confirmadas). Incluye eventos activos y SOLD OUT.</p>
             </div>
         </div>
         <div class="p-6">
             <form method="GET" action="{{ route('admin.reports.index') }}" class="flex flex-wrap items-end gap-3 mb-5">
                 <input type="hidden" name="tab" value="nombres-por-evento">
                 <div class="min-w-[260px]">
-                    <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">Evento vigente</label>
+                    <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">Evento</label>
                     <select name="event_id" class="w-full rounded-xl border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white focus:border-violet-500 focus:ring-violet-500" onchange="this.form.submit()">
-                        @forelse($vigenteEvents as $ev)
+                        @forelse($eventsForNamesReport as $ev)
                             <option value="{{ $ev->id }}" @selected((int)$selectedEventId === (int)$ev->id)>
-                                {{ $ev->name }} — {{ $ev->starts_at?->translatedFormat('d/m/Y H:i') ?? '—' }}
+                                {{ $ev->name }} — {{ $ev->starts_at?->translatedFormat('d/m/Y H:i') ?? '—' }}@if(! $ev->is_active) (SOLD OUT)@endif
                             </option>
                         @empty
-                            <option value="">No hay eventos vigentes</option>
+                            <option value="">No hay eventos</option>
                         @endforelse
                     </select>
                 </div>
@@ -208,10 +208,13 @@
             </form>
 
             @if($selectedEvent)
-                <div class="mb-4 rounded-xl bg-violet-50 dark:bg-violet-900/30 border border-violet-200/60 dark:border-violet-700/50 p-4">
+                <div class="mb-4 rounded-xl bg-violet-50 dark:bg-violet-900/30 border border-violet-200/60 dark:border-violet-700/50 p-4 flex flex-wrap items-center gap-2">
                     <p class="font-semibold text-violet-800 dark:text-violet-200">
                         {{ $selectedEvent->name }} — {{ $selectedEvent->starts_at?->translatedFormat('d/m/Y H:i') ?? '—' }}
                     </p>
+                    @if(! $selectedEvent->is_active)
+                        <span class="inline-flex rounded-full bg-red-600 text-white px-2.5 py-0.5 text-xs font-bold">SOLD OUT</span>
+                    @endif
                 </div>
             @endif
 

@@ -16,12 +16,12 @@ use Illuminate\View\View;
 
 class ReportController extends Controller
 {
-    private function getVigenteEvents()
+    /** Todos los eventos (activos y SOLD OUT) para el reporte de nombres por evento. */
+    private function getEventsForNamesReport()
     {
         return Event::query()
-            ->where('is_active', true)
-            ->orderBy('starts_at', 'desc')
-            ->get(['id', 'name', 'starts_at']);
+            ->orderByDesc('starts_at')
+            ->get(['id', 'name', 'starts_at', 'is_active']);
     }
 
     private function getReportData(): array
@@ -141,9 +141,9 @@ class ReportController extends Controller
     {
         $data = $this->getReportData();
 
-        $vigenteEvents = $this->getVigenteEvents();
-        $selectedEventId = (int) ($request->integer('event_id') ?: ($vigenteEvents->first()?->id ?? 0));
-        $selectedEvent = $selectedEventId ? Event::query()->whereKey($selectedEventId)->first(['id', 'name', 'starts_at']) : null;
+        $eventsForNamesReport = $this->getEventsForNamesReport();
+        $selectedEventId = (int) ($request->integer('event_id') ?: ($eventsForNamesReport->first()?->id ?? 0));
+        $selectedEvent = $selectedEventId ? Event::query()->whereKey($selectedEventId)->first(['id', 'name', 'starts_at', 'is_active']) : null;
 
         $reservationsForSelectedEvent = collect();
         if ($selectedEvent) {
@@ -158,7 +158,7 @@ class ReportController extends Controller
         }
 
         return view('admin.reports.index', $data + compact(
-            'vigenteEvents',
+            'eventsForNamesReport',
             'selectedEventId',
             'selectedEvent',
             'reservationsForSelectedEvent'
