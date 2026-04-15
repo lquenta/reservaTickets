@@ -34,6 +34,7 @@ class ReservationController extends Controller
         $seats = [];
         $seatsMap = [];
         $availableSeatIds = [];
+        $blockedSeatIds = [];
         $sectionsData = [];
         $seatIdToPrice = [];
         $sectionIdToPrice = [];
@@ -42,17 +43,27 @@ class ReservationController extends Controller
         if ($event->venue_id) {
             $venue = $event->getRelationValue('venue');
             if ($venue) {
+                $blockedSeatIds = $event->blockedSeatIds()->flip();
                 if ($event->hasSections()) {
                     foreach ($event->sections as $section) {
                         $pivot = $section->pivot;
                         $price = $pivot->price;
                         if ($section->has_seats) {
-                            $sectionSeats = $section->seats()->orderBy('row')->orderBy('number')->get();
+                            $sectionSeats = $section->seats()->orderBy('row')->orderBy('number')->get()->map(function ($seat) use ($blockedSeatIds) {
+                                $seat->blocked = (bool) $seat->blocked || $blockedSeatIds->has($seat->id);
+                                return $seat;
+                            });
                             if ($sectionSeats->isEmpty() && $section->row_start !== null && $section->row_end !== null) {
-                                $sectionSeats = $venue->seats()->whereBetween('row', [$section->row_start, $section->row_end])->orderBy('row')->orderBy('number')->get();
+                                $sectionSeats = $venue->seats()->whereBetween('row', [$section->row_start, $section->row_end])->orderBy('row')->orderBy('number')->get()->map(function ($seat) use ($blockedSeatIds) {
+                                    $seat->blocked = (bool) $seat->blocked || $blockedSeatIds->has($seat->id);
+                                    return $seat;
+                                });
                             }
                             if ($sectionSeats->isEmpty()) {
-                                $sectionSeats = $venue->seats()->orderBy('row')->orderBy('number')->get();
+                                $sectionSeats = $venue->seats()->orderBy('row')->orderBy('number')->get()->map(function ($seat) use ($blockedSeatIds) {
+                                    $seat->blocked = (bool) $seat->blocked || $blockedSeatIds->has($seat->id);
+                                    return $seat;
+                                });
                             }
                             $sectionAvailableIds = $event->availableSeats($section->id)->pluck('id')->all();
                             if (empty($sectionAvailableIds) && $section->row_start !== null && $section->row_end !== null) {
@@ -96,7 +107,10 @@ class ReservationController extends Controller
                         }
                     }
                 } else {
-                    $seats = $venue->seats()->orderBy('row')->orderBy('number')->get();
+                    $seats = $venue->seats()->orderBy('row')->orderBy('number')->get()->map(function ($seat) use ($blockedSeatIds) {
+                        $seat->blocked = (bool) $seat->blocked || $blockedSeatIds->has($seat->id);
+                        return $seat;
+                    });
                     $seatsMap = $seats->keyBy('id')->map(fn ($s) => ['label' => $s->display_label])->all();
                     $availableSeatIds = $event->availableSeats()->pluck('id')->all();
                     $seatIdToPrice = [];
@@ -171,15 +185,17 @@ class ReservationController extends Controller
             return response()->json(['seats' => [], 'venue' => null]);
         }
         $availableIds = $event->availableSeats()->pluck('id')->flip();
-        $seats = $venue->seats()->orderBy('row')->orderBy('number')->get()->map(function ($seat) use ($availableIds) {
+        $blockedByEvent = $event->blockedSeatIds()->flip();
+        $seats = $venue->seats()->orderBy('row')->orderBy('number')->get()->map(function ($seat) use ($availableIds, $blockedByEvent) {
+            $isBlocked = (bool) $seat->blocked || $blockedByEvent->has($seat->id);
             return [
                 'id' => $seat->id,
                 'row' => $seat->row,
                 'row_letter' => $seat->row_letter,
                 'number' => $seat->number,
                 'label' => $seat->display_label,
-                'blocked' => (bool) $seat->blocked,
-                'available' => ! $seat->blocked && $availableIds->has($seat->id),
+                'blocked' => $isBlocked,
+                'available' => ! $isBlocked && $availableIds->has($seat->id),
             ];
         });
         return response()->json([

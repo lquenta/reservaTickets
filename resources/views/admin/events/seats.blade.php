@@ -25,6 +25,7 @@
             <span class="w-8 h-8 rounded-lg bg-slate-500/70 text-slate-300 flex items-center justify-center font-mono text-xs font-bold">1</span>
             Bloqueada
         </span>
+        <span class="text-slate-500 dark:text-slate-400">Haz clic en butacas disponibles o bloqueadas para alternar el bloqueo por evento.</span>
     </div>
 
     <p class="text-sm text-slate-500 dark:text-slate-400 mb-4 text-center">Escenario</p>
@@ -48,7 +49,9 @@
                     @foreach($rowSeats as $seat)
                         @php
                             $occupied = $occupiedSeatIds->has($seat->id);
-                            $blocked = $seat->blocked ?? false;
+                            $blockedGlobally = $seat->blocked ?? false;
+                            $blockedForEvent = isset($blockedSeatIds) ? $blockedSeatIds->has($seat->id) : false;
+                            $blocked = $blockedGlobally || $blockedForEvent;
                             if ($blocked) {
                                 $class = 'bg-slate-500/70 text-slate-300 dark:bg-slate-600/80 dark:text-slate-400 cursor-default';
                             } elseif ($occupied) {
@@ -57,11 +60,34 @@
                                 $class = 'bg-emerald-500/90 text-white dark:bg-emerald-600';
                             }
                         @endphp
-                        <span class="seat-plan-cell rounded-lg font-mono font-bold flex items-center justify-center shrink-0 {{ $class }}"
-                              style="width: var(--seat-size); height: var(--seat-size); min-width: var(--seat-size); font-size: min(0.875rem, var(--seat-size)); line-height: 1;"
-                              title="Fila {{ $seat->row_letter ?? $rowLetter }} Butaca {{ $seat->number }}{{ $blocked ? ' (bloqueada)' : '' }}{{ $occupied ? ' (ocupada)' : ' (disponible)' }}">
-                            {{ $seat->number }}
-                        </span>
+                        @if($occupied || $blockedGlobally)
+                            <span class="seat-plan-cell rounded-lg font-mono font-bold flex items-center justify-center shrink-0 {{ $class }}"
+                                  style="width: var(--seat-size); height: var(--seat-size); min-width: var(--seat-size); font-size: min(0.875rem, var(--seat-size)); line-height: 1;"
+                                  title="Fila {{ $seat->row_letter ?? $rowLetter }} Butaca {{ $seat->number }}{{ $blocked ? ' (bloqueada)' : '' }}{{ $occupied ? ' (ocupada)' : ' (disponible)' }}">
+                                {{ $seat->number }}
+                            </span>
+                        @elseif($blockedForEvent)
+                            <form method="POST" action="{{ route('admin.events.seats.unblock', [$event, $seat]) }}">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit"
+                                        class="seat-plan-cell rounded-lg font-mono font-bold flex items-center justify-center shrink-0 transition hover:opacity-90 {{ $class }}"
+                                        style="width: var(--seat-size); height: var(--seat-size); min-width: var(--seat-size); font-size: min(0.875rem, var(--seat-size)); line-height: 1;"
+                                        title="Fila {{ $seat->row_letter ?? $rowLetter }} Butaca {{ $seat->number }} (bloqueada para evento, clic para desbloquear)">
+                                    {{ $seat->number }}
+                                </button>
+                            </form>
+                        @else
+                            <form method="POST" action="{{ route('admin.events.seats.block', [$event, $seat]) }}">
+                                @csrf
+                                <button type="submit"
+                                        class="seat-plan-cell rounded-lg font-mono font-bold flex items-center justify-center shrink-0 transition hover:opacity-90 {{ $class }}"
+                                        style="width: var(--seat-size); height: var(--seat-size); min-width: var(--seat-size); font-size: min(0.875rem, var(--seat-size)); line-height: 1;"
+                                        title="Fila {{ $seat->row_letter ?? $rowLetter }} Butaca {{ $seat->number }} (disponible, clic para bloquear)">
+                                    {{ $seat->number }}
+                                </button>
+                            </form>
+                        @endif
                     @endforeach
                 </div>
             </div>

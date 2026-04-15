@@ -64,6 +64,8 @@ Route::prefix('admin')->middleware(['auth', 'admin'])->name('admin.')->group(fun
     Route::put('site-content/hero', [\App\Http\Controllers\Admin\SiteContentController::class, 'updateHero'])->name('site-content.update-hero');
     Route::resource('venues', \App\Http\Controllers\Admin\VenueController::class)->except(['show']);
     Route::get('events/{event}/seats', [\App\Http\Controllers\Admin\EventController::class, 'seats'])->name('events.seats');
+    Route::post('events/{event}/seats/{seat}/block', [\App\Http\Controllers\Admin\EventController::class, 'blockSeat'])->name('events.seats.block');
+    Route::delete('events/{event}/seats/{seat}/block', [\App\Http\Controllers\Admin\EventController::class, 'unblockSeat'])->name('events.seats.unblock');
     Route::patch('events/{event}/sold-out', [\App\Http\Controllers\Admin\EventController::class, 'markSoldOut'])->name('events.sold-out');
     Route::patch('events/{event}/reopen-sales', [\App\Http\Controllers\Admin\EventController::class, 'reopenSales'])->name('events.reopen-sales');
     Route::resource('events', \App\Http\Controllers\Admin\EventController::class)->except(['show']);

@@ -118,6 +118,13 @@ class StoreReservationRequest extends FormRequest
                             }
                         }
                     }
+                    $blockedByEvent = $event->blockedSeatIds()->flip();
+                    foreach ($seatIds as $id) {
+                        if ($blockedByEvent->has($id)) {
+                            $validator->errors()->add('seat_ids', 'Una o más butacas están bloqueadas para este evento.');
+                            return;
+                        }
+                    }
                     $availableIds = $event->sections->where('has_seats', true)->flatMap(function ($s) use ($event) {
                         $ids = $event->availableSeats($s->id)->pluck('id');
                         if ($ids->isEmpty() && $s->row_start !== null && $s->row_end !== null) {
@@ -149,6 +156,13 @@ class StoreReservationRequest extends FormRequest
             foreach ($seatIds as $id) {
                 if (! $venueSeatIds->has($id)) {
                     $validator->errors()->add('seat_ids', 'Todas las butacas deben pertenecer al lugar de este evento.');
+                    return;
+                }
+            }
+            $blockedByEvent = $event->blockedSeatIds()->flip();
+            foreach ($seatIds as $id) {
+                if ($blockedByEvent->has($id)) {
+                    $validator->errors()->add('seat_ids', 'Una o más butacas están bloqueadas para este evento.');
                     return;
                 }
             }

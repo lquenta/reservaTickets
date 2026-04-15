@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Seat extends Model
@@ -42,6 +43,12 @@ class Seat extends Model
     public function reservationTickets(): HasMany
     {
         return $this->hasMany(ReservationTicket::class);
+    }
+
+    public function eventsBlocked(): BelongsToMany
+    {
+        return $this->belongsToMany(Event::class, 'event_seat_blocks')
+            ->withTimestamps();
     }
 
     /** Fila como letra del abecedario: 1=A, 2=B, ... 26=Z */

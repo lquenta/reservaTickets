@@ -198,8 +198,9 @@ class ReservationService
         if ($seats->count() !== count($seatIds)) {
             throw ValidationException::withMessages(['seat_ids' => ['Algunas butacas no pertenecen al lugar de este evento.']]);
         }
+        $blockedByEvent = $event->blockedSeatIds()->flip();
         foreach ($seats as $seat) {
-            if ($seat->blocked) {
+            if ($seat->blocked || $blockedByEvent->has($seat->id)) {
                 throw ValidationException::withMessages(['seat_ids' => ['Algunas butacas están bloqueadas.']]);
             }
             if ($event->hasSections() && $seat->section_id && ! $sectionIdsWithSeats->has($seat->section_id)) {
@@ -264,11 +265,15 @@ class ReservationService
         if ($seats->count() !== count($seatIds)) {
             throw ValidationException::withMessages(['seat_ids' => ['Algunas butacas no pertenecen al lugar de este evento.']]);
         }
+        $blockedByEvent = $event->blockedSeatIds()->flip();
 
         $blockedOrTaken = $seats->filter(function ($seat) {
             return $seat->blocked;
         });
-        if ($blockedOrTaken->isNotEmpty()) {
+        $blockedForEvent = $seats->filter(function ($seat) use ($blockedByEvent) {
+            return $blockedByEvent->has($seat->id);
+        });
+        if ($blockedOrTaken->isNotEmpty() || $blockedForEvent->isNotEmpty()) {
             throw ValidationException::withMessages(['seat_ids' => ['Algunas butacas están bloqueadas.']]);
         }
 

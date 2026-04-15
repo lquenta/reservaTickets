@@ -58,6 +58,12 @@ class Event extends Model
         return $this->hasMany(Reservation::class);
     }
 
+    public function blockedSeats(): BelongsToMany
+    {
+        return $this->belongsToMany(Seat::class, 'event_seat_blocks')
+            ->withTimestamps();
+    }
+
     /**
      * Butacas disponibles para este evento: del venue del evento, no bloqueadas,
      * y sin reserva activa (INICIADO no expirada, PENDIENTE_PAGO o CONFIRMADO) de este evento.
@@ -72,6 +78,9 @@ class Event extends Model
         $query = Seat::query()
             ->where('venue_id', $this->venue_id)
             ->where('blocked', false)
+            ->whereDoesntHave('eventsBlocked', function ($q) {
+                $q->where('events.id', $this->id);
+            })
             ->whereDoesntHave('reservationTickets', function ($q) {
                 $q->whereHas('reservation', function ($q2) {
                     $q2->where('event_id', $this->id)
@@ -95,6 +104,15 @@ class Event extends Model
         }
 
         return $query;
+    }
+
+    public function blockedSeatIds(): \Illuminate\Support\Collection
+    {
+        if (! $this->venue_id) {
+            return collect();
+        }
+
+        return $this->blockedSeats()->pluck('seats.id')->unique()->values();
     }
 
     public function ticketTemplate(): \Illuminate\Database\Eloquent\Relations\HasOne

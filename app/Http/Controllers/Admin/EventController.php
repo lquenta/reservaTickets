@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Event;
 use App\Models\Section;
+use App\Models\Seat;
 use App\Models\Venue;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -178,7 +179,40 @@ class EventController extends Controller
         $seats = $venue->seats()->orderBy('row')->orderBy('number')->get();
         $seatsByRow = $seats->groupBy('row');
         $occupiedSeatIds = $event->occupiedSeatIds()->flip();
+        $blockedSeatIds = $event->blockedSeatIds()->flip();
 
-        return view('admin.events.seats', compact('event', 'seatsByRow', 'occupiedSeatIds'));
+        return view('admin.events.seats', compact('event', 'seatsByRow', 'occupiedSeatIds', 'blockedSeatIds'));
+    }
+
+    public function blockSeat(Event $event, Seat $seat): RedirectResponse
+    {
+        if (! $this->seatBelongsToEventVenue($event, $seat)) {
+            return redirect()->route('admin.events.seats', $event)->with('error', 'La butaca no pertenece al lugar del evento.');
+        }
+
+        $occupiedSeatIds = $event->occupiedSeatIds()->flip();
+        if ($occupiedSeatIds->has($seat->id)) {
+            return redirect()->route('admin.events.seats', $event)->with('error', 'No se puede bloquear una butaca ocupada.');
+        }
+
+        $event->blockedSeats()->syncWithoutDetaching([$seat->id]);
+
+        return redirect()->route('admin.events.seats', $event)->with('message', 'Butaca bloqueada para este evento.');
+    }
+
+    public function unblockSeat(Event $event, Seat $seat): RedirectResponse
+    {
+        if (! $this->seatBelongsToEventVenue($event, $seat)) {
+            return redirect()->route('admin.events.seats', $event)->with('error', 'La butaca no pertenece al lugar del evento.');
+        }
+
+        $event->blockedSeats()->detach($seat->id);
+
+        return redirect()->route('admin.events.seats', $event)->with('message', 'Butaca desbloqueada para este evento.');
+    }
+
+    private function seatBelongsToEventVenue(Event $event, Seat $seat): bool
+    {
+        return (int) $event->venue_id > 0 && (int) $seat->venue_id === (int) $event->venue_id;
     }
 }
