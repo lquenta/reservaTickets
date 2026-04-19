@@ -8,8 +8,8 @@ use App\Services\ReservationAuditService;
 use App\Services\ReservationService;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Validator as ValidationValidator;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Validation\Validator as ValidationValidator;
 
 class StoreReservationRequest extends FormRequest
 {
@@ -40,7 +40,7 @@ class StoreReservationRequest extends FormRequest
 
         if ($event && $event->venue_id) {
             if ($event->hasSections()) {
-                $rules['seat_ids'] = ['nullable', 'array', 'max:' . ReservationService::MAX_SEATS];
+                $rules['seat_ids'] = ['nullable', 'array', 'max:'.ReservationService::MAX_SEATS];
                 $rules['seat_ids.*'] = ['integer', 'exists:seats,id'];
                 $rules['section_quantities'] = ['nullable', 'array'];
                 $rules['section_quantities.*'] = ['nullable', 'integer', 'min:0'];
@@ -57,7 +57,7 @@ class StoreReservationRequest extends FormRequest
                     }
                 }
             } else {
-                $rules['seat_ids'] = ['required', 'array', 'min:1', 'max:' . ReservationService::MAX_SEATS];
+                $rules['seat_ids'] = ['required', 'array', 'min:1', 'max:'.ReservationService::MAX_SEATS];
                 $rules['seat_ids.*'] = ['required', 'integer', 'exists:seats,id'];
                 $count = is_array($this->input('seat_ids')) ? count($this->input('seat_ids')) : 0;
                 if ($count > 0) {
@@ -100,12 +100,13 @@ class StoreReservationRequest extends FormRequest
 
             if (! empty($seatIds) && count($seatIds) !== count(array_unique($seatIds))) {
                 $validator->errors()->add('seat_ids', 'Cada butaca solo puede asignarse a una persona. No elijas la misma butaca más de una vez.');
+
                 return;
             }
 
             if ($event->hasSections()) {
                 if ($totalTickets < 1 || $totalTickets > ReservationService::MAX_SEATS) {
-                    $validator->errors()->add('seat_ids', 'El total de entradas debe ser entre 1 y ' . ReservationService::MAX_SEATS . '.');
+                    $validator->errors()->add('seat_ids', 'El total de entradas debe ser entre 1 y '.ReservationService::MAX_SEATS.'.');
                 }
                 if (! empty($seatIds)) {
                     $venue = $event->getRelationValue('venue');
@@ -114,6 +115,7 @@ class StoreReservationRequest extends FormRequest
                         foreach ($seatIds as $id) {
                             if (! $venueSeatIds->has($id)) {
                                 $validator->errors()->add('seat_ids', 'Todas las butacas deben pertenecer al lugar de este evento.');
+
                                 return;
                             }
                         }
@@ -122,26 +124,32 @@ class StoreReservationRequest extends FormRequest
                     foreach ($seatIds as $id) {
                         if ($blockedByEvent->has($id)) {
                             $validator->errors()->add('seat_ids', 'Una o más butacas están bloqueadas para este evento.');
+
                             return;
                         }
                     }
                     $availableIds = $event->sections->where('has_seats', true)->flatMap(function ($s) use ($event) {
                         $ids = $event->availableSeats($s->id)->pluck('id');
                         if ($ids->isEmpty() && $s->row_start !== null && $s->row_end !== null) {
-                            $ids = $event->availableSeats(null)->whereBetween('row', [$s->row_start, $s->row_end])->pluck('id');
+                            $q = $event->availableSeats(null);
+                            $s->applySeatSpatialConstraints($q);
+                            $ids = $q->pluck('id');
                         }
                         if ($ids->isEmpty()) {
                             $ids = $event->availableSeats(null)->pluck('id');
                         }
+
                         return $ids;
                     })->flip();
                     foreach ($seatIds as $id) {
                         if (! $availableIds->has($id)) {
                             $validator->errors()->add('seat_ids', 'Una o más butacas ya no están disponibles.');
+
                             return;
                         }
                     }
                 }
+
                 return;
             }
 
@@ -156,6 +164,7 @@ class StoreReservationRequest extends FormRequest
             foreach ($seatIds as $id) {
                 if (! $venueSeatIds->has($id)) {
                     $validator->errors()->add('seat_ids', 'Todas las butacas deben pertenecer al lugar de este evento.');
+
                     return;
                 }
             }
@@ -163,6 +172,7 @@ class StoreReservationRequest extends FormRequest
             foreach ($seatIds as $id) {
                 if ($blockedByEvent->has($id)) {
                     $validator->errors()->add('seat_ids', 'Una o más butacas están bloqueadas para este evento.');
+
                     return;
                 }
             }
@@ -170,6 +180,7 @@ class StoreReservationRequest extends FormRequest
             foreach ($seatIds as $id) {
                 if (! $availableIds->has($id)) {
                     $validator->errors()->add('seat_ids', 'Una o más butacas ya no están disponibles. Elige otras.');
+
                     return;
                 }
             }
@@ -236,6 +247,7 @@ class StoreReservationRequest extends FormRequest
         for ($i = 1; $i <= max($count, 4); $i++) {
             $messages["holder_name_{$i}.regex"] = 'El nombre del ticket '.$i.' solo puede contener letras, espacios, guiones, comas y apóstrofos.';
         }
+
         return $messages;
     }
 }

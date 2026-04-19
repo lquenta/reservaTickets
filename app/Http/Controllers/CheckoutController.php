@@ -22,6 +22,7 @@ class CheckoutController extends Controller
         }
         if ($reservation->isExpired()) {
             $reservation->update(['status' => Reservation::STATUS_CANCELADO]);
+
             return redirect()->route('home')->with('message', 'Tiempo agotado');
         }
 
@@ -40,7 +41,7 @@ class CheckoutController extends Controller
                             if (! $es->has_seats) {
                                 continue;
                             }
-                            if ($es->row_start !== null && $es->row_end !== null && $ticket->seat->row >= $es->row_start && $ticket->seat->row <= $es->row_end) {
+                            if ($es->containsSeat((int) $ticket->seat->row, (int) $ticket->seat->number)) {
                                 $eventSection = $es;
                                 break;
                             }
@@ -63,6 +64,7 @@ class CheckoutController extends Controller
             $unitPrice = $template ? (float) $template->price : 0;
             $totalPrice = $unitPrice * $reservation->reservationTickets->count();
         }
+
         return view('checkout.show', compact('reservation', 'totalPrice'));
     }
 

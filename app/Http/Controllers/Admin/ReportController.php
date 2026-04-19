@@ -84,7 +84,7 @@ class ReportController extends Controller
                                 if (! $es->has_seats) {
                                     continue;
                                 }
-                                if ($es->row_start !== null && $es->row_end !== null && $seat->row >= $es->row_start && $seat->row <= $es->row_end) {
+                                if ($es->containsSeat((int) $seat->row, (int) $seat->number)) {
                                     $eventSection = $es;
                                     break;
                                 }
@@ -170,7 +170,8 @@ class ReportController extends Controller
         $data = $this->getReportData();
         $pdf = Pdf::loadView('admin.reports.pdf.entradas', $data);
         $pdf->setPaper('a4', 'portrait');
-        return $pdf->download('reporte-entradas-vendidas-' . now()->format('Y-m-d') . '.pdf');
+
+        return $pdf->download('reporte-entradas-vendidas-'.now()->format('Y-m-d').'.pdf');
     }
 
     public function downloadClientesPdf(): Response
@@ -178,7 +179,8 @@ class ReportController extends Controller
         $data = $this->getReportData();
         $pdf = Pdf::loadView('admin.reports.pdf.clientes', $data);
         $pdf->setPaper('a4', 'portrait');
-        return $pdf->download('reporte-clientes-' . now()->format('Y-m-d') . '.pdf');
+
+        return $pdf->download('reporte-clientes-'.now()->format('Y-m-d').'.pdf');
     }
 
     public function downloadVentasPdf(): Response
@@ -186,7 +188,8 @@ class ReportController extends Controller
         $data = $this->getReportData();
         $pdf = Pdf::loadView('admin.reports.pdf.ventas', $data);
         $pdf->setPaper('a4', 'portrait');
-        return $pdf->download('reporte-ventas-' . now()->format('Y-m-d') . '.pdf');
+
+        return $pdf->download('reporte-ventas-'.now()->format('Y-m-d').'.pdf');
     }
 
     public function downloadClientesPorEventoPdf(): Response
@@ -194,7 +197,8 @@ class ReportController extends Controller
         $data = $this->getReportData();
         $pdf = Pdf::loadView('admin.reports.pdf.clientes-por-evento', $data);
         $pdf->setPaper('a4', 'portrait');
-        return $pdf->download('reporte-clientes-por-evento-' . now()->format('Y-m-d') . '.pdf');
+
+        return $pdf->download('reporte-clientes-por-evento-'.now()->format('Y-m-d').'.pdf');
     }
 
     /**
@@ -223,7 +227,8 @@ class ReportController extends Controller
 
         $pdf = Pdf::loadView('admin.reports.pdf.nombres-por-evento', compact('event', 'reservations'));
         $pdf->setPaper('a4', 'portrait');
-        return $pdf->download('reporte-nombres-por-evento-' . now()->format('Y-m-d') . '.pdf');
+
+        return $pdf->download('reporte-nombres-por-evento-'.now()->format('Y-m-d').'.pdf');
     }
 
     public function audit(Request $request): View
@@ -301,6 +306,7 @@ class ReportController extends Controller
 
         $pdf = Pdf::loadView('admin.reports.pdf.audit', compact('logs', 'actionLabels'));
         $pdf->setPaper('a4', 'landscape');
-        return $pdf->download('reporte-auditoria-reservas-' . now()->format('Y-m-d') . '.pdf');
+
+        return $pdf->download('reporte-auditoria-reservas-'.now()->format('Y-m-d').'.pdf');
     }
 }

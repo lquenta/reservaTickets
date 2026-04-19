@@ -25,14 +25,29 @@
     @endphp
     @php
         $sectionIdsWithoutSeats = collect($sectionsData)->where('has_seats', false)->pluck('id')->values()->all();
+        $sectionSeatAvailableIds = collect($sectionsData)
+            ->where('has_seats', true)
+            ->flatMap(fn ($s) => $s['availableSeatIds'] ?? [])
+            ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->values()
+            ->all();
+        $layoutElementsData = $layoutElements ?? [];
+        $hasCustomLayoutBlade = !empty($layoutElementsData);
+        $seatSectionsForLegend = collect($sectionsData)->where('has_seats', true)->values();
         $seatsMapFlat = $seatsMap ?? [];
         $seatIdToPrice = $seatIdToPrice ?? [];
         $sectionIdToPrice = $sectionIdToPrice ?? [];
         $sectionIdToName = $sectionIdToName ?? [];
+        $layoutCanvasData = $layoutCanvas ?? ['width' => null, 'height' => null];
     @endphp
     <div class="max-w-4xl mx-auto" x-data="reservationSections({
         maxSeats: {{ $maxSeats }},
         sectionIdsWithoutSeats: {{ json_encode($sectionIdsWithoutSeats) }},
+        sectionSeatAvailableIds: {{ json_encode($sectionSeatAvailableIds) }},
+        layoutElements: {{ json_encode($layoutElementsData) }},
+        layoutCanvas: {{ json_encode($layoutCanvasData) }},
+        sectionsWithSeats: {{ json_encode(collect($sectionsData)->where('has_seats', true)->map(fn ($s) => ['id' => (int) $s['id'], 'name' => (string) $s['name'], 'price' => $s['price'] ?? null])->values()->all()) }},
         seatsMap: {{ json_encode($seatsMapFlat) }},
         seatIdToPrice: {{ json_encode($seatIdToPrice) }},
         sectionIdToPrice: {{ json_encode($sectionIdToPrice) }},
@@ -62,21 +77,104 @@
             @endif
             @error('event_id')<p class="text-sm text-red-400">{{ $message }}</p>@enderror
 
+            <template x-if="hasCustomLayout()">
+                <div class="rounded-2xl border border-red-900/50 bg-black/60 backdrop-blur px-4 py-5 sm:p-6">
+                    <p class="text-white/80 text-sm font-medium text-center">Elige tus butacas en el plano</p>
+                    <p class="text-white/60 text-xs mt-1 text-center max-w-xl mx-auto">Cada color corresponde a una sección. Filtra con el selector para enfocar una zona (el resto se atenúa). Las entradas sin butaca se eligen más abajo.</p>
+                    <div class="mt-5 mb-4 w-full max-w-xl mx-auto">
+                        <label for="layout-section-view-select" class="sr-only">Sección en el plano</label>
+                        <select id="layout-section-view-select"
+                                x-model.number="selectedSeatSectionId"
+                                class="w-full rounded-xl border-2 border-red-900/50 bg-black/70 px-4 py-3.5 sm:py-4 text-center text-base sm:text-lg font-semibold text-white shadow-inner focus:outline-none focus:ring-2 focus:ring-[#e50914] focus:border-[#e50914] cursor-pointer appearance-none bg-[length:1.25rem] bg-[right_0.75rem_center] bg-no-repeat pr-10"
+                                style="background-image:url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 fill=%22none%22 viewBox=%220 0 24 24%22 stroke=%22%23fca5a5%22%3E%3Cpath stroke-linecap=%22round%22 stroke-linejoin=%22round%22 stroke-width=%222%22 d=%22M19 9l-7 7-7-7%22/%3E%3C/svg%3E');">
+                            <option value="0">Todas las secciones</option>
+                            <template x-for="s in sectionsWithSeats" :key="s.id">
+                                <option :value="s.id" x-text="formatSectionOptionLabel(s)"></option>
+                            </template>
+                        </select>
+                    </div>
+                    <div x-ref="layoutViewport"
+                         @resize.window="recalcLayoutViewportScale()"
+                         class="relative w-full min-h-[520px] h-[min(86vh,1100px)] max-h-[1100px] rounded-xl border border-red-900/40 overflow-auto bg-[radial-gradient(circle,_rgba(255,255,255,0.12)_1px,_transparent_1px)] bg-[size:16px_16px] flex items-center justify-center p-2">
+                        <div class="relative shrink-0" :style="layoutScaledHostStyle">
+                            <div class="relative" :style="layoutScaledStageStyle">
+                                <template x-for="el in sortedLayoutElements" :key="el.id">
+                                    <div class="absolute isolate" :style="layoutElementWrapperStyle(el) + 'pointer-events:none;'">
+                                        <template x-if="layoutElType(el) === 'seat'">
+                                            <button type="button"
+                                                    class="absolute inset-0 z-10 rounded-md text-[9px] sm:text-[10px] font-bold px-0.5 sm:px-1 transition border-2 flex items-center justify-center leading-none overflow-hidden text-center pointer-events-auto"
+                                                    :class="layoutSeatClass(el)"
+                                                    :style="layoutSeatFaceStyle(el)"
+                                                    :disabled="!canSelectLayoutSeat(el)"
+                                                    @click="toggleLayoutSeat(el)"
+                                                    :title="el.seat ? `Butaca ${el.seat.label}` : 'Butaca'">
+                                                <span class="truncate max-w-full" x-text="el.seat ? el.seat.label : ''"></span>
+                                            </button>
+                                        </template>
+                                        <template x-if="layoutElType(el) === 'stage'">
+                                            <div class="absolute inset-0 z-0 flex items-center justify-center rounded-md border border-red-500/40 bg-red-700 px-0.5 text-white shadow-md pointer-events-none overflow-hidden"
+                                                 :style="layoutStageSpeakerFaceStyle(el)">
+                                                <span class="max-h-full overflow-hidden text-center text-[8px] font-semibold uppercase leading-tight sm:text-[10px]" x-text="(el.meta && el.meta.label) ? el.meta.label : 'ESCENARIO'"></span>
+                                            </div>
+                                        </template>
+                                        <template x-if="layoutElType(el) === 'speaker'">
+                                            <div class="absolute inset-0 z-0 flex items-center justify-center rounded-md border border-amber-400/40 bg-amber-600 px-0.5 text-white shadow-md pointer-events-none overflow-hidden"
+                                                 :style="layoutStageSpeakerFaceStyle(el)">
+                                                <span class="max-h-full overflow-hidden text-center text-[8px] font-semibold uppercase leading-tight sm:text-[10px]" x-text="(el.meta && el.meta.label) ? el.meta.label : 'PARLANTE'"></span>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </template>
+
+            @if($hasCustomLayoutBlade && $seatSectionsForLegend->isNotEmpty())
+                <div class="rounded-2xl border border-red-900/50 bg-black/60 backdrop-blur px-4 py-5 sm:p-6">
+                    <h2 class="text-lg font-semibold text-[#e50914] mb-1">Precios por sector (plano)</h2>
+                    <p class="text-white/60 text-sm mb-4">La selección es en el plano de arriba; aquí solo referencia de precio por zona.</p>
+                    <ul class="divide-y divide-red-900/30 rounded-xl border border-red-900/40 overflow-hidden">
+                        @foreach($seatSectionsForLegend as $sec)
+                            <li class="flex flex-wrap items-center justify-between gap-2 px-4 py-3 bg-black/30 text-white/90">
+                                <span class="font-medium">{{ $sec['name'] }}</span>
+                                @if(isset($sec['price']) && $sec['price'] !== null && $sec['price'] > 0)
+                                    <span class="text-white/70 text-sm tabular-nums">{{ number_format((float) $sec['price'], 2) }} Bs</span>
+                                @else
+                                    <span class="text-white/50 text-sm">—</span>
+                                @endif
+                            </li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
             @foreach($sectionsData as $section)
+                @if(!empty($section['has_seats']) && $hasCustomLayoutBlade)
+                    @continue
+                @endif
                 <div class="rounded-2xl border border-red-900/50 bg-black/60 backdrop-blur px-4 py-5 sm:p-6">
                     <h2 class="text-lg font-semibold text-[#e50914] mb-1">{{ $section['name'] }}</h2>
                     @if(isset($section['price']) && $section['price'] !== null && $section['price'] > 0)
                         <p class="text-white/60 text-sm mb-4">Precio: {{ number_format($section['price'], 2) }} Bs</p>
                     @endif
                     @if($section['has_seats'])
-                        <p class="text-white/70 text-sm mb-3">Elige butacas (máx. {{ $maxSeats }} en total entre todas las secciones).</p>
+                        <p class="text-white/70 text-sm mb-3">
+                            <template x-if="hasCustomLayout()">
+                                <span>Selecciona las butacas de esta sección directamente en el <strong>plano</strong> de arriba.</span>
+                            </template>
+                            <template x-if="!hasCustomLayout()">
+                                <span>Elige butacas (máx. {{ $maxSeats }} en total entre todas las secciones).</span>
+                            </template>
+                        </p>
                         @php
                             $seatsByRow = $section['seats']->groupBy('row');
                             $sectionAvailableIds = $section['availableSeatIds'];
                             $sectionMaxCols = $seatsByRow->isEmpty() ? 1 : $seatsByRow->max(fn ($r) => $r->count());
                         @endphp
-                        {{-- Tamaño de butaca proporcional al dispositivo (clamp: móvil pequeño → desktop) --}}
-                        <div class="flex flex-col gap-2 items-center section-seat-plan" style="--section-seat-size: clamp(0.875rem, 6vw, 2.5rem);">
+                        {{-- Si hay layout WYSIWYG, evitamos mostrar “segundo plano” por sección --}}
+                        <div class="flex flex-col gap-2 items-center section-seat-plan" x-show="!hasCustomLayout()" style="--section-seat-size: clamp(0.875rem, 6vw, 2.5rem);">
                             {{-- Escenario: misma fila — PARLANTE (círculo) en col 1 y última, línea + ESCENARIO centrada entre ambos --}}
                             <div class="flex gap-2 items-end flex-nowrap mb-1">
                                 <span class="shrink-0" style="width: var(--section-seat-size); height: var(--section-seat-size);" aria-hidden="true"></span>
@@ -186,16 +284,251 @@
             const sectionIdToPrice = config.sectionIdToPrice || {};
             const sectionIdToName = config.sectionIdToName || {};
             const sectionIdsWithoutSeats = config.sectionIdsWithoutSeats || [];
+            const sectionSeatAvailableIds = Array.isArray(config.sectionSeatAvailableIds) ? config.sectionSeatAvailableIds.map(v => parseInt(v, 10)) : [];
+            const sectionsWithSeats = Array.isArray(config.sectionsWithSeats) ? config.sectionsWithSeats : [];
+            const lc = config.layoutCanvas || {};
+            const layoutCanvasW = lc.width != null && Number(lc.width) > 0 ? Number(lc.width) : null;
+            const layoutCanvasH = lc.height != null && Number(lc.height) > 0 ? Number(lc.height) : null;
             const sectionQuantities = {};
             sectionIdsWithoutSeats.forEach(id => {
                 sectionQuantities[id] = (config.oldSectionQuantities && (config.oldSectionQuantities[id] != null ? config.oldSectionQuantities[id] : config.oldSectionQuantities[String(id)])) || 0;
             });
             return {
                 selectedSeatIds: Array.isArray(config.oldSeatIds) ? config.oldSeatIds : [],
+                layoutElements: Array.isArray(config.layoutElements) ? config.layoutElements : [],
+                sectionsWithSeats: sectionsWithSeats,
+                selectedSeatSectionId: 0,
                 sectionQuantities: sectionQuantities,
                 singleName: config.oldSingleName !== false,
                 holderName: (config.oldNames && config.oldNames[1]) || '',
                 holderNames: config.oldNames || {},
+                _layoutViewportScale: 1,
+                _layoutViewportRo: null,
+                init() {
+                    this.$nextTick(() => this.setupLayoutViewportObserver());
+                },
+                setupLayoutViewportObserver() {
+                    const el = this.$refs.layoutViewport;
+                    if (!el || this._layoutViewportRo) {
+                        return;
+                    }
+                    this._layoutViewportRo = new ResizeObserver(() => this.recalcLayoutViewportScale());
+                    this._layoutViewportRo.observe(el);
+                    this.recalcLayoutViewportScale();
+                },
+                recalcLayoutViewportScale() {
+                    const el = this.$refs.layoutViewport;
+                    if (!el) {
+                        return;
+                    }
+                    const dw = this.layoutDesignWidth;
+                    const dh = this.layoutDesignHeight;
+                    if (dw <= 0 || dh <= 0) {
+                        return;
+                    }
+                    const pad = 20;
+                    const sx = (el.clientWidth - pad) / dw;
+                    const sy = (el.clientHeight - pad) / dh;
+                    const s = Math.min(1, sx, sy);
+                    this._layoutViewportScale = 1;
+                },
+                inferLayoutCanvasWidth() {
+                    const els = this.layoutElements;
+                    if (!Array.isArray(els) || !els.length) {
+                        return 960;
+                    }
+                    let m = 320;
+                    for (let i = 0; i < els.length; i++) {
+                        const el = els[i];
+                        const r = (Number(el.x) || 0) + Math.max(8, Number(el.w) || 48) + 48;
+                        if (r > m) {
+                            m = r;
+                        }
+                    }
+                    return Math.ceil(m);
+                },
+                inferLayoutCanvasHeight() {
+                    const els = this.layoutElements;
+                    if (!Array.isArray(els) || !els.length) {
+                        return 640;
+                    }
+                    let m = 420;
+                    for (let i = 0; i < els.length; i++) {
+                        const el = els[i];
+                        const r = (Number(el.y) || 0) + Math.max(8, Number(el.h) || 48) + 48;
+                        if (r > m) {
+                            m = r;
+                        }
+                    }
+                    return Math.ceil(m);
+                },
+                get layoutDesignWidth() {
+                    if (layoutCanvasW != null) {
+                        return layoutCanvasW;
+                    }
+                    return this.inferLayoutCanvasWidth();
+                },
+                get layoutDesignHeight() {
+                    if (layoutCanvasH != null) {
+                        return layoutCanvasH;
+                    }
+                    return this.inferLayoutCanvasHeight();
+                },
+                get layoutScaledHostStyle() {
+                    const s = this._layoutViewportScale;
+                    const dw = this.layoutDesignWidth;
+                    const dh = this.layoutDesignHeight;
+                    return 'width:' + (dw * s) + 'px;height:' + (dh * s) + 'px;';
+                },
+                get layoutScaledStageStyle() {
+                    const s = this._layoutViewportScale;
+                    const dw = this.layoutDesignWidth;
+                    const dh = this.layoutDesignHeight;
+                    return 'position:absolute;left:0;top:0;width:' + dw + 'px;height:' + dh + 'px;transform:scale(' + s + ');transform-origin:top left;';
+                },
+                hasCustomLayout() {
+                    return Array.isArray(this.layoutElements) && this.layoutElements.length > 0;
+                },
+                get sortedLayoutElements() {
+                    if (!Array.isArray(this.layoutElements)) {
+                        return [];
+                    }
+                    return [...this.layoutElements].sort((a, b) => (Number(a.z_index) || 0) - (Number(b.z_index) || 0));
+                },
+                sectionColor(sectionId) {
+                    return this.sectionPaletteEntry(sectionId).border;
+                },
+                sectionPaletteEntry(sectionId) {
+                    const id = parseInt(sectionId, 10) || 0;
+                    const palette = [
+                        { bg: '#059669', border: '#047857', text: '#ffffff' },
+                        { bg: '#2563eb', border: '#1d4ed8', text: '#ffffff' },
+                        { bg: '#d97706', border: '#b45309', text: '#fffbeb' },
+                        { bg: '#9333ea', border: '#7e22ce', text: '#ffffff' },
+                        { bg: '#0891b2', border: '#0e7490', text: '#ffffff' },
+                        { bg: '#dc2626', border: '#b91c1c', text: '#ffffff' },
+                        { bg: '#65a30d', border: '#4d7c0f', text: '#fffbeb' },
+                        { bg: '#ea580c', border: '#c2410c', text: '#ffffff' },
+                    ];
+                    return palette[Math.abs(id) % palette.length];
+                },
+                formatSectionOptionLabel(s) {
+                    const name = (s && s.name) ? s.name : ('Sección ' + (s && s.id));
+                    const p = s && s.price;
+                    if (p == null || p === '' || Number(p) <= 0) {
+                        return name;
+                    }
+                    return name + ' — ' + Number(p).toFixed(0) + ' Bs';
+                },
+                layoutElType(el) {
+                    if (!el) {
+                        return '';
+                    }
+                    const raw = el.type;
+                    if (raw != null && String(raw).trim() !== '') {
+                        return String(raw).toLowerCase().trim();
+                    }
+                    if (el.seat_id) {
+                        return 'seat';
+                    }
+                    return '';
+                },
+                layoutElementWrapperStyle(el) {
+                    if (!el) {
+                        return '';
+                    }
+                    const x = Number(el.x) || 0;
+                    const y = Number(el.y) || 0;
+                    const w = Math.max(8, Number(el.w) || 48);
+                    const h = Math.max(8, Number(el.h) || 48);
+                    const rot = Number(el.rotation) || 0;
+                    const z = Number(el.z_index) || 0;
+                    return `left:${x}px;top:${y}px;width:${w}px;height:${h}px;transform:rotate(${rot}deg);z-index:${z};`;
+                },
+                seatSectionIdFromLayout(el) {
+                    if (!el || !el.seat) return 0;
+                    const sid = el.seat.section_id;
+                    return sid != null ? parseInt(sid, 10) || 0 : 0;
+                },
+                layoutStageSpeakerFaceStyle(el) {
+                    const dim = this.selectedSeatSectionId !== 0;
+                    return dim ? 'opacity:0.42;' : 'opacity:1;';
+                },
+                layoutSeatFaceStyle(el) {
+                    if (!el || this.layoutElType(el) !== 'seat') {
+                        return '';
+                    }
+                    if (!el.seat) {
+                        return 'opacity:1;background-color:#15803d;border-color:#14532d;color:#ffffff;box-shadow:0 1px 2px rgba(0,0,0,0.35);';
+                    }
+                    const id = parseInt(el.seat.id, 10);
+                    const selected = this.selectedSeatIds.includes(id);
+                    const seatSectionId = this.seatSectionIdFromLayout(el);
+                    const passFilter = (this.selectedSeatSectionId === 0) || (seatSectionId === this.selectedSeatSectionId);
+                    const available = sectionSeatAvailableIds.includes(id) && !el.seat.blocked;
+                    const dimmed = this.selectedSeatSectionId !== 0 && !passFilter;
+                    const opacity = dimmed ? 0.4 : 1;
+                    let shadow = '0 1px 2px rgba(0,0,0,0.35)';
+                    if (selected) {
+                        shadow = '0 0 0 2px #fff, 0 0 0 5px rgba(229,9,20,0.95)';
+                    }
+                    if (selected) {
+                        return `opacity:1;background-color:#e50914;border-color:#fecaca;color:#ffffff;box-shadow:${shadow};`;
+                    }
+                    if (!passFilter) {
+                        const pal = seatSectionId ? this.sectionPaletteEntry(seatSectionId) : { bg: '#334155', border: '#475569', text: '#cbd5e1' };
+                        return `opacity:${opacity};background-color:${pal.bg};border-color:${pal.border};color:${pal.text};box-shadow:none;`;
+                    }
+                    if (!available) {
+                        return `opacity:${Math.min(1, opacity * 0.95)};background-color:#1e293b;border-color:#334155;color:#64748b;box-shadow:none;`;
+                    }
+                    if (seatSectionId) {
+                        const pal = this.sectionPaletteEntry(seatSectionId);
+                        return `opacity:1;background-color:${pal.bg};border-color:${pal.border};color:${pal.text};box-shadow:${shadow};`;
+                    }
+                    return `opacity:1;background-color:#15803d;border-color:#14532d;color:#ffffff;box-shadow:${shadow};`;
+                },
+                canSelectLayoutSeat(el) {
+                    if (!el || !el.seat) return false;
+                    const id = parseInt(el.seat.id, 10);
+                    const selected = this.selectedSeatIds.includes(id);
+                    const seatSectionId = this.seatSectionIdFromLayout(el);
+                    const passFilter = (this.selectedSeatSectionId === 0) || (seatSectionId === this.selectedSeatSectionId);
+                    const available = passFilter && sectionSeatAvailableIds.includes(id) && !el.seat.blocked;
+                    return selected || (available && this.selectedSeatIds.length < maxSeats);
+                },
+                layoutSeatClass(el) {
+                    if (!el || !el.seat) {
+                        return 'border-slate-600 cursor-not-allowed';
+                    }
+                    const id = parseInt(el.seat.id, 10);
+                    const selected = this.selectedSeatIds.includes(id);
+                    const seatSectionId = this.seatSectionIdFromLayout(el);
+                    const passFilter = (this.selectedSeatSectionId === 0) || (seatSectionId === this.selectedSeatSectionId);
+                    const available = passFilter && sectionSeatAvailableIds.includes(id) && !el.seat.blocked;
+                    if (!passFilter) {
+                        return 'cursor-default';
+                    }
+                    if (selected) {
+                        return 'cursor-pointer';
+                    }
+                    if (available) {
+                        return 'cursor-pointer hover:brightness-110';
+                    }
+                    return 'cursor-not-allowed';
+                },
+                toggleLayoutSeat(el) {
+                    if (!el || !el.seat) return;
+                    const id = parseInt(el.seat.id, 10);
+                    const idx = this.selectedSeatIds.indexOf(id);
+                    if (idx >= 0) {
+                        this.selectedSeatIds.splice(idx, 1);
+                        return;
+                    }
+                    if (!this.canSelectLayoutSeat(el)) return;
+                    this.selectedSeatIds.push(id);
+                    this.selectedSeatIds.sort((a, b) => a - b);
+                },
                 get totalTickets() {
                     const seatCount = this.selectedSeatIds.length;
                     let sectionCount = 0;
@@ -342,6 +675,8 @@
         for ($i = 1; $i <= count($oldSeatIds); $i++) {
             $seatFor[$i] = isset($oldSeatFor[$i]) ? (int) $oldSeatFor[$i] : ($oldSeatIds[$i - 1] ?? null);
         }
+        $layoutElementsData = $layoutElements ?? [];
+        $layoutCanvasSimple = $layoutCanvas ?? ['width' => null, 'height' => null];
     @endphp
     @php
         $alpineDataJson = json_encode([
@@ -353,6 +688,8 @@
             'oldSeatFor' => $oldSeatFor,
             'seatsMap' => $seatsMap ?? [],
             'seatFor' => $seatFor,
+            'layoutElements' => $layoutElementsData,
+            'layoutCanvas' => $layoutCanvasSimple,
         ], JSON_THROW_ON_ERROR | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT);
     @endphp
     <div class="max-w-4xl mx-auto"
@@ -375,21 +712,168 @@
                 const otherKey = Object.keys(this.seatFor).find(k => parseInt(k, 10) !== ticketNum && this.seatFor[k] === newVal);
                 if (otherKey) this.seatFor[otherKey] = oldVal;
                 this.seatFor[ticketNum] = newVal;
-            }
-         }"
-         x-init="
-            if (!Array.isArray(selectedIds)) selectedIds = [];
-            if (typeof seatFor !== 'object') seatFor = {};
-            const syncSeatFor = () => {
-                const ids = selectedIds || [];
-                for (let i = 0; i < ids.length; i++) {
-                    const j = i + 1;
-                    if (seatFor[j] === undefined || !ids.includes(seatFor[j])) seatFor[j] = ids[i];
+            },
+            hasCustomLayout() { return Array.isArray(this.layoutElements) && this.layoutElements.length > 0; },
+            _layoutViewportScale: 1,
+            _layoutViewportRo: null,
+            init() {
+                if (!Array.isArray(this.selectedIds)) this.selectedIds = [];
+                if (typeof this.seatFor !== 'object') this.seatFor = {};
+                const syncSeatFor = () => {
+                    const ids = this.selectedIds || [];
+                    for (let i = 0; i < ids.length; i++) {
+                        const j = i + 1;
+                        if (this.seatFor[j] === undefined || !ids.includes(this.seatFor[j])) this.seatFor[j] = ids[i];
+                    }
+                };
+                syncSeatFor();
+                this.$watch('selectedIds', syncSeatFor, { deep: true });
+                this.$nextTick(() => this.setupLayoutViewportObserverSimple());
+            },
+            setupLayoutViewportObserverSimple() {
+                const el = this.$refs.layoutViewport;
+                if (!el || this._layoutViewportRo) return;
+                this._layoutViewportRo = new ResizeObserver(() => this.recalcLayoutViewportScaleSimple());
+                this._layoutViewportRo.observe(el);
+                this.recalcLayoutViewportScaleSimple();
+            },
+            recalcLayoutViewportScaleSimple() {
+                const el = this.$refs.layoutViewport;
+                if (!el) return;
+                const dw = this.layoutDesignWidthSimple;
+                const dh = this.layoutDesignHeightSimple;
+                if (dw <= 0 || dh <= 0) return;
+                const pad = 20;
+                const sx = (el.clientWidth - pad) / dw;
+                const sy = (el.clientHeight - pad) / dh;
+                const s = Math.min(1, sx, sy);
+                    this._layoutViewportScale = 1;
+            },
+            inferLayoutCanvasWidthSimple() {
+                const els = this.layoutElements;
+                if (!Array.isArray(els) || !els.length) return 960;
+                let m = 320;
+                for (let i = 0; i < els.length; i++) {
+                    const el = els[i];
+                    const r = (Number(el.x) || 0) + Math.max(8, Number(el.w) || 48) + 48;
+                    if (r > m) m = r;
                 }
-            };
-            syncSeatFor();
-            $watch('selectedIds', syncSeatFor, { deep: true });
-         ">
+                return Math.ceil(m);
+            },
+            inferLayoutCanvasHeightSimple() {
+                const els = this.layoutElements;
+                if (!Array.isArray(els) || !els.length) return 640;
+                let m = 420;
+                for (let i = 0; i < els.length; i++) {
+                    const el = els[i];
+                    const r = (Number(el.y) || 0) + Math.max(8, Number(el.h) || 48) + 48;
+                    if (r > m) m = r;
+                }
+                return Math.ceil(m);
+            },
+            get layoutDesignWidthSimple() {
+                const lc = this.layoutCanvas || {};
+                const w = lc.width != null ? Number(lc.width) : null;
+                if (w != null && w > 0) return w;
+                return this.inferLayoutCanvasWidthSimple();
+            },
+            get layoutDesignHeightSimple() {
+                const lc = this.layoutCanvas || {};
+                const h = lc.height != null ? Number(lc.height) : null;
+                if (h != null && h > 0) return h;
+                return this.inferLayoutCanvasHeightSimple();
+            },
+            get layoutScaledHostStyleSimple() {
+                const s = this._layoutViewportScale;
+                const dw = this.layoutDesignWidthSimple;
+                const dh = this.layoutDesignHeightSimple;
+                return 'width:' + (dw * s) + 'px;height:' + (dh * s) + 'px;';
+            },
+            get layoutScaledStageStyleSimple() {
+                const s = this._layoutViewportScale;
+                const dw = this.layoutDesignWidthSimple;
+                const dh = this.layoutDesignHeightSimple;
+                return 'position:absolute;left:0;top:0;width:' + dw + 'px;height:' + dh + 'px;transform:scale(' + s + ');transform-origin:top left;';
+            },
+            get sortedLayoutElements() {
+                if (!Array.isArray(this.layoutElements)) return [];
+                return [...this.layoutElements].sort((a, b) => (Number(a.z_index) || 0) - (Number(b.z_index) || 0));
+            },
+            findSeatById(id) {
+                const sid = parseInt(id, 10);
+                return this.layoutElements.find(el => this.layoutElType(el) === 'seat' && el.seat_id === sid && el.seat) || null;
+            },
+            layoutElType(el) {
+                if (!el) return '';
+                const raw = el.type;
+                if (raw != null && String(raw).trim() !== '') return String(raw).toLowerCase().trim();
+                if (el.seat_id) return 'seat';
+                return '';
+            },
+            layoutElementWrapperStyle(el) {
+                if (!el) return '';
+                const x = Number(el.x) || 0;
+                const y = Number(el.y) || 0;
+                const w = Math.max(8, Number(el.w) || 48);
+                const h = Math.max(8, Number(el.h) || 48);
+                const rot = Number(el.rotation) || 0;
+                const z = Number(el.z_index) || 0;
+                return `left:${x}px;top:${y}px;width:${w}px;height:${h}px;transform:rotate(${rot}deg);z-index:${z};`;
+            },
+            sectionPaletteEntrySimple(sectionId) {
+                const id = parseInt(sectionId, 10) || 0;
+                const palette = [
+                    { bg: '#059669', border: '#047857', text: '#ffffff' },
+                    { bg: '#2563eb', border: '#1d4ed8', text: '#ffffff' },
+                    { bg: '#d97706', border: '#b45309', text: '#fffbeb' },
+                    { bg: '#9333ea', border: '#7e22ce', text: '#ffffff' },
+                    { bg: '#0891b2', border: '#0e7490', text: '#ffffff' },
+                    { bg: '#dc2626', border: '#b91c1c', text: '#ffffff' },
+                    { bg: '#65a30d', border: '#4d7c0f', text: '#fffbeb' },
+                    { bg: '#ea580c', border: '#c2410c', text: '#ffffff' },
+                ];
+                return palette[Math.abs(id) % palette.length];
+            },
+            seatSectionIdFromLayoutSimple(el) {
+                if (!el || !el.seat) return 0;
+                const sid = el.seat.section_id;
+                return sid != null ? parseInt(sid, 10) || 0 : 0;
+            },
+            layoutSeatFaceStyleSimple(el) {
+                if (!el || this.layoutElType(el) !== 'seat') return '';
+                if (!el.seat) {
+                    return 'background-color:#15803d;border-color:#14532d;color:#fff;box-shadow:0 1px 2px rgba(0,0,0,0.35);';
+                }
+                const sid = parseInt(el.seat.id, 10);
+                const selected = this.isSelected(sid);
+                const can = this.canSelect({ id: sid, blocked: !!el.seat.blocked });
+                let shadow = '0 1px 2px rgba(0,0,0,0.35)';
+                if (selected) shadow = '0 0 0 2px #fff, 0 0 0 5px rgba(229,9,20,0.95)';
+                if (selected) {
+                    return `background-color:#e50914;border-color:#fecaca;color:#fff;box-shadow:${shadow};`;
+                }
+                if (!can) {
+                    return `background-color:#1e293b;border-color:#334155;color:#64748b;box-shadow:none;`;
+                }
+                const sec = this.seatSectionIdFromLayoutSimple(el);
+                if (sec) {
+                    const pal = this.sectionPaletteEntrySimple(sec);
+                    return `background-color:${pal.bg};border-color:${pal.border};color:${pal.text};box-shadow:${shadow};`;
+                }
+                return `background-color:#15803d;border-color:#14532d;color:#fff;box-shadow:${shadow};`;
+            },
+            layoutSeatClass(el) {
+                if (!el || !el.seat) return 'border-slate-600 cursor-not-allowed';
+                const sid = parseInt(el.seat.id, 10);
+                if (this.isSelected(sid)) return 'cursor-pointer ring-2 ring-white';
+                if (!this.canSelect({ id: sid, blocked: !!el.seat.blocked })) return 'cursor-not-allowed';
+                return 'cursor-pointer hover:brightness-110';
+            },
+            toggleLayoutSeat(el) {
+                if (!el || !el.seat) return;
+                this.toggle({ id: parseInt(el.seat.id, 10), blocked: !!el.seat.blocked });
+            }
+         }">
         <h1 class="font-display text-2xl sm:text-3xl font-bold text-[#e50914] tracking-widest mb-2">CHECKOUT — PASO 1</h1>
         <p class="text-lg sm:text-xl text-white/80 mb-2">{{ $event->name }}</p>
         <p class="text-white/60 text-sm mb-4 sm:mb-6">Elige tus butacas haciendo clic (máximo {{ $maxSeats }}). Luego los nombres. Al continuar pasarás al paso 2 para subir el comprobante.</p>
@@ -410,7 +894,46 @@
                 </div>
             @endif
 
-            <div class="rounded-2xl border border-red-900/50 bg-black/60 backdrop-blur px-4 py-5 sm:p-6">
+            <template x-if="hasCustomLayout()">
+                <div class="rounded-2xl border border-red-900/50 bg-black/60 backdrop-blur px-4 py-5 sm:p-6">
+                    <p class="text-white/70 text-sm mb-3 text-center">Plano del venue</p>
+                    <div x-ref="layoutViewport"
+                         @resize.window="recalcLayoutViewportScaleSimple()"
+                         class="relative w-full min-h-[520px] h-[min(86vh,1100px)] max-h-[1100px] rounded-xl border border-red-900/40 overflow-auto bg-[radial-gradient(circle,_rgba(255,255,255,0.12)_1px,_transparent_1px)] bg-[size:16px_16px] flex items-center justify-center p-2">
+                        <div class="relative shrink-0" :style="layoutScaledHostStyleSimple">
+                            <div class="relative" :style="layoutScaledStageStyleSimple">
+                                <template x-for="el in sortedLayoutElements" :key="el.id">
+                                    <div class="absolute isolate" :style="layoutElementWrapperStyle(el) + 'pointer-events:none;'">
+                                        <template x-if="layoutElType(el) === 'seat'">
+                                            <button type="button"
+                                                    class="absolute inset-0 z-10 rounded-md text-[9px] sm:text-[10px] font-bold px-0.5 sm:px-1 transition border-2 flex items-center justify-center leading-none overflow-hidden text-center pointer-events-auto"
+                                                    :class="layoutSeatClass(el)"
+                                                    :style="layoutSeatFaceStyleSimple(el)"
+                                                    :disabled="!canSelect({ id: parseInt(el.seat.id, 10), blocked: !!el.seat.blocked }) && !isSelected(parseInt(el.seat.id, 10))"
+                                                    @click="toggleLayoutSeat(el)"
+                                                    :title="`Butaca ${el.seat.label}`">
+                                                <span class="truncate max-w-full" x-text="el.seat.label"></span>
+                                            </button>
+                                        </template>
+                                        <template x-if="layoutElType(el) === 'stage'">
+                                            <div class="absolute inset-0 z-0 flex items-center justify-center rounded-md border border-red-500/40 bg-red-700 px-0.5 text-white shadow-md pointer-events-none overflow-hidden">
+                                                <span class="max-h-full overflow-hidden text-center text-[8px] font-semibold uppercase leading-tight sm:text-[10px]" x-text="(el.meta && el.meta.label) ? el.meta.label : 'ESCENARIO'"></span>
+                                            </div>
+                                        </template>
+                                        <template x-if="layoutElType(el) === 'speaker'">
+                                            <div class="absolute inset-0 z-0 flex items-center justify-center rounded-md border border-amber-400/40 bg-amber-600 px-0.5 text-white shadow-md pointer-events-none overflow-hidden">
+                                                <span class="max-h-full overflow-hidden text-center text-[8px] font-semibold uppercase leading-tight sm:text-[10px]" x-text="(el.meta && el.meta.label) ? el.meta.label : 'PARLANTE'"></span>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </template>
+
+            <div class="rounded-2xl border border-red-900/50 bg-black/60 backdrop-blur px-4 py-5 sm:p-6" x-show="!hasCustomLayout()">
                 {{-- Plano escalado al viewport: todas las butacas visibles, proporción correcta --}}
                 @php
                     $labelW = 2.5;

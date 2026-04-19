@@ -72,7 +72,7 @@
                         </label>
                         <span class="text-sm text-slate-500 dark:text-slate-400">
                             @if($section->has_seats)
-                                Con butacas (filas {{ $section->row_start ?? '?' }}-{{ $section->row_end ?? '?' }})
+                                Con butacas (filas {{ $section->row_start ?? '?' }}-{{ $section->row_end ?? '?' }}@if($section->col_start !== null && $section->col_end !== null), butacas {{ $section->col_start }}-{{ $section->col_end }}@endif)
                             @else
                                 Sin butacas @if($section->capacity) — Capacidad {{ $section->capacity }} @endif
                             @endif

@@ -20,6 +20,7 @@ class ReservationController extends Controller
     public function index(): View
     {
         $reservations = auth()->user()->reservations()->with('event')->latest()->paginate(10);
+
         return view('reservations.index', compact('reservations'));
     }
 
@@ -29,21 +30,55 @@ class ReservationController extends Controller
             return redirect()->route('events.index')->with('message', 'Este evento no está disponible.');
         }
 
-        $event->load('sections.seats', 'venue.seats');
+        $event->load('sections.seats', 'venue.seats', 'venue.layoutElements.seat');
 
         $seats = [];
         $seatsMap = [];
         $availableSeatIds = [];
         $blockedSeatIds = [];
         $sectionsData = [];
+        $layoutElements = [];
         $seatIdToPrice = [];
         $sectionIdToPrice = [];
         $sectionIdToName = [];
+        $layoutCanvas = ['width' => null, 'height' => null];
 
         if ($event->venue_id) {
             $venue = $event->getRelationValue('venue');
             if ($venue) {
+                $layoutCanvas = [
+                    'width' => $venue->layout_canvas_width,
+                    'height' => $venue->layout_canvas_height,
+                ];
                 $blockedSeatIds = $event->blockedSeatIds()->flip();
+                $layoutElements = $venue->layoutElements->map(function ($element) use ($blockedSeatIds) {
+                    $seat = $element->seat;
+                    $isBlocked = false;
+                    if ($seat) {
+                        $isBlocked = (bool) $seat->blocked || $blockedSeatIds->has($seat->id);
+                    }
+
+                    return [
+                        'id' => $element->id,
+                        'type' => $element->type,
+                        'seat_id' => $element->seat_id,
+                        'x' => (float) $element->x,
+                        'y' => (float) $element->y,
+                        'w' => (float) $element->w,
+                        'h' => (float) $element->h,
+                        'rotation' => (float) $element->rotation,
+                        'z_index' => (int) $element->z_index,
+                        'meta' => $element->meta ?? [],
+                        'seat' => $seat ? [
+                            'id' => $seat->id,
+                            'label' => $seat->display_label,
+                            'row' => $seat->row,
+                            'number' => $seat->number,
+                            'section_id' => $seat->section_id,
+                            'blocked' => $isBlocked,
+                        ] : null,
+                    ];
+                })->values()->all();
                 if ($event->hasSections()) {
                     foreach ($event->sections as $section) {
                         $pivot = $section->pivot;
@@ -51,23 +86,30 @@ class ReservationController extends Controller
                         if ($section->has_seats) {
                             $sectionSeats = $section->seats()->orderBy('row')->orderBy('number')->get()->map(function ($seat) use ($blockedSeatIds) {
                                 $seat->blocked = (bool) $seat->blocked || $blockedSeatIds->has($seat->id);
+
                                 return $seat;
                             });
                             if ($sectionSeats->isEmpty() && $section->row_start !== null && $section->row_end !== null) {
-                                $sectionSeats = $venue->seats()->whereBetween('row', [$section->row_start, $section->row_end])->orderBy('row')->orderBy('number')->get()->map(function ($seat) use ($blockedSeatIds) {
+                                $fallbackSeats = $venue->seats();
+                                $section->applySeatSpatialConstraints($fallbackSeats);
+                                $sectionSeats = $fallbackSeats->orderBy('row')->orderBy('number')->get()->map(function ($seat) use ($blockedSeatIds) {
                                     $seat->blocked = (bool) $seat->blocked || $blockedSeatIds->has($seat->id);
+
                                     return $seat;
                                 });
                             }
                             if ($sectionSeats->isEmpty()) {
                                 $sectionSeats = $venue->seats()->orderBy('row')->orderBy('number')->get()->map(function ($seat) use ($blockedSeatIds) {
                                     $seat->blocked = (bool) $seat->blocked || $blockedSeatIds->has($seat->id);
+
                                     return $seat;
                                 });
                             }
                             $sectionAvailableIds = $event->availableSeats($section->id)->pluck('id')->all();
                             if (empty($sectionAvailableIds) && $section->row_start !== null && $section->row_end !== null) {
-                                $sectionAvailableIds = $event->availableSeats(null)->whereBetween('row', [$section->row_start, $section->row_end])->pluck('id')->all();
+                                $avail = $event->availableSeats(null);
+                                $section->applySeatSpatialConstraints($avail);
+                                $sectionAvailableIds = $avail->pluck('id')->all();
                             }
                             if (empty($sectionAvailableIds)) {
                                 $sectionAvailableIds = $event->availableSeats(null)->pluck('id')->all();
@@ -109,6 +151,7 @@ class ReservationController extends Controller
                 } else {
                     $seats = $venue->seats()->orderBy('row')->orderBy('number')->get()->map(function ($seat) use ($blockedSeatIds) {
                         $seat->blocked = (bool) $seat->blocked || $blockedSeatIds->has($seat->id);
+
                         return $seat;
                     });
                     $seatsMap = $seats->keyBy('id')->map(fn ($s) => ['label' => $s->display_label])->all();
@@ -120,7 +163,7 @@ class ReservationController extends Controller
             }
         }
 
-        return view('reservations.create', compact('event', 'seats', 'seatsMap', 'availableSeatIds', 'sectionsData', 'seatIdToPrice', 'sectionIdToPrice', 'sectionIdToName'));
+        return view('reservations.create', compact('event', 'seats', 'seatsMap', 'availableSeatIds', 'sectionsData', 'seatIdToPrice', 'sectionIdToPrice', 'sectionIdToName', 'layoutElements', 'layoutCanvas'));
     }
 
     public function store(StoreReservationRequest $request, ReservationService $service): RedirectResponse
@@ -179,7 +222,7 @@ class ReservationController extends Controller
         if (! $event->venue_id) {
             return response()->json(['seats' => [], 'venue' => null]);
         }
-        $event->load('venue');
+        $event->load('venue.layoutElements.seat');
         $venue = $event->getRelationValue('venue');
         if (! $venue) {
             return response()->json(['seats' => [], 'venue' => null]);
@@ -188,6 +231,7 @@ class ReservationController extends Controller
         $blockedByEvent = $event->blockedSeatIds()->flip();
         $seats = $venue->seats()->orderBy('row')->orderBy('number')->get()->map(function ($seat) use ($availableIds, $blockedByEvent) {
             $isBlocked = (bool) $seat->blocked || $blockedByEvent->has($seat->id);
+
             return [
                 'id' => $seat->id,
                 'row' => $seat->row,
@@ -198,11 +242,45 @@ class ReservationController extends Controller
                 'available' => ! $isBlocked && $availableIds->has($seat->id),
             ];
         });
+
         return response()->json([
             'seats' => $seats,
+            'layout' => $venue->layoutElements->map(function ($element) use ($availableIds, $blockedByEvent) {
+                $seat = $element->seat;
+                $isBlocked = false;
+                $isAvailable = false;
+                if ($seat) {
+                    $isBlocked = (bool) $seat->blocked || $blockedByEvent->has($seat->id);
+                    $isAvailable = ! $isBlocked && $availableIds->has($seat->id);
+                }
+
+                return [
+                    'id' => $element->id,
+                    'type' => $element->type,
+                    'seat_id' => $element->seat_id,
+                    'x' => (float) $element->x,
+                    'y' => (float) $element->y,
+                    'w' => (float) $element->w,
+                    'h' => (float) $element->h,
+                    'rotation' => (float) $element->rotation,
+                    'z_index' => (int) $element->z_index,
+                    'meta' => $element->meta ?? [],
+                    'seat' => $seat ? [
+                        'id' => $seat->id,
+                        'label' => $seat->display_label,
+                        'row' => $seat->row,
+                        'number' => $seat->number,
+                        'section_id' => $seat->section_id,
+                        'blocked' => $isBlocked,
+                        'available' => $isAvailable,
+                    ] : null,
+                ];
+            })->values(),
             'venue' => [
                 'name' => $venue->name,
                 'plan_image_path' => $venue->plan_image_path,
+                'layout_canvas_width' => $venue->layout_canvas_width,
+                'layout_canvas_height' => $venue->layout_canvas_height,
             ],
         ]);
     }
@@ -215,6 +293,7 @@ class ReservationController extends Controller
         if ($reservation->status === Reservation::STATUS_INICIADO && $reservation->isExpired()) {
             $reservation->update(['status' => Reservation::STATUS_CANCELADO]);
         }
+
         return redirect()->route('home')->with('message', 'Tiempo agotado');
     }
 
@@ -240,12 +319,12 @@ class ReservationController extends Controller
             'price' => $price,
         ]);
 
-        $filename = 'tickets-' . $reservation->payment_code . '.pdf';
+        $filename = 'tickets-'.$reservation->payment_code.'.pdf';
         $disposition = $request->boolean('download') ? 'attachment' : 'inline';
 
         return response($pdf->output(), 200, [
             'Content-Type' => 'application/pdf',
-            'Content-Disposition' => $disposition . '; filename="' . $filename . '"',
+            'Content-Disposition' => $disposition.'; filename="'.$filename.'"',
         ]);
     }
 }

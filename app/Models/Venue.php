@@ -17,6 +17,8 @@ class Venue extends Model
         'plan_image_path',
         'seat_rows',
         'seat_columns',
+        'layout_canvas_width',
+        'layout_canvas_height',
     ];
 
     protected function casts(): array
@@ -24,6 +26,8 @@ class Venue extends Model
         return [
             'seat_rows' => 'integer',
             'seat_columns' => 'integer',
+            'layout_canvas_width' => 'integer',
+            'layout_canvas_height' => 'integer',
         ];
     }
 
@@ -40,5 +44,10 @@ class Venue extends Model
     public function events(): HasMany
     {
         return $this->hasMany(Event::class);
+    }
+
+    public function layoutElements(): HasMany
+    {
+        return $this->hasMany(VenueLayoutElement::class)->orderBy('z_index')->orderBy('id');
     }
 }

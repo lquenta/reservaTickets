@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Seat extends Model
 {
@@ -51,16 +52,22 @@ class Seat extends Model
             ->withTimestamps();
     }
 
+    public function layoutElement(): HasOne
+    {
+        return $this->hasOne(VenueLayoutElement::class);
+    }
+
     /** Fila como letra del abecedario: 1=A, 2=B, ... 26=Z */
     public function getRowLetterAttribute(): string
     {
         $row = (int) $this->row;
+
         return $row >= 1 && $row <= 26 ? chr(64 + $row) : (string) $this->row;
     }
 
     /** Etiqueta para mostrar: fila letra + número (ej. A-1, B-3). Usar en vistas y reportes. */
     public function getDisplayLabelAttribute(): string
     {
-        return $this->row_letter . '-' . $this->number;
+        return $this->row_letter.'-'.$this->number;
     }
 }

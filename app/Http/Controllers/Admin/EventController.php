@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Event;
-use App\Models\Section;
 use App\Models\Seat;
+use App\Models\Section;
 use App\Models\Venue;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -16,12 +16,14 @@ class EventController extends Controller
     public function index(): View
     {
         $events = Event::orderBy('starts_at', 'desc')->paginate(15);
+
         return view('admin.events.index', compact('events'));
     }
 
     public function create(): View
     {
         $venues = Venue::orderBy('name')->get();
+
         return view('admin.events.create', compact('venues'));
     }
 
@@ -65,6 +67,7 @@ class EventController extends Controller
     {
         $event->load('sections');
         $venues = Venue::with('sections')->orderBy('name')->get();
+
         return view('admin.events.edit', compact('event', 'venues'));
     }
 
@@ -113,6 +116,7 @@ class EventController extends Controller
     {
         if (! $event->venue_id) {
             $event->sections()->detach();
+
             return;
         }
         $venueId = $event->venue_id;
@@ -139,6 +143,7 @@ class EventController extends Controller
     public function destroy(Event $event): RedirectResponse
     {
         $event->delete();
+
         return redirect()->route('admin.events.index')->with('message', 'Evento eliminado.');
     }
 
@@ -170,7 +175,7 @@ class EventController extends Controller
             return redirect()->route('admin.events.index')->with('error', 'Este evento no tiene butacas.');
         }
 
-        $event->load('venue.seats');
+        $event->load('venue.seats', 'venue.layoutElements.seat');
         $venue = $event->getRelationValue('venue');
         if (! $venue) {
             return redirect()->route('admin.events.index')->with('error', 'Lugar no encontrado.');
@@ -180,8 +185,44 @@ class EventController extends Controller
         $seatsByRow = $seats->groupBy('row');
         $occupiedSeatIds = $event->occupiedSeatIds()->flip();
         $blockedSeatIds = $event->blockedSeatIds()->flip();
+        $layoutElements = $venue->layoutElements->map(function ($element) use ($occupiedSeatIds, $blockedSeatIds) {
+            $seat = $element->seat;
+            $isOccupied = false;
+            $isBlockedForEvent = false;
+            $isBlockedGlobally = false;
+            if ($seat) {
+                $isOccupied = $occupiedSeatIds->has($seat->id);
+                $isBlockedForEvent = $blockedSeatIds->has($seat->id);
+                $isBlockedGlobally = (bool) $seat->blocked;
+            }
 
-        return view('admin.events.seats', compact('event', 'seatsByRow', 'occupiedSeatIds', 'blockedSeatIds'));
+            return [
+                'id' => $element->id,
+                'type' => $element->type,
+                'seat_id' => $element->seat_id,
+                'x' => (float) $element->x,
+                'y' => (float) $element->y,
+                'w' => (float) $element->w,
+                'h' => (float) $element->h,
+                'rotation' => (float) $element->rotation,
+                'z_index' => (int) $element->z_index,
+                'meta' => $element->meta ?? [],
+                'seat' => $seat ? [
+                    'id' => $seat->id,
+                    'label' => $seat->display_label,
+                    'row' => $seat->row,
+                    'number' => $seat->number,
+                    'section_id' => $seat->section_id,
+                    'occupied' => $isOccupied,
+                    'blocked_globally' => $isBlockedGlobally,
+                    'blocked_for_event' => $isBlockedForEvent,
+                ] : null,
+            ];
+        })->values();
+
+        $sectionSeatPalette = $this->sectionSeatPalette();
+
+        return view('admin.events.seats', compact('event', 'seatsByRow', 'occupiedSeatIds', 'blockedSeatIds', 'layoutElements', 'sectionSeatPalette'));
     }
 
     public function blockSeat(Event $event, Seat $seat): RedirectResponse
@@ -214,5 +255,24 @@ class EventController extends Controller
     private function seatBelongsToEventVenue(Event $event, Seat $seat): bool
     {
         return (int) $event->venue_id > 0 && (int) $seat->venue_id === (int) $event->venue_id;
+    }
+
+    /**
+     * Misma paleta que el checkout cliente: color por section_id del venue.
+     *
+     * @return list<array{bg: string, border: string, text: string}>
+     */
+    private function sectionSeatPalette(): array
+    {
+        return [
+            ['bg' => '#059669', 'border' => '#047857', 'text' => '#ffffff'],
+            ['bg' => '#2563eb', 'border' => '#1d4ed8', 'text' => '#ffffff'],
+            ['bg' => '#d97706', 'border' => '#b45309', 'text' => '#fffbeb'],
+            ['bg' => '#9333ea', 'border' => '#7e22ce', 'text' => '#ffffff'],
+            ['bg' => '#0891b2', 'border' => '#0e7490', 'text' => '#ffffff'],
+            ['bg' => '#dc2626', 'border' => '#b91c1c', 'text' => '#ffffff'],
+            ['bg' => '#65a30d', 'border' => '#4d7c0f', 'text' => '#fffbeb'],
+            ['bg' => '#ea580c', 'border' => '#c2410c', 'text' => '#ffffff'],
+        ];
     }
 }
