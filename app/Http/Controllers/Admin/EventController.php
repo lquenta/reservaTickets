@@ -7,6 +7,7 @@ use App\Models\Event;
 use App\Models\Seat;
 use App\Models\Section;
 use App\Models\Venue;
+use App\Support\SectionLayoutColors;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -220,9 +221,17 @@ class EventController extends Controller
             ];
         })->values();
 
-        $sectionSeatPalette = $this->sectionSeatPalette();
+        $venue->load('sections');
+        $sectionPaletteById = [];
+        foreach ($venue->sections as $sec) {
+            $t = SectionLayoutColors::tripletForSection($sec);
+            $sectionPaletteById[$sec->id] = ['bg' => $t['fill'], 'border' => $t['stroke'], 'text' => $t['text']];
+        }
+        $legendSampleSeatStyle = $venue->sections->isNotEmpty()
+            ? $sectionPaletteById[$venue->sections->first()->id]
+            : ['bg' => '#2563eb', 'border' => '#1e40af', 'text' => '#ffffff'];
 
-        return view('admin.events.seats', compact('event', 'seatsByRow', 'occupiedSeatIds', 'blockedSeatIds', 'layoutElements', 'sectionSeatPalette'));
+        return view('admin.events.seats', compact('event', 'seatsByRow', 'occupiedSeatIds', 'blockedSeatIds', 'layoutElements', 'sectionPaletteById', 'legendSampleSeatStyle'));
     }
 
     public function blockSeat(Event $event, Seat $seat): RedirectResponse
@@ -255,24 +264,5 @@ class EventController extends Controller
     private function seatBelongsToEventVenue(Event $event, Seat $seat): bool
     {
         return (int) $event->venue_id > 0 && (int) $seat->venue_id === (int) $event->venue_id;
-    }
-
-    /**
-     * Misma paleta que el checkout cliente: color por section_id del venue.
-     *
-     * @return list<array{bg: string, border: string, text: string}>
-     */
-    private function sectionSeatPalette(): array
-    {
-        return [
-            ['bg' => '#059669', 'border' => '#047857', 'text' => '#ffffff'],
-            ['bg' => '#2563eb', 'border' => '#1d4ed8', 'text' => '#ffffff'],
-            ['bg' => '#d97706', 'border' => '#b45309', 'text' => '#fffbeb'],
-            ['bg' => '#9333ea', 'border' => '#7e22ce', 'text' => '#ffffff'],
-            ['bg' => '#0891b2', 'border' => '#0e7490', 'text' => '#ffffff'],
-            ['bg' => '#dc2626', 'border' => '#b91c1c', 'text' => '#ffffff'],
-            ['bg' => '#65a30d', 'border' => '#4d7c0f', 'text' => '#fffbeb'],
-            ['bg' => '#ea580c', 'border' => '#c2410c', 'text' => '#ffffff'],
-        ];
     }
 }

@@ -18,6 +18,43 @@
     </div>
 </div>
 
+{{-- Helpers de escala del plano (checkout con y sin secciones) --}}
+<script>
+    (function () {
+        const LAYOUT_MAP_CONTENT_PAD = 16;
+        function computeLayoutContentBoundsFromElements(els) {
+            if (!Array.isArray(els) || !els.length) return null;
+            let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+            for (let i = 0; i < els.length; i++) {
+                const el = els[i];
+                const x = Number(el.x) || 0;
+                const y = Number(el.y) || 0;
+                const w = Math.max(8, Number(el.w) || 48);
+                const h = Math.max(8, Number(el.h) || 48);
+                if (x < minX) minX = x;
+                if (y < minY) minY = y;
+                if (x + w > maxX) maxX = x + w;
+                if (y + h > maxY) maxY = y + h;
+            }
+            if (!Number.isFinite(minX) || !Number.isFinite(minY)) return null;
+            return { minX, minY, maxX, maxY };
+        }
+        window.LAYOUT_MAP_CONTENT_PAD = LAYOUT_MAP_CONTENT_PAD;
+        window.computeLayoutContentBoundsFromElements = computeLayoutContentBoundsFromElements;
+        window.LAYOUT_CHECKOUT_ZOOM_PAD = 16;
+        window.LAYOUT_CHECKOUT_MIN_SCALE = 0.12;
+        window.layoutCheckoutFitScale = function (el, dw, dh, pad) {
+            if (!el || dw <= 0 || dh <= 0) return 1;
+            const p = pad != null ? pad : window.LAYOUT_CHECKOUT_ZOOM_PAD;
+            const cw = Math.max(1, el.clientWidth - p);
+            const ch = Math.max(1, el.clientHeight - p);
+            let fit = Math.min(1, cw / dw, ch / dh);
+            if (!Number.isFinite(fit) || fit <= 0) fit = 1;
+            return Math.max(window.LAYOUT_CHECKOUT_MIN_SCALE, Math.min(1, fit));
+        };
+    })();
+</script>
+
 @if(!empty($sectionsData))
     {{-- Con secciones: por sector con/sin butacas --}}
     @php
@@ -41,13 +78,13 @@
         $sectionIdToName = $sectionIdToName ?? [];
         $layoutCanvasData = $layoutCanvas ?? ['width' => null, 'height' => null];
     @endphp
-    <div class="max-w-4xl mx-auto" x-data="reservationSections({
+    <div class="mx-auto w-full min-w-0 max-w-full px-2 sm:max-w-4xl sm:px-0" x-data="reservationSections({
         maxSeats: {{ $maxSeats }},
         sectionIdsWithoutSeats: {{ json_encode($sectionIdsWithoutSeats) }},
         sectionSeatAvailableIds: {{ json_encode($sectionSeatAvailableIds) }},
         layoutElements: {{ json_encode($layoutElementsData) }},
         layoutCanvas: {{ json_encode($layoutCanvasData) }},
-        sectionsWithSeats: {{ json_encode(collect($sectionsData)->where('has_seats', true)->map(fn ($s) => ['id' => (int) $s['id'], 'name' => (string) $s['name'], 'price' => $s['price'] ?? null])->values()->all()) }},
+        sectionsWithSeats: {{ json_encode(collect($sectionsData)->where('has_seats', true)->map(fn ($s) => ['id' => (int) $s['id'], 'name' => (string) $s['name'], 'price' => $s['price'] ?? null, 'palette' => $s['palette'] ?? null])->values()->all()) }},
         seatsMap: {{ json_encode($seatsMapFlat) }},
         seatIdToPrice: {{ json_encode($seatIdToPrice) }},
         sectionIdToPrice: {{ json_encode($sectionIdToPrice) }},
@@ -81,6 +118,13 @@
                 <div class="rounded-2xl border border-red-900/50 bg-black/60 backdrop-blur px-4 py-5 sm:p-6">
                     <p class="text-white/80 text-sm font-medium text-center">Elige tus butacas en el plano</p>
                     <p class="text-white/60 text-xs mt-1 text-center max-w-xl mx-auto">Cada color corresponde a una sección. Filtra con el selector para enfocar una zona (el resto se atenúa). Las entradas sin butaca se eligen más abajo.</p>
+                    <div class="mb-3 flex flex-wrap items-center justify-center gap-2 rounded-lg border border-red-900/50 bg-black/50 px-2 py-2 text-white shadow-inner">
+                        <span class="w-11 text-center font-mono text-xs tabular-nums text-white/90" x-text="layoutZoomPercent() + '%'"></span>
+                        <button type="button" class="inline-flex h-9 min-w-[2.25rem] items-center justify-center rounded-lg border border-red-800/60 bg-black/60 px-2 text-lg font-semibold text-white hover:bg-red-950/50 active:scale-95" @click.prevent="layoutZoomOut()" title="Alejar plano" aria-label="Alejar plano">−</button>
+                        <button type="button" class="inline-flex h-9 items-center justify-center rounded-lg border border-red-800/60 bg-black/60 px-3 text-xs font-semibold text-white hover:bg-red-950/50 active:scale-95" @click.prevent="layoutZoomResetFit()" title="Encajar al espacio" aria-label="Encajar plano al espacio">Encajar</button>
+                        <button type="button" class="inline-flex h-9 min-w-[2.25rem] items-center justify-center rounded-lg border border-red-800/60 bg-black/60 px-2 text-lg font-semibold text-white hover:bg-red-950/50 active:scale-95" @click.prevent="layoutZoomIn()" title="Acercar plano" aria-label="Acercar plano">+</button>
+                        <span class="hidden text-[10px] text-white/45 sm:inline">Ctrl + rueda</span>
+                    </div>
                     <div class="mt-5 mb-4 w-full max-w-xl mx-auto">
                         <label for="layout-section-view-select" class="sr-only">Sección en el plano</label>
                         <select id="layout-section-view-select"
@@ -95,8 +139,8 @@
                     </div>
                     <div x-ref="layoutViewport"
                          @resize.window="recalcLayoutViewportScale()"
-                         class="relative w-full min-h-[520px] h-[min(86vh,1100px)] max-h-[1100px] rounded-xl border border-red-900/40 overflow-auto bg-[radial-gradient(circle,_rgba(255,255,255,0.12)_1px,_transparent_1px)] bg-[size:16px_16px] flex items-center justify-center p-2">
-                        <div class="relative shrink-0" :style="layoutScaledHostStyle">
+                         class="relative w-full min-h-[200px] max-h-[min(78dvh,900px)] touch-manipulation overflow-auto overscroll-contain rounded-xl border border-red-900/40 bg-[radial-gradient(circle,_rgba(255,255,255,0.12)_1px,_transparent_1px)] bg-[size:16px_16px] p-2 sm:max-h-[min(86vh,90dvh)]">
+                        <div class="relative mx-auto shrink-0" :style="layoutScaledHostStyle">
                             <div class="relative" :style="layoutScaledStageStyle">
                                 <template x-for="el in sortedLayoutElements" :key="el.id">
                                     <div class="absolute isolate" :style="layoutElementWrapperStyle(el) + 'pointer-events:none;'">
@@ -303,7 +347,10 @@
                 holderName: (config.oldNames && config.oldNames[1]) || '',
                 holderNames: config.oldNames || {},
                 _layoutViewportScale: 1,
+                _layoutViewportUserScale: null,
                 _layoutViewportRo: null,
+                _layoutCheckoutWheelBound: false,
+                _layoutOrientationHandler: null,
                 init() {
                     this.$nextTick(() => this.setupLayoutViewportObserver());
                 },
@@ -312,25 +359,68 @@
                     if (!el || this._layoutViewportRo) {
                         return;
                     }
+                    const self = this;
                     this._layoutViewportRo = new ResizeObserver(() => this.recalcLayoutViewportScale());
                     this._layoutViewportRo.observe(el);
                     this.recalcLayoutViewportScale();
+                    if (!this._layoutCheckoutWheelBound) {
+                        this._layoutCheckoutWheelBound = true;
+                        el.addEventListener('wheel', function(e) {
+                            if (!(e.ctrlKey || e.metaKey)) {
+                                return;
+                            }
+                            e.preventDefault();
+                            if (e.deltaY > 0) {
+                                self.layoutZoomOut();
+                            } else {
+                                self.layoutZoomIn();
+                            }
+                        }, { passive: false });
+                        this._layoutOrientationHandler = function() {
+                            setTimeout(function() {
+                                self.recalcLayoutViewportScale();
+                            }, 200);
+                        };
+                        window.addEventListener('orientationchange', this._layoutOrientationHandler);
+                    }
                 },
                 recalcLayoutViewportScale() {
                     const el = this.$refs.layoutViewport;
                     if (!el) {
                         return;
                     }
+                    const pad = window.LAYOUT_CHECKOUT_ZOOM_PAD;
                     const dw = this.layoutDesignWidth;
                     const dh = this.layoutDesignHeight;
-                    if (dw <= 0 || dh <= 0) {
-                        return;
+                    const fit = window.layoutCheckoutFitScale(el, dw, dh, pad);
+                    const u = this._layoutViewportUserScale;
+                    if (u == null || !Number.isFinite(Number(u))) {
+                        this._layoutViewportScale = fit;
+                    } else {
+                        this._layoutViewportScale = Math.max(window.LAYOUT_CHECKOUT_MIN_SCALE, Math.min(Number(u), 1));
                     }
-                    const pad = 20;
-                    const sx = (el.clientWidth - pad) / dw;
-                    const sy = (el.clientHeight - pad) / dh;
-                    const s = Math.min(1, sx, sy);
-                    this._layoutViewportScale = 1;
+                },
+                layoutZoomPercent() {
+                    return Math.round((Number(this._layoutViewportScale) || 1) * 100);
+                },
+                layoutZoomOut() {
+                    const cur = this._layoutViewportUserScale != null ? Number(this._layoutViewportUserScale) : Number(this._layoutViewportScale);
+                    this._layoutViewportUserScale = Math.max(window.LAYOUT_CHECKOUT_MIN_SCALE, cur / 1.2);
+                    this.recalcLayoutViewportScale();
+                },
+                layoutZoomIn() {
+                    const cur = this._layoutViewportUserScale != null ? Number(this._layoutViewportUserScale) : Number(this._layoutViewportScale);
+                    this._layoutViewportUserScale = Math.max(window.LAYOUT_CHECKOUT_MIN_SCALE, Math.min(1, cur * 1.2));
+                    this.recalcLayoutViewportScale();
+                },
+                layoutZoomResetFit() {
+                    this._layoutViewportUserScale = null;
+                    const vp = this.$refs.layoutViewport;
+                    if (vp) {
+                        vp.scrollLeft = 0;
+                        vp.scrollTop = 0;
+                    }
+                    this.recalcLayoutViewportScale();
                 },
                 inferLayoutCanvasWidth() {
                     const els = this.layoutElements;
@@ -362,13 +452,24 @@
                     }
                     return Math.ceil(m);
                 },
+                getLayoutContentBounds() {
+                    return window.computeLayoutContentBoundsFromElements(this.layoutElements);
+                },
                 get layoutDesignWidth() {
+                    const b = this.getLayoutContentBounds();
+                    if (b) {
+                        return Math.max(200, Math.ceil(b.maxX - b.minX + 2 * window.LAYOUT_MAP_CONTENT_PAD));
+                    }
                     if (layoutCanvasW != null) {
                         return layoutCanvasW;
                     }
                     return this.inferLayoutCanvasWidth();
                 },
                 get layoutDesignHeight() {
+                    const b = this.getLayoutContentBounds();
+                    if (b) {
+                        return Math.max(200, Math.ceil(b.maxY - b.minY + 2 * window.LAYOUT_MAP_CONTENT_PAD));
+                    }
                     if (layoutCanvasH != null) {
                         return layoutCanvasH;
                     }
@@ -399,18 +500,21 @@
                     return this.sectionPaletteEntry(sectionId).border;
                 },
                 sectionPaletteEntry(sectionId) {
-                    const id = parseInt(sectionId, 10) || 0;
+                    const sid = parseInt(sectionId, 10) || 0;
+                    const row = (this.sectionsWithSeats || []).find(s => Number(s.id) === sid);
+                    if (row && row.palette && row.palette.fill) {
+                        return { bg: row.palette.fill, border: row.palette.stroke, text: row.palette.text };
+                    }
                     const palette = [
-                        { bg: '#059669', border: '#047857', text: '#ffffff' },
-                        { bg: '#2563eb', border: '#1d4ed8', text: '#ffffff' },
+                        { bg: '#2563eb', border: '#1e40af', text: '#ffffff' },
+                        { bg: '#9333ea', border: '#6b21a8', text: '#ffffff' },
                         { bg: '#d97706', border: '#b45309', text: '#fffbeb' },
-                        { bg: '#9333ea', border: '#7e22ce', text: '#ffffff' },
                         { bg: '#0891b2', border: '#0e7490', text: '#ffffff' },
-                        { bg: '#dc2626', border: '#b91c1c', text: '#ffffff' },
+                        { bg: '#059669', border: '#047857', text: '#ffffff' },
                         { bg: '#65a30d', border: '#4d7c0f', text: '#fffbeb' },
-                        { bg: '#ea580c', border: '#c2410c', text: '#ffffff' },
+                        { bg: '#db2777', border: '#9d174d', text: '#ffffff' },
                     ];
-                    return palette[Math.abs(id) % palette.length];
+                    return palette[Math.abs(sid) % palette.length];
                 },
                 formatSectionOptionLabel(s) {
                     const name = (s && s.name) ? s.name : ('Sección ' + (s && s.id));
@@ -437,13 +541,17 @@
                     if (!el) {
                         return '';
                     }
+                    const b = this.getLayoutContentBounds();
+                    const pad = window.LAYOUT_MAP_CONTENT_PAD;
                     const x = Number(el.x) || 0;
                     const y = Number(el.y) || 0;
                     const w = Math.max(8, Number(el.w) || 48);
                     const h = Math.max(8, Number(el.h) || 48);
+                    const ox = b ? (x - b.minX + pad) : x;
+                    const oy = b ? (y - b.minY + pad) : y;
                     const rot = Number(el.rotation) || 0;
                     const z = Number(el.z_index) || 0;
-                    return `left:${x}px;top:${y}px;width:${w}px;height:${h}px;transform:rotate(${rot}deg);z-index:${z};`;
+                    return `left:${ox}px;top:${oy}px;width:${w}px;height:${h}px;transform:rotate(${rot}deg);z-index:${z};`;
                 },
                 seatSectionIdFromLayout(el) {
                     if (!el || !el.seat) return 0;
@@ -690,11 +798,15 @@
             'seatFor' => $seatFor,
             'layoutElements' => $layoutElementsData,
             'layoutCanvas' => $layoutCanvasSimple,
+            'sectionPalettesById' => $sectionPalettesById ?? [],
         ], JSON_THROW_ON_ERROR | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT);
     @endphp
-    <div class="max-w-4xl mx-auto"
+    <div class="mx-auto w-full min-w-0 max-w-full px-2 sm:max-w-4xl sm:px-0"
          x-data="{
             ...({{ $alpineDataJson }}),
+            _layoutViewportUserScale: null,
+            _layoutCheckoutWheelBound: false,
+            _layoutOrientationHandler: null,
             isAvailable(id) { return this.availableIds.includes(parseInt(id, 10)); },
             isSelected(id) { return this.selectedIds.includes(parseInt(id, 10)); },
             isBlocked(seat) { return !!seat.blocked; },
@@ -733,21 +845,58 @@
             setupLayoutViewportObserverSimple() {
                 const el = this.$refs.layoutViewport;
                 if (!el || this._layoutViewportRo) return;
+                const self = this;
                 this._layoutViewportRo = new ResizeObserver(() => this.recalcLayoutViewportScaleSimple());
                 this._layoutViewportRo.observe(el);
                 this.recalcLayoutViewportScaleSimple();
+                if (!this._layoutCheckoutWheelBound) {
+                    this._layoutCheckoutWheelBound = true;
+                    el.addEventListener('wheel', function(e) {
+                        if (!(e.ctrlKey || e.metaKey)) return;
+                        e.preventDefault();
+                        if (e.deltaY > 0) self.layoutZoomOutSimple(); else self.layoutZoomInSimple();
+                    }, { passive: false });
+                    this._layoutOrientationHandler = function() {
+                        setTimeout(function() { self.recalcLayoutViewportScaleSimple(); }, 200);
+                    };
+                    window.addEventListener('orientationchange', this._layoutOrientationHandler);
+                }
             },
             recalcLayoutViewportScaleSimple() {
                 const el = this.$refs.layoutViewport;
                 if (!el) return;
+                const pad = window.LAYOUT_CHECKOUT_ZOOM_PAD;
                 const dw = this.layoutDesignWidthSimple;
                 const dh = this.layoutDesignHeightSimple;
-                if (dw <= 0 || dh <= 0) return;
-                const pad = 20;
-                const sx = (el.clientWidth - pad) / dw;
-                const sy = (el.clientHeight - pad) / dh;
-                const s = Math.min(1, sx, sy);
-                    this._layoutViewportScale = 1;
+                const fit = window.layoutCheckoutFitScale(el, dw, dh, pad);
+                const u = this._layoutViewportUserScale;
+                if (u == null || !Number.isFinite(Number(u))) {
+                    this._layoutViewportScale = fit;
+                } else {
+                    this._layoutViewportScale = Math.max(window.LAYOUT_CHECKOUT_MIN_SCALE, Math.min(Number(u), 1));
+                }
+            },
+            layoutZoomPercentSimple() {
+                return Math.round((Number(this._layoutViewportScale) || 1) * 100);
+            },
+            layoutZoomOutSimple() {
+                const cur = this._layoutViewportUserScale != null ? Number(this._layoutViewportUserScale) : Number(this._layoutViewportScale);
+                this._layoutViewportUserScale = Math.max(window.LAYOUT_CHECKOUT_MIN_SCALE, cur / 1.2);
+                this.recalcLayoutViewportScaleSimple();
+            },
+            layoutZoomInSimple() {
+                const cur = this._layoutViewportUserScale != null ? Number(this._layoutViewportUserScale) : Number(this._layoutViewportScale);
+                this._layoutViewportUserScale = Math.max(window.LAYOUT_CHECKOUT_MIN_SCALE, Math.min(1, cur * 1.2));
+                this.recalcLayoutViewportScaleSimple();
+            },
+            layoutZoomResetFitSimple() {
+                this._layoutViewportUserScale = null;
+                const vp = this.$refs.layoutViewport;
+                if (vp) {
+                    vp.scrollLeft = 0;
+                    vp.scrollTop = 0;
+                }
+                this.recalcLayoutViewportScaleSimple();
             },
             inferLayoutCanvasWidthSimple() {
                 const els = this.layoutElements;
@@ -772,12 +921,20 @@
                 return Math.ceil(m);
             },
             get layoutDesignWidthSimple() {
+                const b = window.computeLayoutContentBoundsFromElements(this.layoutElements);
+                if (b) {
+                    return Math.max(200, Math.ceil(b.maxX - b.minX + 2 * window.LAYOUT_MAP_CONTENT_PAD));
+                }
                 const lc = this.layoutCanvas || {};
                 const w = lc.width != null ? Number(lc.width) : null;
                 if (w != null && w > 0) return w;
                 return this.inferLayoutCanvasWidthSimple();
             },
             get layoutDesignHeightSimple() {
+                const b = window.computeLayoutContentBoundsFromElements(this.layoutElements);
+                if (b) {
+                    return Math.max(200, Math.ceil(b.maxY - b.minY + 2 * window.LAYOUT_MAP_CONTENT_PAD));
+                }
                 const lc = this.layoutCanvas || {};
                 const h = lc.height != null ? Number(lc.height) : null;
                 if (h != null && h > 0) return h;
@@ -812,27 +969,34 @@
             },
             layoutElementWrapperStyle(el) {
                 if (!el) return '';
+                const b = window.computeLayoutContentBoundsFromElements(this.layoutElements);
+                const pad = window.LAYOUT_MAP_CONTENT_PAD;
                 const x = Number(el.x) || 0;
                 const y = Number(el.y) || 0;
                 const w = Math.max(8, Number(el.w) || 48);
                 const h = Math.max(8, Number(el.h) || 48);
+                const ox = b ? (x - b.minX + pad) : x;
+                const oy = b ? (y - b.minY + pad) : y;
                 const rot = Number(el.rotation) || 0;
                 const z = Number(el.z_index) || 0;
-                return `left:${x}px;top:${y}px;width:${w}px;height:${h}px;transform:rotate(${rot}deg);z-index:${z};`;
+                return `left:${ox}px;top:${oy}px;width:${w}px;height:${h}px;transform:rotate(${rot}deg);z-index:${z};`;
             },
             sectionPaletteEntrySimple(sectionId) {
-                const id = parseInt(sectionId, 10) || 0;
+                const sid = parseInt(sectionId, 10) || 0;
+                const pal = this.sectionPalettesById && this.sectionPalettesById[sid];
+                if (pal && pal.fill) {
+                    return { bg: pal.fill, border: pal.stroke, text: pal.text };
+                }
                 const palette = [
-                    { bg: '#059669', border: '#047857', text: '#ffffff' },
-                    { bg: '#2563eb', border: '#1d4ed8', text: '#ffffff' },
+                    { bg: '#2563eb', border: '#1e40af', text: '#ffffff' },
+                    { bg: '#9333ea', border: '#6b21a8', text: '#ffffff' },
                     { bg: '#d97706', border: '#b45309', text: '#fffbeb' },
-                    { bg: '#9333ea', border: '#7e22ce', text: '#ffffff' },
                     { bg: '#0891b2', border: '#0e7490', text: '#ffffff' },
-                    { bg: '#dc2626', border: '#b91c1c', text: '#ffffff' },
+                    { bg: '#059669', border: '#047857', text: '#ffffff' },
                     { bg: '#65a30d', border: '#4d7c0f', text: '#fffbeb' },
-                    { bg: '#ea580c', border: '#c2410c', text: '#ffffff' },
+                    { bg: '#db2777', border: '#9d174d', text: '#ffffff' },
                 ];
-                return palette[Math.abs(id) % palette.length];
+                return palette[Math.abs(sid) % palette.length];
             },
             seatSectionIdFromLayoutSimple(el) {
                 if (!el || !el.seat) return 0;
@@ -897,10 +1061,17 @@
             <template x-if="hasCustomLayout()">
                 <div class="rounded-2xl border border-red-900/50 bg-black/60 backdrop-blur px-4 py-5 sm:p-6">
                     <p class="text-white/70 text-sm mb-3 text-center">Plano del venue</p>
+                    <div class="mb-3 flex flex-wrap items-center justify-center gap-2 rounded-lg border border-red-900/50 bg-black/50 px-2 py-2 text-white shadow-inner">
+                        <span class="w-11 text-center font-mono text-xs tabular-nums text-white/90" x-text="layoutZoomPercentSimple() + '%'"></span>
+                        <button type="button" class="inline-flex h-9 min-w-[2.25rem] items-center justify-center rounded-lg border border-red-800/60 bg-black/60 px-2 text-lg font-semibold text-white hover:bg-red-950/50 active:scale-95" @click.prevent="layoutZoomOutSimple()" title="Alejar plano" aria-label="Alejar plano">−</button>
+                        <button type="button" class="inline-flex h-9 items-center justify-center rounded-lg border border-red-800/60 bg-black/60 px-3 text-xs font-semibold text-white hover:bg-red-950/50 active:scale-95" @click.prevent="layoutZoomResetFitSimple()" title="Encajar al espacio" aria-label="Encajar plano">Encajar</button>
+                        <button type="button" class="inline-flex h-9 min-w-[2.25rem] items-center justify-center rounded-lg border border-red-800/60 bg-black/60 px-2 text-lg font-semibold text-white hover:bg-red-950/50 active:scale-95" @click.prevent="layoutZoomInSimple()" title="Acercar plano" aria-label="Acercar plano">+</button>
+                        <span class="hidden text-[10px] text-white/45 sm:inline">Ctrl + rueda</span>
+                    </div>
                     <div x-ref="layoutViewport"
                          @resize.window="recalcLayoutViewportScaleSimple()"
-                         class="relative w-full min-h-[520px] h-[min(86vh,1100px)] max-h-[1100px] rounded-xl border border-red-900/40 overflow-auto bg-[radial-gradient(circle,_rgba(255,255,255,0.12)_1px,_transparent_1px)] bg-[size:16px_16px] flex items-center justify-center p-2">
-                        <div class="relative shrink-0" :style="layoutScaledHostStyleSimple">
+                         class="relative w-full min-h-[200px] max-h-[min(78dvh,900px)] touch-manipulation overflow-auto overscroll-contain rounded-xl border border-red-900/40 bg-[radial-gradient(circle,_rgba(255,255,255,0.12)_1px,_transparent_1px)] bg-[size:16px_16px] p-2 sm:max-h-[min(86vh,90dvh)]">
+                        <div class="relative mx-auto shrink-0" :style="layoutScaledHostStyleSimple">
                             <div class="relative" :style="layoutScaledStageStyleSimple">
                                 <template x-for="el in sortedLayoutElements" :key="el.id">
                                     <div class="absolute isolate" :style="layoutElementWrapperStyle(el) + 'pointer-events:none;'">

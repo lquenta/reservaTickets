@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Section;
 use App\Models\Venue;
 use App\Models\VenueLayoutElement;
+use App\Support\SectionLayoutColors;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -82,6 +83,15 @@ class VenueController extends Controller
             'sections.*.row_end' => ['nullable', 'integer', 'min:1', 'max:50'],
             'sections.*.col_start' => ['nullable', 'integer', 'min:1', 'max:99'],
             'sections.*.col_end' => ['nullable', 'integer', 'min:1', 'max:99'],
+            'sections.*.layout_color' => ['nullable', 'string', function (string $attribute, mixed $value, \Closure $fail): void {
+                if ($value === null || $value === '') {
+                    return;
+                }
+                $n = SectionLayoutColors::normalize((string) $value);
+                if ($n === null || ! SectionLayoutColors::isAllowed($n)) {
+                    $fail('El color de sección debe ser #RRGGBB y no puede ser negro ni rojo (reservados para no disponible).');
+                }
+            }],
         ]);
 
         $this->validateSectionSeatRangesNoOverlap(
@@ -153,6 +163,8 @@ class VenueController extends Controller
             'elements.*.meta' => ['nullable', 'array'],
             // Mapa seat_id => section_id (claves numéricas en JSON). No usar seat_sections.*: puede reindexar o fallar según el payload.
             'seat_sections' => ['nullable', 'array'],
+            'section_colors' => ['nullable', 'array'],
+            'section_colors.*' => ['nullable', 'string'],
             'canvas_width' => ['nullable', 'integer', 'min:200', 'max:4000'],
             'canvas_height' => ['nullable', 'integer', 'min:200', 'max:4000'],
         ]);
@@ -258,10 +270,34 @@ class VenueController extends Controller
                     'layout_canvas_height' => (int) $ch,
                 ]);
             }
+
+            $sectionColorsInput = $validated['section_colors'] ?? null;
+            if (is_array($sectionColorsInput) && $sectionColorsInput !== []) {
+                $sectionIdsFlip = $venue->sections()->pluck('id')->map(fn ($id) => (int) $id)->flip();
+                foreach ($sectionColorsInput as $sectionIdRaw => $colorRaw) {
+                    if (! is_numeric((string) $sectionIdRaw)) {
+                        throw ValidationException::withMessages(['section_colors' => 'Clave de sección inválida en colores.']);
+                    }
+                    $sectionId = (int) $sectionIdRaw;
+                    if (! $sectionIdsFlip->has($sectionId)) {
+                        throw ValidationException::withMessages(['section_colors' => 'Un id de sección en colores no pertenece a este lugar.']);
+                    }
+                    if ($colorRaw === null || $colorRaw === '') {
+                        Section::where('id', $sectionId)->where('venue_id', $venue->id)->update(['layout_color' => null]);
+
+                        continue;
+                    }
+                    $n = SectionLayoutColors::normalize((string) $colorRaw);
+                    if ($n === null || ! SectionLayoutColors::isAllowed($n)) {
+                        throw ValidationException::withMessages(['section_colors' => 'Un color de sección no es válido (evita negro y rojo).']);
+                    }
+                    Section::where('id', $sectionId)->where('venue_id', $venue->id)->update(['layout_color' => $n]);
+                }
+            }
         });
 
         $venue->refresh();
-        $venue->load('layoutElements.seat', 'seats');
+        $venue->load('layoutElements.seat', 'seats', 'sections');
 
         return response()->json([
             'message' => 'Layout guardado.',
@@ -275,6 +311,11 @@ class VenueController extends Controller
                 'row_letter' => $seat->row_letter,
                 'number' => $seat->number,
                 'section_id' => $seat->section_id,
+            ])->values(),
+            'sections' => $venue->sections->map(fn (Section $s) => [
+                'id' => $s->id,
+                'name' => $s->name,
+                'layout_color' => $s->layout_color,
             ])->values(),
         ]);
     }
@@ -344,6 +385,13 @@ class VenueController extends Controller
             $section->row_end = $hasSeats ? $rowEnd : null;
             $section->col_start = $hasSeats ? $colStart : null;
             $section->col_end = $hasSeats ? $colEnd : null;
+            $lcRaw = $input['layout_color'] ?? null;
+            if ($lcRaw === null || $lcRaw === '') {
+                $section->layout_color = null;
+            } else {
+                $n = SectionLayoutColors::normalize((string) $lcRaw);
+                $section->layout_color = ($n !== null && SectionLayoutColors::isAllowed($n)) ? $n : null;
+            }
             $section->save();
             $idsToKeep[] = $section->id;
 

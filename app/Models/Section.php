@@ -25,6 +25,7 @@ class Section extends Model
         'row_end',
         'col_start',
         'col_end',
+        'layout_color',
     ];
 
     protected function casts(): array

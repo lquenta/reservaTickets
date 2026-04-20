@@ -8,6 +8,7 @@ use App\Models\Reservation;
 use App\Models\ReservationAuditLog;
 use App\Services\ReservationAuditService;
 use App\Services\ReservationService;
+use App\Support\SectionLayoutColors;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -42,10 +43,16 @@ class ReservationController extends Controller
         $sectionIdToPrice = [];
         $sectionIdToName = [];
         $layoutCanvas = ['width' => null, 'height' => null];
+        $sectionPalettesById = [];
 
         if ($event->venue_id) {
             $venue = $event->getRelationValue('venue');
             if ($venue) {
+                $venue->loadMissing('sections');
+                foreach ($venue->sections as $sec) {
+                    $t = SectionLayoutColors::tripletForSection($sec);
+                    $sectionPalettesById[$sec->id] = ['fill' => $t['fill'], 'stroke' => $t['stroke'], 'text' => $t['text']];
+                }
                 $layoutCanvas = [
                     'width' => $venue->layout_canvas_width,
                     'height' => $venue->layout_canvas_height,
@@ -121,6 +128,7 @@ class ReservationController extends Controller
                                 'has_seats' => true,
                                 'seats' => $sectionSeats,
                                 'availableSeatIds' => array_values($sectionAvailableIds),
+                                'palette' => SectionLayoutColors::tripletForSection($section),
                             ];
                         } else {
                             $availableCapacity = $event->availableCapacityForSection($section);
@@ -131,6 +139,7 @@ class ReservationController extends Controller
                                 'has_seats' => false,
                                 'capacity' => $section->capacity,
                                 'availableCapacity' => $availableCapacity,
+                                'palette' => SectionLayoutColors::tripletForSection($section),
                             ];
                         }
                     }
@@ -163,7 +172,7 @@ class ReservationController extends Controller
             }
         }
 
-        return view('reservations.create', compact('event', 'seats', 'seatsMap', 'availableSeatIds', 'sectionsData', 'seatIdToPrice', 'sectionIdToPrice', 'sectionIdToName', 'layoutElements', 'layoutCanvas'));
+        return view('reservations.create', compact('event', 'seats', 'seatsMap', 'availableSeatIds', 'sectionsData', 'seatIdToPrice', 'sectionIdToPrice', 'sectionIdToName', 'layoutElements', 'layoutCanvas', 'sectionPalettesById'));
     }
 
     public function store(StoreReservationRequest $request, ReservationService $service): RedirectResponse

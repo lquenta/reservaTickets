@@ -91,6 +91,17 @@
                                        class="w-20 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 px-3 py-2 text-sm">
                             </div>
                         </div>
+                        @php
+                            $pickerFill = old('sections.'.$index.'.layout_color', $section->layout_color);
+                            if (! $pickerFill) {
+                                $pickerFill = \App\Support\SectionLayoutColors::fallbackTripletForSectionId((int) $section->id)['fill'];
+                            }
+                        @endphp
+                        <div>
+                            <label class="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Color en plano</label>
+                            <input type="color" name="sections[{{ $index }}][layout_color]" value="{{ $pickerFill }}" title="Evita rojo y negro (no disponible)"
+                                   class="h-9 w-14 cursor-pointer rounded border border-slate-300 dark:border-slate-600 bg-transparent p-0">
+                        </div>
                         <button type="button" class="remove-section rounded-lg px-3 py-1.5 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20">Quitar</button>
                     </div>
                 @endforeach
@@ -151,6 +162,8 @@
                     '<input type="number" name="sections[' + sectionIndex + '][col_start]" min="1" max="' + maxCol + '" placeholder="Todas" class="w-20 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 px-3 py-2 text-sm"></div>' +
                     '<div><label class="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Butaca hasta (opc.)</label>' +
                     '<input type="number" name="sections[' + sectionIndex + '][col_end]" min="1" max="' + maxCol + '" placeholder="Todas" class="w-20 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 px-3 py-2 text-sm"></div></div>' +
+                    '<div><label class="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Color en plano</label>' +
+                    '<input type="color" name="sections[' + sectionIndex + '][layout_color]" value="#2563eb" title="Evita rojo y negro" class="h-9 w-14 cursor-pointer rounded border border-slate-300 dark:border-slate-600 bg-transparent p-0"></div>' +
                     '<button type="button" class="remove-section rounded-lg px-3 py-1.5 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20">Quitar</button></div>';
                 container.insertAdjacentHTML('beforeend', html);
                 var newRow = container.lastElementChild;
@@ -197,6 +210,7 @@
         $venueSectionsJson = json_encode($venue->sections->map(fn ($s) => [
             'id' => $s->id,
             'name' => $s->name,
+            'layout_color' => $s->layout_color,
         ])->values()->all(), JSON_THROW_ON_ERROR);
     @endphp
     <div id="layout-editor-root" class="mt-10 w-full max-w-7xl xl:max-w-[min(96rem,calc(100vw-13rem))] rounded-3xl border-2 border-violet-200/60 dark:border-violet-700/50 bg-white dark:bg-slate-800/80 p-5 sm:p-6 shadow-xl">
@@ -435,6 +449,18 @@
                             @endforeach
                         </select>
                     </div>
+                    <div class="space-y-2 border-t border-slate-200/80 dark:border-slate-600/80 pt-2 mt-2">
+                        <p class="text-[11px] text-slate-500 dark:text-slate-400">Color de sector en el plano y checkout. Evita <strong class="text-slate-600 dark:text-slate-300">rojo</strong> y <strong class="text-slate-600 dark:text-slate-300">negro</strong> (reservados para no disponible).</p>
+                        @foreach($venue->sections as $section)
+                            @php
+                                $ribbonPicker = $section->layout_color ?: \App\Support\SectionLayoutColors::fallbackTripletForSectionId((int) $section->id)['fill'];
+                            @endphp
+                            <div class="layout-section-color-row flex items-center gap-2" data-section-id="{{ $section->id }}">
+                                <span class="min-w-0 flex-1 truncate text-xs text-slate-600 dark:text-slate-300">{{ $section->name }}</span>
+                                <input type="color" class="layout-section-color-input h-8 w-14 shrink-0 cursor-pointer rounded border border-slate-300 dark:border-slate-600 bg-transparent p-0" value="{{ $ribbonPicker }}" title="Color del sector">
+                            </div>
+                        @endforeach
+                    </div>
                     <p class="text-[11px] text-slate-500 dark:text-slate-400">Ayuda a verificar que el layout coincide con los rangos de secciones.</p>
                         </div>
                     </details>
@@ -477,7 +503,7 @@
         (function() {
             const elements = {!! $layoutElementsJson !!};
             const seats = {!! $venueSeatsJson !!};
-            const sections = {!! $venueSectionsJson !!};
+            let sections = {!! $venueSectionsJson !!};
             const host = document.getElementById('layout-konva-host');
             const statusEl = document.getElementById('layout-status');
             const saveBtn = document.getElementById('layout-save-btn');
@@ -948,18 +974,99 @@
                 return { fill: '#d97706', stroke: '#92400e', text: '#ffffff' };
             }
 
-            function sectionPalette(sectionId) {
+            function normalizeHexColor(hex) {
+                if (!hex || typeof hex !== 'string') return '#2563EB';
+                let h = hex.trim();
+                if (h.charAt(0) !== '#') h = '#' + h;
+                return h.length === 7 ? h.toUpperCase() : '#2563EB';
+            }
+
+            function isClientSectionLayoutColor(hex) {
+                const h = normalizeHexColor(hex).slice(1);
+                if (!/^[0-9A-F]{6}$/.test(h)) return false;
+                const r = parseInt(h.slice(0, 2), 16);
+                const g = parseInt(h.slice(2, 4), 16);
+                const b = parseInt(h.slice(4, 6), 16);
+                if (Math.max(r, g, b) < 52 && (r + g + b) < 165) return false;
+                if (r >= 130 && g <= 100 && b <= 100) return false;
+                return true;
+            }
+
+            function tripletFromFillHex(hex) {
+                const h = normalizeHexColor(hex).slice(1);
+                const r = parseInt(h.slice(0, 2), 16);
+                const g = parseInt(h.slice(2, 4), 16);
+                const b = parseInt(h.slice(4, 6), 16);
+                const dr = Math.max(0, Math.min(255, Math.round(r * 0.72)));
+                const dg = Math.max(0, Math.min(255, Math.round(g * 0.72)));
+                const db = Math.max(0, Math.min(255, Math.round(b * 0.72)));
+                const stroke = '#' + [dr, dg, db].map(function(x) { return x.toString(16).padStart(2, '0'); }).join('').toUpperCase();
+                const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+                const text = lum > 0.52 ? '#111827' : '#ffffff';
+                return { fill: '#' + h, stroke: stroke, text: text };
+            }
+
+            function fallbackSectionPalette(sectionId) {
                 const id = Number(sectionId) || 0;
                 const palette = [
-                    { fill: '#2563eb', stroke: '#1d4ed8', text: '#ffffff' }, // blue
-                    { fill: '#a855f7', stroke: '#7e22ce', text: '#ffffff' }, // purple
-                    { fill: '#f59e0b', stroke: '#b45309', text: '#111827' }, // amber
-                    { fill: '#06b6d4', stroke: '#0e7490', text: '#ffffff' }, // cyan
-                    { fill: '#ef4444', stroke: '#b91c1c', text: '#ffffff' }, // red
-                    { fill: '#84cc16', stroke: '#4d7c0f', text: '#111827' }, // lime
-                    { fill: '#f97316', stroke: '#c2410c', text: '#ffffff' }, // orange
+                    { fill: '#2563EB', stroke: '#1E40AF', text: '#ffffff' },
+                    { fill: '#9333EA', stroke: '#6B21A8', text: '#ffffff' },
+                    { fill: '#D97706', stroke: '#B45309', text: '#fffbeb' },
+                    { fill: '#0891B2', stroke: '#0E7490', text: '#ffffff' },
+                    { fill: '#059669', stroke: '#047857', text: '#ffffff' },
+                    { fill: '#65A30D', stroke: '#4D7C0F', text: '#fffbeb' },
+                    { fill: '#DB2777', stroke: '#9D174D', text: '#ffffff' },
                 ];
                 return palette[Math.abs(id) % palette.length];
+            }
+
+            function sectionPalette(sectionId) {
+                const id = Number(sectionId) || 0;
+                const sec = sections.find(function(s) { return Number(s.id) === id; });
+                if (sec && sec.layout_color && isClientSectionLayoutColor(sec.layout_color)) {
+                    return tripletFromFillHex(sec.layout_color);
+                }
+                return fallbackSectionPalette(id);
+            }
+
+            function buildSectionColorsPayload() {
+                const o = {};
+                document.querySelectorAll('.layout-section-color-row').forEach(function(row) {
+                    const sid = row.getAttribute('data-section-id');
+                    const inp = row.querySelector('.layout-section-color-input');
+                    if (!sid || !inp || !inp.value) return;
+                    let hex = inp.value;
+                    if (hex.charAt(0) !== '#') hex = '#' + hex;
+                    if (!isClientSectionLayoutColor(hex)) return;
+                    o[String(sid)] = hex.toUpperCase();
+                });
+                return o;
+            }
+
+            function wireSectionLayoutColorInputs() {
+                document.querySelectorAll('.layout-section-color-input').forEach(function(inp) {
+                    inp.addEventListener('change', function() {
+                        let hex = inp.value;
+                        if (hex.charAt(0) !== '#') hex = '#' + hex;
+                        if (!isClientSectionLayoutColor(hex)) {
+                            setStatus('Ese color no está permitido: evita rojo y negro (no disponible).', 'error');
+                            const row = inp.closest('.layout-section-color-row');
+                            const sid = row ? Number(row.getAttribute('data-section-id')) : 0;
+                            const sec = sections.find(function(s) { return Number(s.id) === sid; });
+                            const revert = (sec && sec.layout_color && isClientSectionLayoutColor(sec.layout_color))
+                                ? sec.layout_color
+                                : fallbackSectionPalette(sid).fill;
+                            inp.value = revert;
+                            return;
+                        }
+                        const row = inp.closest('.layout-section-color-row');
+                        const sid = row ? Number(row.getAttribute('data-section-id')) : 0;
+                        const sec = sections.find(function(s) { return Number(s.id) === sid; });
+                        if (sec) sec.layout_color = hex.toUpperCase();
+                        markDirty('Color de sección actualizado (guarda el layout).');
+                        rebuildScene();
+                    });
+                });
             }
 
             function findElementIndexById(id) {
@@ -1722,6 +1829,7 @@
                             meta: el.meta || {},
                         })),
                         seat_sections: buildSeatSectionsPayload(),
+                        section_colors: buildSectionColorsPayload(),
                         canvas_width: stage ? Math.round(stage.width()) : null,
                         canvas_height: stage ? Math.round(stage.height()) : null,
                     };
@@ -1742,6 +1850,21 @@
                     elements.splice(0, elements.length, ...(data.elements || []));
                     if (Array.isArray(data.seats)) {
                         seats.splice(0, seats.length, ...data.seats);
+                    }
+                    if (Array.isArray(data.sections)) {
+                        sections = data.sections.map(function(s) {
+                            return { id: s.id, name: s.name, layout_color: s.layout_color != null ? s.layout_color : null };
+                        });
+                        document.querySelectorAll('.layout-section-color-row').forEach(function(row) {
+                            const sid = Number(row.getAttribute('data-section-id'));
+                            const sec = sections.find(function(s) { return Number(s.id) === sid; });
+                            const inp = row.querySelector('.layout-section-color-input');
+                            if (!inp || !sec) return;
+                            const show = sec.layout_color && isClientSectionLayoutColor(sec.layout_color)
+                                ? sec.layout_color
+                                : fallbackSectionPalette(sid).fill;
+                            inp.value = show;
+                        });
                     }
                     syncSeatsFromLayoutElements();
                     dirty = false;
@@ -1804,6 +1927,7 @@
             });
 
             refreshSeatSelect();
+            wireSectionLayoutColorInputs();
             initKonva();
             normalizeZ();
             rebuildScene();

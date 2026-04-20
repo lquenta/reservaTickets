@@ -15,11 +15,11 @@
     <p class="text-sm text-slate-600 dark:text-slate-300 mb-4">El color corresponde al <strong>sector</strong> del venue (misma convención que el checkout). Entre butacas del mismo sector, solo cambia la <strong>opacidad</strong>: plena = disponible para el público; atenuada = ocupada o bloqueada.</p>
     <div class="flex flex-wrap gap-6 mb-6 text-sm items-center">
         <span class="inline-flex items-center gap-2">
-            <span class="w-8 h-8 rounded-lg flex items-center justify-center font-mono text-xs font-bold border-2 box-border" style="background-color:{{ $sectionSeatPalette[0]['bg'] }};border-color:{{ $sectionSeatPalette[0]['border'] }};color:{{ $sectionSeatPalette[0]['text'] }};opacity:1;">1</span>
+            <span class="w-8 h-8 rounded-lg flex items-center justify-center font-mono text-xs font-bold border-2 box-border" style="background-color:{{ $legendSampleSeatStyle['bg'] }};border-color:{{ $legendSampleSeatStyle['border'] }};color:{{ $legendSampleSeatStyle['text'] }};opacity:1;">1</span>
             Disponible
         </span>
         <span class="inline-flex items-center gap-2">
-            <span class="w-8 h-8 rounded-lg flex items-center justify-center font-mono text-xs font-bold border-2 box-border" style="background-color:{{ $sectionSeatPalette[0]['bg'] }};border-color:{{ $sectionSeatPalette[0]['border'] }};color:{{ $sectionSeatPalette[0]['text'] }};opacity:0.42;">1</span>
+            <span class="w-8 h-8 rounded-lg flex items-center justify-center font-mono text-xs font-bold border-2 box-border" style="background-color:{{ $legendSampleSeatStyle['bg'] }};border-color:{{ $legendSampleSeatStyle['border'] }};color:{{ $legendSampleSeatStyle['text'] }};opacity:0.42;">1</span>
             No disponible (ocupada o bloqueada)
         </span>
         <span class="text-slate-500 dark:text-slate-400">Haz clic en una butaca disponible para bloquearla solo en este evento, o en una bloqueada por evento para desbloquearla.</span>
@@ -38,7 +38,7 @@
                         $blockedAny = $blockedGlobal || $blockedForEvent;
                         $unavailable = $occupied || $blockedAny;
                         $sid = (int) ($seat['section_id'] ?? 0);
-                        $pal = $sectionSeatPalette[abs($sid) % count($sectionSeatPalette)];
+                        $pal = $sectionPaletteById[$sid] ?? ['bg' => '#334155', 'border' => '#475569', 'text' => '#cbd5e1'];
                         $op = $unavailable ? 0.42 : 1;
                         $fillStyle = 'background-color:'.$pal['bg'].';border:2px solid '.$pal['border'].';color:'.$pal['text'].';opacity:'.$op.';';
                         $baseStyle = 'position:absolute;left:'.(float) ($el['x'] ?? 0).'px;top:'.(float) ($el['y'] ?? 0).'px;width:'.(float) ($el['w'] ?? 52).'px;height:'.(float) ($el['h'] ?? 52).'px;transform:rotate('.(float) ($el['rotation'] ?? 0).'deg);z-index:'.(int) ($el['z_index'] ?? 0).';';
@@ -111,7 +111,7 @@
                             $blockedAny = $blockedGlobally || $blockedForEvent;
                             $unavailable = $occupied || $blockedAny;
                             $sid = (int) ($seat->section_id ?? 0);
-                            $pal = $sectionSeatPalette[abs($sid) % count($sectionSeatPalette)];
+                            $pal = $sectionPaletteById[$sid] ?? ['bg' => '#334155', 'border' => '#475569', 'text' => '#cbd5e1'];
                             $op = $unavailable ? 0.42 : 1;
                             $seatFill = 'background-color:'.$pal['bg'].';border:2px solid '.$pal['border'].';color:'.$pal['text'].';opacity:'.$op.';';
                             $seatSize = 'width: var(--seat-size); height: var(--seat-size); min-width: var(--seat-size); font-size: min(0.875rem, var(--seat-size)); line-height: 1;';
