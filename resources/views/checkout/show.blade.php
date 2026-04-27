@@ -114,6 +114,12 @@
 
 @push('scripts')
 <script>
+document.addEventListener('DOMContentLoaded', function () {
+    if (typeof window.novaTrack === 'function') {
+        window.novaTrack('begin_checkout', { event_id: {{ (int) $reservation->event_id }} });
+    }
+});
+
 function checkoutTimer(expiresAtMs) {
     return {
         display: '10:00',

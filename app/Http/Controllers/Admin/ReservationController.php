@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Jobs\SendReservationTicketsJob;
+use App\Models\AnalyticsEvent;
 use App\Models\Reservation;
 use App\Models\ReservationAuditLog;
 use App\Services\ReservationAuditService;
@@ -37,6 +38,16 @@ class ReservationController extends Controller
         }
 
         $reservation->update(['status' => Reservation::STATUS_CONFIRMADO]);
+        AnalyticsEvent::create([
+            'event_name' => AnalyticsEvent::EVENT_PURCHASE,
+            'session_id' => null,
+            'user_id' => $reservation->user_id,
+            'event_id' => $reservation->event_id,
+            'path' => route('admin.reservations.index', absolute: false),
+            'referrer' => null,
+            'device_type' => 'server',
+            'occurred_at' => now(),
+        ]);
         SendReservationTicketsJob::dispatch($reservation)->onConnection('database');
 
         return redirect()->route('admin.reservations.index')->with('message', 'Reserva autorizada. Los tickets se enviarán por correo en breve.');

@@ -17,12 +17,13 @@
 @else
     <div x-data="{
         isOpen: false,
-        selected: { name: '', description: '', date: '', venue: '', cover: '', reserve_url: '', login_url: '', admin_url: '' },
+        selected: { id: null, name: '', description: '', date: '', venue: '', cover: '', reserve_url: '', login_url: '', admin_url: '' },
         open(el) {
             if (!el || !el.dataset) return;
             const d = el.dataset;
             if ((d.eventSoldOut || '') === '1') return;
             this.selected = {
+                id: d.eventId ? parseInt(d.eventId, 10) : null,
                 name: d.eventName || '',
                 description: d.eventDescription || '',
                 date: d.eventDate || '',
@@ -32,6 +33,9 @@
                 login_url: d.eventLoginUrl || '',
                 admin_url: d.eventAdminUrl || ''
             };
+            if (typeof window.novaTrack === 'function' && this.selected.id) {
+                window.novaTrack('view_event', { event_id: this.selected.id });
+            }
             this.isOpen = true;
             document.body.style.overflow = 'hidden';
         },
@@ -45,6 +49,7 @@
             @php($isSoldOut = ! $event->is_active)
             <article class="group relative overflow-hidden rounded-2xl border border-red-900/50 hover:border-[#e50914]/50 transition-all duration-300 hover:-translate-y-1 min-h-[320px] flex flex-col cursor-pointer"
                      data-event-name="{{ e($event->name) }}"
+                     data-event-id="{{ $event->id }}"
                      data-event-description="{{ e($event->description ?? '') }}"
                      data-event-date="{{ e($event->starts_at->translatedFormat('l d \d\e F \d\e Y, H:i')) }}"
                      data-event-venue="{{ e($event->venue ?? '') }}"
@@ -186,3 +191,21 @@
     @endif
 @endif
 @endsection
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    if (typeof window.novaTrack !== 'function') {
+        return;
+    }
+
+    const eventCards = Array.from(document.querySelectorAll('[data-event-id]'));
+    eventCards.forEach(function (card) {
+        const eventId = parseInt(card.getAttribute('data-event-id') || '', 10);
+        if (Number.isFinite(eventId) && eventId > 0) {
+            window.novaTrack('view_event', { event_id: eventId });
+        }
+    });
+});
+</script>
+@endpush

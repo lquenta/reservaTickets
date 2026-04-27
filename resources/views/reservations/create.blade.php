@@ -1232,3 +1232,13 @@
     </div>
 @endif
 @endsection
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    if (typeof window.novaTrack === 'function') {
+        window.novaTrack('begin_reservation', { event_id: {{ (int) $event->id }} });
+    }
+});
+</script>
+@endpush

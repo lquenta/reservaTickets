@@ -2,6 +2,7 @@
 
 namespace App\Console;
 
+use App\Jobs\PruneAnalyticsMetricsJob;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 
@@ -18,6 +19,10 @@ class Kernel extends ConsoleKernel
         $schedule->command('queue:work database --stop-when-empty')
             ->everyMinute()
             ->withoutOverlapping(2);
+
+        // Depura metricas de analytics con mas de 30 dias de antiguedad.
+        $schedule->job(new PruneAnalyticsMetricsJob())
+            ->monthlyOn(1, '03:30');
     }
 
     /**

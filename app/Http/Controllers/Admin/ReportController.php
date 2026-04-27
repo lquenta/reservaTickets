@@ -8,6 +8,7 @@ use App\Models\Reservation;
 use App\Models\ReservationAuditLog;
 use App\Models\ReservationTicket;
 use App\Models\User;
+use App\Services\AdminDashboardMetricsService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -16,6 +17,8 @@ use Illuminate\View\View;
 
 class ReportController extends Controller
 {
+    public function __construct(private readonly AdminDashboardMetricsService $metricsService) {}
+
     /** Todos los eventos (activos y SOLD OUT) para el reporte de nombres por evento. */
     private function getEventsForNamesReport()
     {
@@ -140,6 +143,7 @@ class ReportController extends Controller
     public function index(Request $request): View
     {
         $data = $this->getReportData();
+        $metricsData = $this->metricsForRequest($request);
 
         $eventsForNamesReport = $this->getEventsForNamesReport();
         $selectedEventId = (int) ($request->integer('event_id') ?: ($eventsForNamesReport->first()?->id ?? 0));
@@ -157,7 +161,7 @@ class ReportController extends Controller
                 ->get();
         }
 
-        return view('admin.reports.index', $data + compact(
+        return view('admin.reports.index', $data + $metricsData + compact(
             'eventsForNamesReport',
             'selectedEventId',
             'selectedEvent',
@@ -308,5 +312,37 @@ class ReportController extends Controller
         $pdf->setPaper('a4', 'landscape');
 
         return $pdf->download('reporte-auditoria-reservas-'.now()->format('Y-m-d').'.pdf');
+    }
+
+    public function metrics(Request $request): View
+    {
+        $metricsData = $this->metricsForRequest($request);
+
+        return view('admin.reports.metrics', $metricsData);
+    }
+
+    public function downloadMetricsPdf(Request $request): Response
+    {
+        $metricsData = $this->metricsForRequest($request);
+        $pdf = Pdf::loadView('admin.reports.pdf.metrics', $metricsData);
+        $pdf->setPaper('a4', 'landscape');
+
+        return $pdf->download('reporte-metricas-'.now()->format('Y-m-d').'.pdf');
+    }
+
+    private function metricsForRequest(Request $request): array
+    {
+        $filters = $this->metricsService->normalizeFilters($request->only([
+            'date_from',
+            'date_to',
+            'event_scope',
+            'event_id',
+        ]));
+
+        return [
+            'filters' => $filters,
+            'metrics' => $this->metricsService->build($filters),
+            'eventsForFilter' => $this->metricsService->eventsForFilter($filters['event_scope']),
+        ];
     }
 }
