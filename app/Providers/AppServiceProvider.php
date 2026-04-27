@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Mail\Transport\MailgunTransport;
+use App\Mail\Transport\BrevoTransport;
 use App\Mail\Transport\SendGridTransport;
 use App\Mail\Transport\SmtpKitTransport;
 use App\Models\Event;
@@ -59,6 +60,14 @@ class AppServiceProvider extends ServiceProvider
                 apiKey: $config['api_key'] ?? config('services.mailgun.secret', ''),
                 domain: $config['domain'] ?? config('services.mailgun.domain', ''),
                 endpoint: $config['endpoint'] ?? config('services.mailgun.endpoint', 'https://api.mailgun.net')
+            );
+        });
+
+        Mail::extend('brevo', function (array $config) {
+            return new BrevoTransport(
+                apiKey: $config['api_key'] ?? config('services.brevo.api_key', ''),
+                apiUrl: $config['api_url'] ?? config('services.brevo.api_url', 'https://api.brevo.com/v3/smtp/email'),
+                verifySsl: (bool) ($config['verify_ssl'] ?? true)
             );
         });
 

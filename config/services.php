@@ -56,6 +56,12 @@ return [
         'endpoint' => env('MAILGUN_ENDPOINT', 'https://api.mailgun.net'),
     ],
 
+    'brevo' => [
+        'api_key' => env('BREVO_API_KEY'),
+        'api_url' => env('BREVO_API_URL', 'https://api.brevo.com/v3/smtp/email'),
+        'verify_ssl' => filter_var(env('BREVO_VERIFY_SSL', true), FILTER_VALIDATE_BOOLEAN),
+    ],
+
     'ticket_validator' => [
         'enabled' => filter_var(env('TICKET_VALIDATOR_API_ENABLED', true), FILTER_VALIDATE_BOOLEAN),
         'api_key' => env('TICKET_VALIDATOR_API_KEY'),

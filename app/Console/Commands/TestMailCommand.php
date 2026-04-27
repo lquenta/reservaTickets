@@ -2,8 +2,8 @@
 
 namespace App\Console\Commands;
 
+use App\Services\MailTestService;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Mail;
 
 class TestMailCommand extends Command
 {
@@ -25,7 +25,7 @@ class TestMailCommand extends Command
     /**
      * Execute the console command.
      */
-    public function handle(): int
+    public function handle(MailTestService $mailTestService): int
     {
         $to = $this->option('to') ?: config('mail.from.address');
 
@@ -40,13 +40,7 @@ class TestMailCommand extends Command
         $this->info("Enviando correo de prueba a: {$to}");
 
         try {
-            Mail::raw(
-                "Este es un correo de prueba enviado desde Laravel.\n\nMailer: {$mailer}\nFecha: ".now()->toDateTimeString(),
-                function ($message) use ($to) {
-                    $message->to($to)
-                        ->subject('Prueba de correo - '.config('app.name'));
-                }
-            );
+            $mailTestService->send($to);
             $this->info('Correo enviado correctamente. Revisa la bandeja (y spam) de '.$to);
 
             if ($mailer === 'log') {

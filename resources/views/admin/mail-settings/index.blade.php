@@ -124,6 +124,12 @@
                     class="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-white px-4 py-3 focus:ring-2 focus:ring-violet-500">
                 @error('mail_sendgrid_api_key')<p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
             </div>
+            <div class="flex items-center gap-2">
+                <input type="hidden" name="mail_sendgrid_verify_ssl" value="0">
+                <input type="checkbox" name="mail_sendgrid_verify_ssl" id="mail_sendgrid_verify_ssl" value="1" {{ old('mail_sendgrid_verify_ssl', $settings['mail_sendgrid_verify_ssl'] ?? '1') ? 'checked' : '' }}
+                    class="rounded border-slate-300 dark:border-slate-600 text-violet-600 focus:ring-violet-500">
+                <label for="mail_sendgrid_verify_ssl" class="text-sm text-slate-700 dark:text-slate-300">Verificar certificado SSL</label>
+            </div>
         </div>
 
         {{-- SmtpKit --}}
@@ -141,6 +147,35 @@
                     class="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-white px-4 py-3 focus:ring-2 focus:ring-violet-500">
                 @error('mail_smtpkit_api_url')<p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
             </div>
+            <div class="flex items-center gap-2">
+                <input type="hidden" name="mail_smtpkit_verify_ssl" value="0">
+                <input type="checkbox" name="mail_smtpkit_verify_ssl" id="mail_smtpkit_verify_ssl" value="1" {{ old('mail_smtpkit_verify_ssl', $settings['mail_smtpkit_verify_ssl'] ?? '1') ? 'checked' : '' }}
+                    class="rounded border-slate-300 dark:border-slate-600 text-violet-600 focus:ring-violet-500">
+                <label for="mail_smtpkit_verify_ssl" class="text-sm text-slate-700 dark:text-slate-300">Verificar certificado SSL</label>
+            </div>
+        </div>
+
+        {{-- Brevo --}}
+        <div x-show="driver === 'brevo'" x-cloak class="space-y-4 p-4 rounded-xl bg-slate-100 dark:bg-slate-700/30 border border-slate-200 dark:border-slate-600">
+            <h2 class="text-lg font-semibold text-slate-800 dark:text-white">Brevo</h2>
+            <div>
+                <label for="mail_brevo_api_key" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">API Key</label>
+                <input type="password" name="mail_brevo_api_key" id="mail_brevo_api_key" value="{{ old('mail_brevo_api_key') }}" placeholder="{{ ($settings['mail_brevo_api_key'] ?? '') === '***' ? 'Configurado (dejar en blanco para no cambiar)' : '' }}" autocomplete="off"
+                    class="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-white px-4 py-3 focus:ring-2 focus:ring-violet-500">
+                @error('mail_brevo_api_key')<p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
+            </div>
+            <div>
+                <label for="mail_brevo_api_url" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">URL API (opcional)</label>
+                <input type="url" name="mail_brevo_api_url" id="mail_brevo_api_url" value="{{ old('mail_brevo_api_url', $settings['mail_brevo_api_url'] ?? 'https://api.brevo.com/v3/smtp/email') }}"
+                    class="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-white px-4 py-3 focus:ring-2 focus:ring-violet-500">
+                @error('mail_brevo_api_url')<p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
+            </div>
+            <div class="flex items-center gap-2">
+                <input type="hidden" name="mail_brevo_verify_ssl" value="0">
+                <input type="checkbox" name="mail_brevo_verify_ssl" id="mail_brevo_verify_ssl" value="1" {{ old('mail_brevo_verify_ssl', $settings['mail_brevo_verify_ssl'] ?? '1') ? 'checked' : '' }}
+                    class="rounded border-slate-300 dark:border-slate-600 text-violet-600 focus:ring-violet-500">
+                <label for="mail_brevo_verify_ssl" class="text-sm text-slate-700 dark:text-slate-300">Verificar certificado SSL</label>
+            </div>
         </div>
 
         <div class="pt-4">
@@ -149,5 +184,25 @@
             </button>
         </div>
     </form>
+
+    <div class="mt-8 pt-6 border-t border-slate-200 dark:border-slate-700">
+        <h2 class="text-lg font-semibold text-slate-800 dark:text-white mb-2">Enviar correo de prueba</h2>
+        <p class="text-sm text-slate-600 dark:text-slate-400 mb-4">Usa la configuración activa para enviar un correo de prueba y validar la integración.</p>
+        <form action="{{ route('admin.mail-settings.send-test') }}" method="POST" class="flex flex-col md:flex-row gap-3 md:items-end">
+            @csrf
+            <div class="flex-1">
+                <label for="mail_test_to" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Destino de prueba</label>
+                <input type="email" name="mail_test_to" id="mail_test_to" required value="{{ old('mail_test_to', $settings['mail_from_address'] ?? config('mail.from.address')) }}"
+                    class="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-white px-4 py-3 focus:ring-2 focus:ring-violet-500"
+                    placeholder="correo@ejemplo.com">
+                @error('mail_test_to')<p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
+            </div>
+            <div>
+                <button type="submit" class="rounded-xl bg-slate-800 hover:bg-slate-700 dark:bg-slate-100 dark:hover:bg-white dark:text-slate-900 px-5 py-2.5 text-white font-semibold transition">
+                    Enviar prueba
+                </button>
+            </div>
+        </form>
+    </div>
 </div>
 @endsection

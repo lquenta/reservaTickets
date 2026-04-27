@@ -91,6 +91,7 @@ Route::prefix('admin')->middleware(['auth', 'admin'])->name('admin.')->group(fun
     Route::get('reports/pdf/audit', [\App\Http\Controllers\Admin\ReportController::class, 'downloadAuditPdf'])->name('reports.pdf.audit');
     Route::get('mail-settings', [\App\Http\Controllers\Admin\MailSettingsController::class, 'index'])->name('mail-settings.index');
     Route::put('mail-settings', [\App\Http\Controllers\Admin\MailSettingsController::class, 'update'])->name('mail-settings.update');
+    Route::post('mail-settings/test', [\App\Http\Controllers\Admin\MailSettingsController::class, 'sendTest'])->name('mail-settings.send-test');
     Route::get('notification-settings', [\App\Http\Controllers\Admin\NotificationSettingsController::class, 'index'])->name('notification-settings.index');
     Route::put('notification-settings', [\App\Http\Controllers\Admin\NotificationSettingsController::class, 'update'])->name('notification-settings.update');
 });

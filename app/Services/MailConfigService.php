@@ -12,6 +12,7 @@ class MailConfigService
     public const DRIVER_MAILGUN = 'mailgun';
     public const DRIVER_SENDGRID = 'sendgrid';
     public const DRIVER_SMTPKIT = 'smtpkit';
+    public const DRIVER_BREVO = 'brevo';
 
     public const DRIVERS = [
         self::DRIVER_LOG => 'Log (solo guardar en log, no enviar)',
@@ -19,6 +20,7 @@ class MailConfigService
         self::DRIVER_MAILGUN => 'Mailgun (API)',
         self::DRIVER_SENDGRID => 'SendGrid (API)',
         self::DRIVER_SMTPKIT => 'SmtpKit (API)',
+        self::DRIVER_BREVO => 'Brevo (API)',
     ];
 
     public static function applyToConfig(): void
@@ -62,7 +64,7 @@ class MailConfigService
                 Config::set('mail.mailers.sendgrid', [
                     'transport' => 'sendgrid',
                     'api_key' => Setting::get('mail_sendgrid_api_key') ?? '',
-                    'verify_ssl' => true,
+                    'verify_ssl' => filter_var(Setting::get('mail_sendgrid_verify_ssl') ?? true, FILTER_VALIDATE_BOOL),
                 ]);
                 break;
             case self::DRIVER_SMTPKIT:
@@ -70,7 +72,15 @@ class MailConfigService
                     'transport' => 'smtpkit',
                     'api_key' => Setting::get('mail_smtpkit_api_key') ?? '',
                     'api_url' => Setting::get('mail_smtpkit_api_url') ?? 'https://smtpkit.com/api/v1/send-email',
-                    'verify_ssl' => true,
+                    'verify_ssl' => filter_var(Setting::get('mail_smtpkit_verify_ssl') ?? true, FILTER_VALIDATE_BOOL),
+                ]);
+                break;
+            case self::DRIVER_BREVO:
+                Config::set('mail.mailers.brevo', [
+                    'transport' => 'brevo',
+                    'api_key' => Setting::get('mail_brevo_api_key') ?? '',
+                    'api_url' => Setting::get('mail_brevo_api_url') ?? 'https://api.brevo.com/v3/smtp/email',
+                    'verify_ssl' => filter_var(Setting::get('mail_brevo_verify_ssl') ?? true, FILTER_VALIDATE_BOOL),
                 ]);
                 break;
         }
@@ -83,7 +93,9 @@ class MailConfigService
             'mail_smtp_host', 'mail_smtp_port', 'mail_smtp_username', 'mail_smtp_password',
             'mail_smtp_encryption', 'mail_smtp_verify_peer',
             'mail_mailgun_api_key', 'mail_mailgun_domain', 'mail_mailgun_endpoint',
-            'mail_sendgrid_api_key', 'mail_smtpkit_api_key', 'mail_smtpkit_api_url',
+            'mail_sendgrid_api_key', 'mail_sendgrid_verify_ssl',
+            'mail_smtpkit_api_key', 'mail_smtpkit_api_url', 'mail_smtpkit_verify_ssl',
+            'mail_brevo_api_key', 'mail_brevo_api_url', 'mail_brevo_verify_ssl',
         ];
         $values = Setting::getMany($keys);
         if (empty($values['mail_smtp_verify_peer'])) {
@@ -92,8 +104,17 @@ class MailConfigService
         if (empty($values['mail_smtp_port']) && ($values['mail_driver'] ?? '') === self::DRIVER_SMTP) {
             $values['mail_smtp_port'] = '587';
         }
+        if (! isset($values['mail_sendgrid_verify_ssl'])) {
+            $values['mail_sendgrid_verify_ssl'] = '1';
+        }
+        if (! isset($values['mail_smtpkit_verify_ssl'])) {
+            $values['mail_smtpkit_verify_ssl'] = '1';
+        }
+        if (! isset($values['mail_brevo_verify_ssl'])) {
+            $values['mail_brevo_verify_ssl'] = '1';
+        }
         // No exponer claves/contraseñas en la vista
-        foreach (['mail_smtp_password', 'mail_mailgun_api_key', 'mail_sendgrid_api_key', 'mail_smtpkit_api_key'] as $secret) {
+        foreach (['mail_smtp_password', 'mail_mailgun_api_key', 'mail_sendgrid_api_key', 'mail_smtpkit_api_key', 'mail_brevo_api_key'] as $secret) {
             if (! empty($values[$secret])) {
                 $values[$secret] = '***';
             }

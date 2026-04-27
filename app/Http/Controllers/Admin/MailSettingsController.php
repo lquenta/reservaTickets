@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Setting;
 use App\Services\MailConfigService;
+use App\Services\MailTestService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -24,7 +25,7 @@ class MailSettingsController extends Controller
     public function update(Request $request): RedirectResponse
     {
         $request->validate([
-            'mail_driver' => ['required', 'string', 'in:log,smtp,mailgun,sendgrid,smtpkit'],
+            'mail_driver' => ['required', 'string', 'in:log,smtp,mailgun,sendgrid,smtpkit,brevo'],
             'mail_from_address' => ['required', 'email'],
             'mail_from_name' => ['required', 'string', 'max:255'],
             'mail_smtp_host' => ['nullable', 'string', 'max:255'],
@@ -37,8 +38,13 @@ class MailSettingsController extends Controller
             'mail_mailgun_domain' => ['nullable', 'string', 'max:255'],
             'mail_mailgun_endpoint' => ['nullable', 'string', 'url', 'max:255'],
             'mail_sendgrid_api_key' => ['nullable', 'string', 'max:255'],
+            'mail_sendgrid_verify_ssl' => ['nullable', 'boolean'],
             'mail_smtpkit_api_key' => ['nullable', 'string', 'max:255'],
             'mail_smtpkit_api_url' => ['nullable', 'string', 'url', 'max:255'],
+            'mail_smtpkit_verify_ssl' => ['nullable', 'boolean'],
+            'mail_brevo_api_key' => ['nullable', 'string', 'max:255'],
+            'mail_brevo_api_url' => ['nullable', 'string', 'url', 'max:255'],
+            'mail_brevo_verify_ssl' => ['nullable', 'boolean'],
         ]);
 
         $driver = $request->input('mail_driver');
@@ -69,6 +75,7 @@ class MailSettingsController extends Controller
             if ($request->filled('mail_sendgrid_api_key')) {
                 Setting::set('mail_sendgrid_api_key', $request->input('mail_sendgrid_api_key'));
             }
+            Setting::set('mail_sendgrid_verify_ssl', $request->boolean('mail_sendgrid_verify_ssl') ? '1' : '0');
         }
 
         if ($driver === MailConfigService::DRIVER_SMTPKIT) {
@@ -76,11 +83,43 @@ class MailSettingsController extends Controller
                 Setting::set('mail_smtpkit_api_key', $request->input('mail_smtpkit_api_key'));
             }
             Setting::set('mail_smtpkit_api_url', $request->input('mail_smtpkit_api_url') ?: 'https://smtpkit.com/api/v1/send-email');
+            Setting::set('mail_smtpkit_verify_ssl', $request->boolean('mail_smtpkit_verify_ssl') ? '1' : '0');
+        }
+
+        if ($driver === MailConfigService::DRIVER_BREVO) {
+            if ($request->filled('mail_brevo_api_key')) {
+                Setting::set('mail_brevo_api_key', $request->input('mail_brevo_api_key'));
+            }
+            Setting::set('mail_brevo_api_url', $request->input('mail_brevo_api_url') ?: 'https://api.brevo.com/v3/smtp/email');
+            Setting::set('mail_brevo_verify_ssl', $request->boolean('mail_brevo_verify_ssl') ? '1' : '0');
         }
 
         MailConfigService::applyToConfig();
         Mail::purge(); // forzar uso del nuevo driver en la misma petición / cola
 
         return redirect()->route('admin.mail-settings.index')->with('message', 'Configuración de correo guardada correctamente.');
+    }
+
+    public function sendTest(Request $request, MailTestService $mailTestService): RedirectResponse
+    {
+        $data = $request->validate([
+            'mail_test_to' => ['required', 'email'],
+        ]);
+
+        MailConfigService::applyToConfig();
+        Mail::purge();
+
+        try {
+            $mailTestService->send($data['mail_test_to']);
+
+            return redirect()
+                ->route('admin.mail-settings.index')
+                ->with('message', 'Correo de prueba enviado correctamente a '.$data['mail_test_to'].'.');
+        } catch (\Throwable $e) {
+            return redirect()
+                ->route('admin.mail-settings.index')
+                ->withInput(['mail_test_to' => $data['mail_test_to']])
+                ->withErrors(['mail_test_to' => 'No se pudo enviar el correo de prueba: '.$e->getMessage()]);
+        }
     }
 }

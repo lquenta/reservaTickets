@@ -92,6 +92,13 @@ return [
             'endpoint' => env('MAILGUN_ENDPOINT', 'https://api.mailgun.net'),
         ],
 
+        'brevo' => [
+            'transport' => 'brevo',
+            'api_key' => env('BREVO_API_KEY'),
+            'api_url' => env('BREVO_API_URL', 'https://api.brevo.com/v3/smtp/email'),
+            'verify_ssl' => filter_var(env('BREVO_VERIFY_SSL', true), FILTER_VALIDATE_BOOLEAN),
+        ],
+
         'log' => [
             'transport' => 'log',
             'channel' => env('MAIL_LOG_CHANNEL'),
