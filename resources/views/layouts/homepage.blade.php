@@ -38,13 +38,13 @@
         </template>
     </div>
 
-    <header class="fixed top-0 left-0 right-0 z-40 transition-all duration-300" x-data="{ scrolled: false }" x-init="window.addEventListener('scroll', () => scrolled = window.scrollY > 60)">
-        <nav class="px-4 sm:px-6 lg:px-8 py-4" :class="scrolled ? 'bg-black/95 backdrop-blur border-b border-red-900/50' : 'bg-transparent'">
-            <div class="max-w-7xl mx-auto flex justify-between items-center">
-                <a href="{{ route('home') }}" class="text-xl font-bold tracking-widest text-[#e50914] hover:text-red-400 transition font-display">
+    <header class="fixed top-0 left-0 right-0 transition-all duration-300" x-data="{ scrolled: false, mobileNavOpen: false }" x-init="window.addEventListener('scroll', () => scrolled = window.scrollY > 60); $watch('mobileNavOpen', open => document.body.classList.toggle('overflow-hidden', open))" @keydown.escape.window="mobileNavOpen = false" :class="mobileNavOpen ? 'z-[100]' : 'z-40'">
+        <nav class="px-4 sm:px-6 lg:px-8 py-4" :class="scrolled || mobileNavOpen ? 'bg-black/95 backdrop-blur border-b border-red-900/50' : 'bg-transparent'">
+            <div class="max-w-7xl mx-auto relative z-[110] flex justify-between items-center gap-3">
+                <a href="{{ route('home') }}" class="text-xl font-bold tracking-widest text-[#e50914] hover:text-red-400 transition font-display shrink-0">
                     NOVA
                 </a>
-                <div class="flex items-center gap-4 sm:gap-6">
+                <div class="hidden lg:flex items-center gap-4 xl:gap-6 flex-wrap justify-end">
                     <a href="#quienes-somos" class="text-sm text-white/80 hover:text-[#e50914] transition tracking-wide">Quiénes somos</a>
                     <a href="#nuestros-eventos" class="text-sm text-white/80 hover:text-[#e50914] transition tracking-wide">Eventos</a>
                     <a href="#contacto" class="text-sm text-white/80 hover:text-[#e50914] transition tracking-wide">Contacto</a>
@@ -65,6 +65,54 @@
                         <a href="{{ route('login') }}" class="text-sm text-white/80 hover:text-[#e50914] transition">Iniciar sesión</a>
                         <a href="{{ route('register') }}" class="text-sm font-semibold bg-[#e50914] text-white px-4 py-2 rounded hover:bg-red-600 transition">Registrarse</a>
                     @endauth
+                </div>
+                <button type="button"
+                        class="lg:hidden shrink-0 p-2 rounded-lg text-white hover:bg-white/10 border border-white/25 transition"
+                        @click="mobileNavOpen = !mobileNavOpen"
+                        :aria-expanded="mobileNavOpen"
+                        aria-controls="mobile-primary-nav-home"
+                        aria-label="Abrir o cerrar menú">
+                    <svg x-show="!mobileNavOpen" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+                    <svg x-show="mobileNavOpen" x-cloak class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+            <div id="mobile-primary-nav-home"
+                 x-show="mobileNavOpen"
+                 x-cloak
+                 x-transition:enter="transition ease-out duration-200"
+                 x-transition:enter-start="opacity-0"
+                 x-transition:enter-end="opacity-100"
+                 x-transition:leave="transition ease-in duration-150"
+                 x-transition:leave-start="opacity-100"
+                 x-transition:leave-end="opacity-0"
+                 class="lg:hidden fixed inset-0 z-[90]"
+                 role="dialog"
+                 aria-modal="true"
+                 aria-label="Menú de navegación">
+                <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" @click="mobileNavOpen = false"></div>
+                <div class="absolute inset-y-0 right-0 z-10 w-full max-w-sm border-l border-red-900/50 bg-black/98 shadow-2xl flex flex-col overflow-y-auto overscroll-contain p-6 pt-20 gap-1" @click.stop>
+                    <a href="#quienes-somos" @click="mobileNavOpen = false" class="py-3 px-3 rounded-lg text-base text-white/90 hover:bg-white/5 transition">Quiénes somos</a>
+                    <a href="#nuestros-eventos" @click="mobileNavOpen = false" class="py-3 px-3 rounded-lg text-base text-white/90 hover:bg-white/5 transition">Eventos</a>
+                    <a href="#contacto" @click="mobileNavOpen = false" class="py-3 px-3 rounded-lg text-base text-white/90 hover:bg-white/5 transition">Contacto</a>
+                    <a href="#boletin" @click="mobileNavOpen = false" class="py-3 px-3 rounded-lg text-base text-white/90 hover:bg-white/5 transition">Boletín</a>
+                    <a href="{{ route('events.index') }}" @click="mobileNavOpen = false" class="py-3 px-3 rounded-lg text-base font-semibold text-[#e50914] border border-[#e50914] hover:bg-[#e50914] hover:text-black transition text-center mt-2">Ver eventos</a>
+                    <div class="mt-4 pt-4 border-t border-red-900/40 flex flex-col gap-2">
+                        @auth
+                            @if(!auth()->user()->isAdmin())
+                                <a href="{{ route('reservations.index') }}" @click="mobileNavOpen = false" class="py-3 px-3 rounded-lg text-base text-white/90 hover:bg-white/5 transition">Mis reservas</a>
+                            @endif
+                            @if(auth()->user()->isAdmin())
+                                <a href="{{ route('admin.dashboard') }}" @click="mobileNavOpen = false" class="py-3 px-3 rounded-lg text-base text-[#e50914] font-semibold hover:bg-white/5 transition">Admin</a>
+                            @endif
+                            <form method="POST" action="{{ route('logout') }}" class="mt-1">
+                                @csrf
+                                <button type="submit" class="w-full py-3 px-3 rounded-lg text-base text-left text-white/70 hover:bg-white/5 hover:text-red-400 transition">Cerrar sesión</button>
+                            </form>
+                        @else
+                            <a href="{{ route('login') }}" @click="mobileNavOpen = false" class="py-3 px-3 rounded-lg text-base text-white/90 hover:bg-white/5 transition">Iniciar sesión</a>
+                            <a href="{{ route('register') }}" @click="mobileNavOpen = false" class="py-3 px-3 rounded-lg text-base font-semibold bg-[#e50914] text-white text-center rounded-lg hover:bg-red-600 transition">Registrarse</a>
+                        @endauth
+                    </div>
                 </div>
             </div>
         </nav>
