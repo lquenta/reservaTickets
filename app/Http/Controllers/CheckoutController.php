@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Jobs\NotifyAdminNewReservationJob;
+use App\Models\Event;
 use App\Models\Reservation;
 use App\Models\ReservationAuditLog;
 use App\Services\ReservationAuditService;
@@ -27,6 +28,15 @@ class CheckoutController extends Controller
         }
 
         $reservation->load(['event.sections', 'event.ticketTemplate', 'reservationTickets.seat', 'reservationTickets.section']);
+
+        if (! $reservation->event->acceptsReservations()) {
+            $reservation->update(['status' => Reservation::STATUS_CANCELADO]);
+            $message = $reservation->event->sales_paused && $reservation->event->is_active
+                ? 'Las ventas de este evento están pausadas. Favor comunicarse al '.Event::SALES_CONTACT_PHONE.' para más información.'
+                : 'Este evento ya no acepta reservas.';
+
+            return redirect()->route('events.index')->with('message', $message);
+        }
         $totalPrice = 0;
         if ($reservation->event->hasSections()) {
             foreach ($reservation->reservationTickets as $ticket) {
@@ -75,6 +85,16 @@ class CheckoutController extends Controller
         }
         if ($reservation->status !== Reservation::STATUS_INICIADO || $reservation->isExpired()) {
             return redirect()->route('home')->with('message', 'La reserva expiró o ya fue procesada.');
+        }
+
+        $reservation->load('event');
+        if (! $reservation->event->acceptsReservations()) {
+            $reservation->update(['status' => Reservation::STATUS_CANCELADO]);
+            $message = $reservation->event->sales_paused && $reservation->event->is_active
+                ? 'Las ventas de este evento están pausadas. Favor comunicarse al '.Event::SALES_CONTACT_PHONE.' para más información.'
+                : 'Este evento ya no acepta reservas.';
+
+            return redirect()->route('events.index')->with('message', $message);
         }
 
         $request->validate([

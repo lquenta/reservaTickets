@@ -23,6 +23,7 @@ class Event extends Model
         'qr_image_path',
         'payment_code_prefix',
         'is_active',
+        'sales_paused',
     ];
 
     protected function casts(): array
@@ -30,7 +31,17 @@ class Event extends Model
         return [
             'starts_at' => 'datetime',
             'is_active' => 'boolean',
+            'sales_paused' => 'boolean',
         ];
+    }
+
+    public const SALES_CONTACT_PHONE = '64066996';
+
+    public function acceptsReservations(): bool
+    {
+        return $this->is_active
+            && ! $this->sales_paused
+            && $this->starts_at->isFuture();
     }
 
     public function venue(): BelongsTo

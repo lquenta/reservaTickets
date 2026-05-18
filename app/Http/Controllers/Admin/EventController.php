@@ -154,20 +154,50 @@ class EventController extends Controller
             return redirect()->route('admin.events.index')->with('message', 'El evento ya estaba marcado como SOLD OUT.');
         }
 
-        $event->update(['is_active' => false]);
+        $event->update(['is_active' => false, 'sales_paused' => false]);
 
-        return redirect()->route('admin.events.index')->with('message', 'Evento marcado como SOLD OUT. Se bloquearon nuevas reservas.');
+        return redirect()->route('admin.events.edit', $event)->with('message', 'Evento marcado como SOLD OUT. Se bloquearon nuevas reservas.');
+    }
+
+    public function pauseSales(Event $event): RedirectResponse
+    {
+        if (! $event->is_active) {
+            return redirect()->route('admin.events.edit', $event)->with('message', 'No se puede pausar ventas en un evento SOLD OUT.');
+        }
+
+        if ($event->sales_paused) {
+            return redirect()->route('admin.events.edit', $event)->with('message', 'Las ventas de este evento ya están pausadas.');
+        }
+
+        $event->update(['sales_paused' => true]);
+
+        return redirect()->route('admin.events.edit', $event)->with('message', 'Ventas pausadas. El evento sigue visible pero no se pueden reservar entradas.');
+    }
+
+    public function resumePausedSales(Event $event): RedirectResponse
+    {
+        if (! $event->is_active) {
+            return redirect()->route('admin.events.edit', $event)->with('message', 'Reabre el evento (SOLD OUT) antes de reanudar ventas.');
+        }
+
+        if (! $event->sales_paused) {
+            return redirect()->route('admin.events.edit', $event)->with('message', 'Las ventas de este evento no están pausadas.');
+        }
+
+        $event->update(['sales_paused' => false]);
+
+        return redirect()->route('admin.events.edit', $event)->with('message', 'Ventas reanudadas. Los clientes pueden reservar nuevamente.');
     }
 
     public function reopenSales(Event $event): RedirectResponse
     {
         if ($event->is_active) {
-            return redirect()->route('admin.events.index')->with('message', 'El evento ya está habilitado.');
+            return redirect()->route('admin.events.edit', $event)->with('message', 'El evento ya está habilitado.');
         }
 
-        $event->update(['is_active' => true]);
+        $event->update(['is_active' => true, 'sales_paused' => false]);
 
-        return redirect()->route('admin.events.index')->with('message', 'Evento habilitado nuevamente para reservas.');
+        return redirect()->route('admin.events.edit', $event)->with('message', 'Evento habilitado nuevamente para reservas.');
     }
 
     public function seats(Event $event): View|RedirectResponse

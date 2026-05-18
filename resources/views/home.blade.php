@@ -167,23 +167,40 @@
             @if($featured_events->isNotEmpty())
                 <div class="grid gap-8 md:grid-cols-2 lg:grid-cols-3 mb-12">
                     @foreach($featured_events as $event)
-                        <article class="group relative overflow-hidden rounded-lg border border-red-900/50 bg-black/80 backdrop-blur hover:border-[#e50914]/60 transition-all duration-300">
+                        @php
+                            $featuredCanReserve = $event->acceptsReservations();
+                            $featuredSalesPaused = $event->sales_paused && $event->is_active;
+                        @endphp
+                        <article class="group relative overflow-hidden rounded-lg border border-red-900/50 bg-black/80 backdrop-blur hover:border-[#e50914]/60 transition-all duration-300" @if($featuredSalesPaused) x-data="{ showContactInfo: false }" @endif>
                             <div class="aspect-[4/3] bg-cover bg-center @if(!$event->cover_image_path) bg-gradient-to-br from-[#1a0505] to-[#e50914]/20 @endif"
                                 @if($event->cover_image_path) style="background-image: url('{{ asset('storage/'.$event->cover_image_path) }}');" @endif>
                                 <div class="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent"></div>
                             </div>
                             <div class="p-5">
-                                <h3 class="text-xl font-bold text-white mb-2">{{ $event->name }}</h3>
+                                <h3 class="text-xl font-bold text-white mb-2 flex items-center gap-2 flex-wrap">
+                                    {{ $event->name }}
+                                    @if($featuredSalesPaused)
+                                        <span class="inline-flex rounded-full bg-amber-600/90 text-white px-2 py-0.5 text-xs font-bold">VENTAS PAUSADAS</span>
+                                    @endif
+                                </h3>
                                 <p class="text-white/70 text-sm mb-2">{{ $event->starts_at->translatedFormat('l d F Y, H:i') }}</p>
                                 <p class="text-white/60 text-sm mb-4">{{ $event->venue }}</p>
                                 @auth
                                     @if(auth()->user()->isAdmin())
                                         <a href="{{ route('admin.dashboard') }}" class="inline-block text-sm text-white/70 hover:text-[#e50914] transition">Panel admin</a>
-                                    @else
+                                    @elseif($featuredSalesPaused)
+                                        <button type="button" @click="showContactInfo = !showContactInfo" class="inline-block text-sm font-semibold text-amber-400 hover:text-amber-300 transition text-left">Más info</button>
+                                        <p x-show="showContactInfo" x-cloak class="text-amber-200/90 text-sm mt-2">Favor comunicarse al {{ \App\Models\Event::SALES_CONTACT_PHONE }} para más información</p>
+                                    @elseif($featuredCanReserve)
                                         <a href="{{ route('reservations.create', $event) }}" class="inline-block text-sm font-semibold text-[#e50914] hover:text-red-400 transition">Reservar →</a>
                                     @endif
                                 @else
-                                    <a href="{{ route('login') }}" class="inline-block text-sm text-white/70 hover:text-[#e50914] transition">Inicia sesión para reservar</a>
+                                    @if($featuredSalesPaused)
+                                        <button type="button" @click="showContactInfo = !showContactInfo" class="inline-block text-sm font-semibold text-amber-400 hover:text-amber-300 transition text-left">Más info</button>
+                                        <p x-show="showContactInfo" x-cloak class="text-amber-200/90 text-sm mt-2">Favor comunicarse al {{ \App\Models\Event::SALES_CONTACT_PHONE }} para más información</p>
+                                    @else
+                                        <a href="{{ route('login') }}" class="inline-block text-sm text-white/70 hover:text-[#e50914] transition">Inicia sesión para reservar</a>
+                                    @endif
                                 @endauth
                             </div>
                         </article>

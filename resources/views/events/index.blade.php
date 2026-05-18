@@ -17,7 +17,7 @@
 @else
     <div x-data="{
         isOpen: false,
-        selected: { id: null, name: '', description: '', date: '', venue: '', cover: '', reserve_url: '', login_url: '', admin_url: '' },
+        selected: { id: null, name: '', description: '', date: '', venue: '', cover: '', reserve_url: '', login_url: '', admin_url: '', sales_paused: false, contact_message: '' },
         open(el) {
             if (!el || !el.dataset) return;
             const d = el.dataset;
@@ -31,7 +31,9 @@
                 cover: d.eventCover || '',
                 reserve_url: d.eventReserveUrl || '',
                 login_url: d.eventLoginUrl || '',
-                admin_url: d.eventAdminUrl || ''
+                admin_url: d.eventAdminUrl || '',
+                sales_paused: (d.eventSalesPaused || el.getAttribute('data-event-sales-paused') || '') === '1',
+                contact_message: d.eventContactMessage || el.getAttribute('data-event-contact-message') || 'Favor comunicarse al 64066996 para más información'
             };
             if (typeof window.novaTrack === 'function' && this.selected.id) {
                 window.novaTrack('view_event', { event_id: this.selected.id });
@@ -46,7 +48,12 @@
     }">
     <div class="grid gap-8 md:grid-cols-2 xl:grid-cols-3">
         @foreach($events as $event)
-            @php($isSoldOut = ! $event->is_active)
+            @php
+                $isSoldOut = ! $event->is_active;
+                $isSalesPaused = $event->sales_paused && $event->is_active;
+                $canReserve = $event->acceptsReservations();
+                $contactMessage = 'Favor comunicarse al '.\App\Models\Event::SALES_CONTACT_PHONE.' para más información';
+            @endphp
             <article class="group relative overflow-hidden rounded-2xl border border-red-900/50 hover:border-[#e50914]/50 transition-all duration-300 hover:-translate-y-1 min-h-[320px] flex flex-col cursor-pointer"
                      data-event-name="{{ e($event->name) }}"
                      data-event-id="{{ $event->id }}"
@@ -55,8 +62,10 @@
                      data-event-venue="{{ e($event->venue ?? '') }}"
                      data-event-cover="{{ $event->cover_image_path ? asset('storage/'.$event->cover_image_path) : '' }}"
                      data-event-sold-out="{{ $isSoldOut ? '1' : '0' }}"
-                     data-event-reserve-url="{{ auth()->check() && !auth()->user()->isAdmin() && !$isSoldOut ? route('reservations.create', $event) : '' }}"
-                     data-event-login-url="{{ !auth()->check() ? route('login') : '' }}"
+                     data-event-sales-paused="{{ $isSalesPaused ? '1' : '0' }}"
+                     data-event-contact-message="{{ e($contactMessage) }}"
+                     data-event-reserve-url="{{ auth()->check() && !auth()->user()->isAdmin() && $canReserve ? route('reservations.create', $event) : '' }}"
+                     data-event-login-url="{{ !auth()->check() && $canReserve ? route('login') : '' }}"
                      data-event-admin-url="{{ auth()->check() && auth()->user()->isAdmin() ? route('admin.dashboard') : '' }}"
                      @click="open($event.currentTarget)">
                 <div class="absolute inset-0 bg-cover bg-center bg-no-repeat transition-transform duration-500 group-hover:scale-105
@@ -70,6 +79,8 @@
                         <h2 class="text-2xl font-bold text-white drop-shadow-lg">{{ $event->name }}</h2>
                         @if($isSoldOut)
                             <span class="inline-flex rounded-full bg-red-600/90 text-white px-2.5 py-1 text-xs font-bold tracking-wide">SOLD OUT</span>
+                        @elseif($isSalesPaused)
+                            <span class="inline-flex rounded-full bg-amber-600/90 text-white px-2.5 py-1 text-xs font-bold tracking-wide">VENTAS PAUSADAS</span>
                         @endif
                     </div>
                     <p class="text-white/90 text-sm mb-1 flex items-center gap-1">
@@ -86,7 +97,7 @@
                                 Panel de administración
                             </a>
                         @else
-                            @if($event->venue_id && !$isSoldOut)
+                            @if($event->venue_id && $canReserve)
                                 <p class="text-white/60 text-xs mb-2">
                                     @if($event->hasSections())
                                         Ver secciones y butacas en el checkout.
@@ -99,6 +110,10 @@
                                 <span class="inline-flex items-center justify-center rounded-xl bg-white/10 text-white/70 font-semibold px-5 py-3 border border-white/20 w-fit mt-1 cursor-not-allowed">
                                     SOLD OUT
                                 </span>
+                            @elseif($isSalesPaused)
+                                <span @click.stop="open($event.currentTarget.closest('article'))" class="inline-flex items-center justify-center rounded-xl bg-amber-600/80 text-white font-semibold px-5 py-3 border border-amber-500/50 w-fit mt-1 cursor-pointer hover:bg-amber-600 transition">
+                                    Más info
+                                </span>
                             @else
                                 <a href="{{ route('reservations.create', $event) }}" @click.stop class="inline-flex items-center justify-center rounded-xl bg-[#e50914] text-white font-semibold px-5 py-3 hover:bg-red-600 transition w-fit mt-1">
                                     Reservar tickets
@@ -109,6 +124,10 @@
                         @if($isSoldOut)
                             <span class="inline-flex items-center justify-center rounded-xl bg-white/10 text-white/70 font-semibold px-5 py-3 border border-white/20 w-fit mt-2 cursor-not-allowed">
                                 SOLD OUT
+                            </span>
+                        @elseif($isSalesPaused)
+                            <span @click.stop="open($event.currentTarget.closest('article'))" class="inline-flex items-center justify-center rounded-xl bg-amber-600/80 text-white font-semibold px-5 py-3 border border-amber-500/50 w-fit mt-2 cursor-pointer hover:bg-amber-600 transition">
+                                Más info
                             </span>
                         @else
                             <a href="{{ route('login') }}" @click.stop class="inline-flex items-center justify-center rounded-xl bg-white/10 text-white font-medium px-5 py-3 border border-white/30 hover:bg-white/20 transition w-fit backdrop-blur mt-2">
@@ -165,7 +184,12 @@
                     <div class="prose prose-invert prose-sm max-w-none mb-6" x-show="selected.description">
                         <p class="text-white/80 whitespace-pre-wrap" x-text="selected.description"></p>
                     </div>
-                    <div class="mt-auto pt-4 flex flex-wrap gap-3">
+                    <div class="mt-auto pt-4 flex flex-col gap-3">
+                        <div x-show="selected.sales_paused" x-cloak class="rounded-xl border border-amber-500/40 bg-amber-950/40 p-4 flex flex-col gap-2">
+                            <p class="text-amber-300 font-semibold tracking-wide">VENTAS PAUSADAS</p>
+                            <p class="text-white/90 text-sm">Favor comunicarse al {{ \App\Models\Event::SALES_CONTACT_PHONE }} para más información</p>
+                        </div>
+                        <div class="flex flex-wrap gap-3" x-show="!selected.sales_paused">
                         <template x-if="selected.reserve_url">
                             <a :href="selected.reserve_url" class="inline-flex items-center justify-center rounded-xl bg-[#e50914] text-white font-semibold px-6 py-3 hover:bg-red-600 transition">
                                 Reservar tickets

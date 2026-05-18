@@ -131,7 +131,28 @@
     <div class="rounded-3xl border-2 border-violet-200/60 dark:border-violet-700/50 bg-white dark:bg-slate-800/80 p-6 shadow-xl">
         <h2 class="text-lg font-semibold text-slate-800 dark:text-white mb-2">Estado de venta</h2>
         <p class="text-sm text-slate-600 dark:text-slate-400 mb-4">Gestiona el estado de ventas de este evento desde aquí.</p>
+        @if($event->sales_paused && $event->is_active)
+            <p class="text-sm font-medium text-amber-700 dark:text-amber-300 mb-4">Ventas pausadas: el evento sigue visible para clientes pero no pueden reservar.</p>
+        @endif
+        <div class="flex flex-wrap gap-3">
         @if($event->is_active)
+            @if($event->sales_paused)
+                <form method="POST" action="{{ route('admin.events.resume-sales', $event) }}" onsubmit="return confirm('¿Reanudar ventas para este evento?');">
+                    @csrf
+                    @method('PATCH')
+                    <button type="submit" class="rounded-lg px-4 py-2 text-sm font-semibold text-emerald-700 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-900/30 hover:bg-emerald-200 dark:hover:bg-emerald-900/50 transition">
+                        Reanudar venta
+                    </button>
+                </form>
+            @else
+                <form method="POST" action="{{ route('admin.events.pause-sales', $event) }}" onsubmit="return confirm('¿Pausar ventas? El evento seguirá visible pero no se podrán reservar entradas.');">
+                    @csrf
+                    @method('PATCH')
+                    <button type="submit" class="rounded-lg px-4 py-2 text-sm font-semibold text-amber-800 dark:text-amber-200 bg-amber-100 dark:bg-amber-900/30 hover:bg-amber-200 dark:hover:bg-amber-900/50 transition">
+                        PAUSAR VENTA
+                    </button>
+                </form>
+            @endif
             <form method="POST" action="{{ route('admin.events.sold-out', $event) }}" onsubmit="return confirm('¿Marcar este evento como SOLD OUT? Se bloquearán nuevas reservas.');">
                 @csrf
                 @method('PATCH')
@@ -148,6 +169,7 @@
                 </button>
             </form>
         @endif
+        </div>
     </div>
 </div>
 @endsection

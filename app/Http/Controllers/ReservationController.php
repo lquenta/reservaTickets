@@ -27,8 +27,12 @@ class ReservationController extends Controller
 
     public function create(Event $event): View|RedirectResponse
     {
-        if (! $event->is_active || $event->starts_at->isPast()) {
-            return redirect()->route('events.index')->with('message', 'Este evento no está disponible.');
+        if (! $event->acceptsReservations()) {
+            $message = $event->sales_paused && $event->is_active
+                ? 'Las ventas de este evento están pausadas. Favor comunicarse al '.Event::SALES_CONTACT_PHONE.' para más información.'
+                : 'Este evento no está disponible.';
+
+            return redirect()->route('events.index')->with('message', $message);
         }
 
         $event->load('sections.seats', 'venue.seats', 'venue.layoutElements.seat');
@@ -178,8 +182,12 @@ class ReservationController extends Controller
     public function store(StoreReservationRequest $request, ReservationService $service): RedirectResponse
     {
         $event = Event::findOrFail($request->validated('event_id'));
-        if (! $event->is_active || $event->starts_at->isPast()) {
-            return redirect()->route('events.index')->with('message', 'Este evento no está disponible.');
+        if (! $event->acceptsReservations()) {
+            $message = $event->sales_paused && $event->is_active
+                ? 'Las ventas de este evento están pausadas. Favor comunicarse al '.Event::SALES_CONTACT_PHONE.' para más información.'
+                : 'Este evento no está disponible.';
+
+            return redirect()->route('events.index')->with('message', $message);
         }
 
         $singleName = $request->boolean('single_name');

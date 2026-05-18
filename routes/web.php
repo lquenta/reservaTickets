@@ -69,6 +69,8 @@ Route::prefix('admin')->middleware(['auth', 'admin'])->name('admin.')->group(fun
     Route::post('events/{event}/seats/{seat}/block', [\App\Http\Controllers\Admin\EventController::class, 'blockSeat'])->name('events.seats.block');
     Route::delete('events/{event}/seats/{seat}/block', [\App\Http\Controllers\Admin\EventController::class, 'unblockSeat'])->name('events.seats.unblock');
     Route::patch('events/{event}/sold-out', [\App\Http\Controllers\Admin\EventController::class, 'markSoldOut'])->name('events.sold-out');
+    Route::patch('events/{event}/pause-sales', [\App\Http\Controllers\Admin\EventController::class, 'pauseSales'])->name('events.pause-sales');
+    Route::patch('events/{event}/resume-sales', [\App\Http\Controllers\Admin\EventController::class, 'resumePausedSales'])->name('events.resume-sales');
     Route::patch('events/{event}/reopen-sales', [\App\Http\Controllers\Admin\EventController::class, 'reopenSales'])->name('events.reopen-sales');
     Route::resource('events', \App\Http\Controllers\Admin\EventController::class)->except(['show']);
     Route::get('reservations', [\App\Http\Controllers\Admin\ReservationController::class, 'index'])->name('reservations.index');
