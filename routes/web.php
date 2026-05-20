@@ -92,7 +92,11 @@ Route::prefix('admin')->middleware(['auth', 'admin'])->name('admin.')->group(fun
     Route::patch('events/{event}/pause-sales', [\App\Http\Controllers\Admin\EventController::class, 'pauseSales'])->name('events.pause-sales');
     Route::patch('events/{event}/resume-sales', [\App\Http\Controllers\Admin\EventController::class, 'resumePausedSales'])->name('events.resume-sales');
     Route::patch('events/{event}/reopen-sales', [\App\Http\Controllers\Admin\EventController::class, 'reopenSales'])->name('events.reopen-sales');
-    Route::resource('events', \App\Http\Controllers\Admin\EventController::class)->except(['show']);
+    Route::get('events/{event}/reschedule', [\App\Http\Controllers\Admin\EventRescheduleController::class, 'create'])->name('events.reschedule.create');
+    Route::post('events/{event}/reschedule', [\App\Http\Controllers\Admin\EventRescheduleController::class, 'store'])->name('events.reschedule.store');
+    Route::get('refunds', [\App\Http\Controllers\Admin\RefundController::class, 'index'])->name('refunds.index');
+    Route::post('refunds/{reservation}/refund', [\App\Http\Controllers\Admin\RefundController::class, 'refund'])->name('refunds.refund');
+    Route::resource('events', \App\Http\Controllers\Admin\EventController::class);
     Route::get('events/{event}/surrogate-sale', [\App\Http\Controllers\Admin\SurrogateSaleController::class, 'create'])->name('events.surrogate-sale.create');
     Route::post('events/{event}/surrogate-sale/lookup', [\App\Http\Controllers\Admin\SurrogateSaleController::class, 'lookup'])->name('events.surrogate-sale.lookup');
     Route::post('events/{event}/surrogate-sale/start', [\App\Http\Controllers\Admin\SurrogateSaleController::class, 'start'])->name('events.surrogate-sale.start');
@@ -126,6 +130,7 @@ Route::prefix('admin')->middleware(['auth', 'admin'])->name('admin.')->group(fun
     Route::get('reports/pdf/audit', [\App\Http\Controllers\Admin\ReportController::class, 'downloadAuditPdf'])->name('reports.pdf.audit');
     Route::get('reports/metrics', [\App\Http\Controllers\Admin\ReportController::class, 'metrics'])->name('reports.metrics');
     Route::get('reports/pdf/metrics', [\App\Http\Controllers\Admin\ReportController::class, 'downloadMetricsPdf'])->name('reports.pdf.metrics');
+    Route::get('reports/pdf/reembolsos', [\App\Http\Controllers\Admin\ReportController::class, 'downloadRefundsPdf'])->name('reports.pdf.reembolsos');
     Route::get('mail-settings', [\App\Http\Controllers\Admin\MailSettingsController::class, 'index'])->name('mail-settings.index');
     Route::put('mail-settings', [\App\Http\Controllers\Admin\MailSettingsController::class, 'update'])->name('mail-settings.update');
     Route::post('mail-settings/test', [\App\Http\Controllers\Admin\MailSettingsController::class, 'sendTest'])->name('mail-settings.send-test');

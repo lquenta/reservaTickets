@@ -9,6 +9,13 @@
 </div>
 
 <form method="GET" class="flex flex-wrap items-center gap-3 mb-6 p-4 rounded-2xl border-2 border-violet-200/60 dark:border-violet-700/50 bg-white dark:bg-slate-800/80">
+    <label for="event_id" class="text-sm font-medium text-slate-700 dark:text-slate-300">Evento</label>
+    <select id="event_id" name="event_id" class="rounded-xl border-2 border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 px-4 py-2.5 text-slate-900 dark:text-white focus:ring-2 focus:ring-violet-500 min-w-[200px]">
+        <option value="">Todos</option>
+        @foreach($events as $ev)
+            <option value="{{ $ev->id }}" {{ (int) request('event_id') === $ev->id ? 'selected' : '' }}>{{ $ev->name }}</option>
+        @endforeach
+    </select>
     <label for="status" class="text-sm font-medium text-slate-700 dark:text-slate-300">Estado</label>
     <select id="status" name="status" class="rounded-xl border-2 border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 px-4 py-2.5 text-slate-900 dark:text-white focus:ring-2 focus:ring-violet-500">
         <option value="">Todos los estados</option>
@@ -16,6 +23,7 @@
         <option value="PENDIENTE_PAGO" {{ request('status') === 'PENDIENTE_PAGO' ? 'selected' : '' }}>Pendiente de pago</option>
         <option value="CONFIRMADO" {{ request('status') === 'CONFIRMADO' ? 'selected' : '' }}>Confirmado</option>
         <option value="CANCELADO" {{ request('status') === 'CANCELADO' ? 'selected' : '' }}>Cancelado</option>
+        <option value="REEMBOLSADO" {{ request('status') === 'REEMBOLSADO' ? 'selected' : '' }}>Reembolsado</option>
     </select>
     <label for="sale_type" class="text-sm font-medium text-slate-700 dark:text-slate-300">Tipo venta</label>
     <select id="sale_type" name="sale_type" class="rounded-xl border-2 border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 px-4 py-2.5 text-slate-900 dark:text-white focus:ring-2 focus:ring-violet-500">
@@ -70,6 +78,8 @@
                                 <span class="inline-flex rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-200 px-3 py-1 text-sm font-medium">Pendiente de pago</span>
                             @elseif($r->status === 'CONFIRMADO')
                                 <span class="inline-flex rounded-full bg-emerald-100 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-200 px-3 py-1 text-sm font-medium">Confirmado</span>
+                            @elseif($r->status === 'REEMBOLSADO')
+                                <span class="inline-flex rounded-full bg-orange-100 dark:bg-orange-900/40 text-orange-800 dark:text-orange-200 px-3 py-1 text-sm font-medium">Reembolsado</span>
                             @else
                                 <span class="inline-flex rounded-full bg-slate-200 dark:bg-slate-600 text-slate-600 dark:text-slate-400 px-3 py-1 text-sm font-medium">Cancelado</span>
                             @endif
@@ -125,6 +135,15 @@
                                         @csrf
                                         <button type="submit" class="rounded-xl bg-slate-600 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-700 transition">Reenviar tickets</button>
                                     </form>
+                                    @if($r->hasValidatedTickets())
+                                        <span class="rounded-xl bg-slate-200 dark:bg-slate-600 text-slate-600 dark:text-slate-400 px-4 py-2 text-sm font-medium" title="Al menos una entrada ya fue validada en puerta">No reembolsable</span>
+                                    @else
+                                        <form method="POST" action="{{ route('admin.refunds.refund', $r) }}" class="inline" onsubmit="return confirm('¿Reembolsar esta reserva completa?');">
+                                            @csrf
+                                            <input type="hidden" name="redirect" value="{{ request()->fullUrl() }}">
+                                            <button type="submit" class="rounded-xl bg-orange-600 px-4 py-2 text-sm font-semibold text-white hover:bg-orange-700 transition">Reembolsar</button>
+                                        </form>
+                                    @endif
                                 </div>
                             @else
                                 <span class="text-slate-400 dark:text-slate-500 text-sm">—</span>

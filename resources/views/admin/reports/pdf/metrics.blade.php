@@ -23,7 +23,9 @@
                 <th>Visitas</th>
                 <th>Conversiones</th>
                 <th>Tasa conversion</th>
-                <th>Ventas</th>
+                <th>Ventas brutas</th>
+                <th>Reembolsos</th>
+                <th>Ventas netas</th>
                 <th>Publico confirmado</th>
                 <th>Reservado / pendiente</th>
                 <th>Asistencia confirmada</th>
@@ -35,6 +37,8 @@
                 <td class="text-right">{{ number_format($metrics['kpis']['conversions']) }}</td>
                 <td class="text-right">{{ number_format($metrics['kpis']['conversion_rate'], 2) }}%</td>
                 <td class="text-right">{{ number_format($metrics['kpis']['sales_total'], 2) }}</td>
+                <td class="text-right">{{ number_format($metrics['kpis']['refunds_total'], 2) }}</td>
+                <td class="text-right">{{ number_format($metrics['kpis']['net_sales'], 2) }}</td>
                 <td class="text-right">{{ number_format($metrics['kpis']['confirmed_audience']) }}</td>
                 <td class="text-right">{{ number_format($metrics['kpis']['reserved_pending']) }}</td>
                 <td class="text-right">{{ number_format($metrics['kpis']['attendance_confirmed']) }}</td>

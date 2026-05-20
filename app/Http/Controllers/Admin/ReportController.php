@@ -146,6 +146,67 @@ class ReportController extends Controller
         );
     }
 
+    private function getRefundsReportData(Request $request): array
+    {
+        $eventsForRefunds = Event::query()->orderByDesc('starts_at')->get(['id', 'name', 'starts_at']);
+        $selectedEventId = (int) ($request->integer('refund_event_id') ?: 0);
+        $dateFrom = $request->filled('refund_date_from') ? $request->date('refund_date_from')->startOfDay() : null;
+        $dateTo = $request->filled('refund_date_to') ? $request->date('refund_date_to')->endOfDay() : null;
+
+        $query = Reservation::query()
+            ->where('status', Reservation::STATUS_REEMBOLSADO)
+            ->with(['user', 'refundedBy', 'event', 'reservationTickets.seat'])
+            ->orderByDesc('refunded_at');
+
+        if ($selectedEventId > 0) {
+            $query->where('event_id', $selectedEventId);
+        }
+        if ($dateFrom) {
+            $query->where('refunded_at', '>=', $dateFrom);
+        }
+        if ($dateTo) {
+            $query->where('refunded_at', '<=', $dateTo);
+        }
+
+        $refundedReservations = $query->get();
+        $refundsTotal = (float) $refundedReservations->sum('refund_amount');
+        $refundsCount = $refundedReservations->count();
+
+        $refundsByEvent = $refundedReservations
+            ->groupBy('event_id')
+            ->map(function ($group) {
+                $event = $group->first()->event;
+
+                return (object) [
+                    'event_id' => $group->first()->event_id,
+                    'event_name' => $event?->name ?? 'Evento',
+                    'count' => $group->count(),
+                    'total' => (float) $group->sum('refund_amount'),
+                ];
+            })
+            ->values();
+
+        return compact(
+            'eventsForRefunds',
+            'selectedEventId',
+            'refundedReservations',
+            'refundsTotal',
+            'refundsCount',
+            'refundsByEvent',
+            'dateFrom',
+            'dateTo'
+        );
+    }
+
+    public function downloadRefundsPdf(Request $request): Response
+    {
+        $data = $this->getRefundsReportData($request);
+        $pdf = Pdf::loadView('admin.reports.pdf.reembolsos', $data);
+        $pdf->setPaper('a4', 'portrait');
+
+        return $pdf->download('reporte-reembolsos-'.now()->format('Y-m-d').'.pdf');
+    }
+
     public function index(Request $request): View
     {
         $data = $this->getReportData();
@@ -168,7 +229,9 @@ class ReportController extends Controller
                 ->get();
         }
 
-        return view('admin.reports.index', $data + $metricsData + compact(
+        $refundsData = $this->getRefundsReportData($request);
+
+        return view('admin.reports.index', $data + $metricsData + $refundsData + compact(
             'eventsForNamesReport',
             'selectedEventId',
             'selectedEvent',
@@ -287,6 +350,8 @@ class ReportController extends Controller
             ReservationAuditLog::ACTION_SURROGATE_CHECKOUT_CONFIRMED => 'Checkout surrogada',
             ReservationAuditLog::ACTION_SURROGATE_DELIVERY_RESPONSIBILITY_ACCEPTED => 'Responsabilidad entrega (surrogada)',
             ReservationAuditLog::ACTION_HONORED_GUEST_CREATED => 'Invitado de honor',
+            ReservationAuditLog::ACTION_REFUNDED => 'Reembolsada',
+            ReservationAuditLog::ACTION_EVENT_RESCHEDULED => 'Evento reprogramado',
         ];
 
         return view('admin.reports.audit', compact('logs', 'events', 'usersWithLogs', 'adminsWithLogs', 'actionLabels'));
@@ -333,6 +398,8 @@ class ReportController extends Controller
             ReservationAuditLog::ACTION_SURROGATE_CHECKOUT_CONFIRMED => 'Checkout surrogada',
             ReservationAuditLog::ACTION_SURROGATE_DELIVERY_RESPONSIBILITY_ACCEPTED => 'Responsabilidad entrega (surrogada)',
             ReservationAuditLog::ACTION_HONORED_GUEST_CREATED => 'Invitado de honor',
+            ReservationAuditLog::ACTION_REFUNDED => 'Reembolsada',
+            ReservationAuditLog::ACTION_EVENT_RESCHEDULED => 'Evento reprogramado',
         ];
 
         $pdf = Pdf::loadView('admin.reports.pdf.audit', compact('logs', 'actionLabels'));

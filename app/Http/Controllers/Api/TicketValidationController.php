@@ -58,6 +58,13 @@ class TicketValidationController extends Controller
             ], 404);
         }
 
+        if ($reservation->status === Reservation::STATUS_REEMBOLSADO) {
+            return response()->json([
+                'valid' => false,
+                'message' => 'Entrada reembolsada',
+            ], 403);
+        }
+
         if ($reservation->status !== Reservation::STATUS_CONFIRMADO) {
             return response()->json([
                 'valid' => false,

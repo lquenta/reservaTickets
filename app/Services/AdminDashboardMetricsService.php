@@ -85,6 +85,13 @@ class AdminDashboardMetricsService
         $salesByEvent = $this->salesByEvent($filters, $eventIds);
         $salesTotal = (float) $salesByEvent->sum('total');
 
+        $refundsQuery = Reservation::query()
+            ->where('status', Reservation::STATUS_REEMBOLSADO)
+            ->whereBetween('refunded_at', [$filters['date_from'], $filters['date_to']])
+            ->when(! empty($eventIds), fn ($q) => $q->whereIn('event_id', $eventIds));
+
+        $refundsTotal = (float) (clone $refundsQuery)->sum('refund_amount');
+
         return [
             'filters' => $filters,
             'kpis' => [
@@ -92,6 +99,8 @@ class AdminDashboardMetricsService
                 'conversions' => $conversions,
                 'conversion_rate' => $visits > 0 ? ($conversions / $visits) * 100 : 0.0,
                 'sales_total' => $salesTotal,
+                'refunds_total' => $refundsTotal,
+                'net_sales' => $salesTotal - $refundsTotal,
                 'confirmed_audience' => $confirmedAudience,
                 'reserved_pending' => $pendingReservations,
                 'attendance_confirmed' => $attendanceConfirmed,

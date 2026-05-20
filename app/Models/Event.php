@@ -69,6 +69,11 @@ class Event extends Model
         return $this->hasMany(Reservation::class);
     }
 
+    public function reschedules(): HasMany
+    {
+        return $this->hasMany(EventReschedule::class)->latest();
+    }
+
     public function blockedSeats(): BelongsToMany
     {
         return $this->belongsToMany(Seat::class, 'event_seat_blocks')

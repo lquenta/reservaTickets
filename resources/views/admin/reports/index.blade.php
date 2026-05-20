@@ -47,11 +47,107 @@
             📝 Nombres por evento
         </button>
         <button type="button"
+                @click="tab = 'reembolsos'"
+                :class="tab === 'reembolsos' ? 'bg-violet-600 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600'"
+                class="rounded-xl px-4 py-2.5 font-semibold transition">
+            ↩️ Reembolsos
+        </button>
+        <button type="button"
                 @click="tab = 'metricas'"
                 :class="tab === 'metricas' ? 'bg-violet-600 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600'"
                 class="rounded-xl px-4 py-2.5 font-semibold transition">
             📊 Metricas
         </button>
+    </div>
+
+    {{-- Reporte: Reembolsos --}}
+    <div x-show="tab === 'reembolsos'" x-transition class="rounded-2xl border-2 border-violet-200/60 dark:border-violet-700/50 bg-white dark:bg-slate-800/80 overflow-hidden shadow-lg">
+        <div class="p-6 border-b border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 flex flex-wrap items-center justify-between gap-4">
+            <div>
+                <h2 class="text-xl font-bold text-slate-800 dark:text-white">Reembolsos por evento</h2>
+                <p class="text-slate-600 dark:text-slate-400 text-sm mt-1">Reservas en estado REEMBOLSADO (filtro por fecha de reembolso).</p>
+            </div>
+            <a href="{{ route('admin.reports.pdf.reembolsos', request()->only(['refund_event_id', 'refund_date_from', 'refund_date_to'])) }}" target="_blank" class="inline-flex items-center gap-2 rounded-xl bg-red-600 hover:bg-red-700 px-4 py-2.5 text-white font-semibold transition">
+                <span aria-hidden="true">📄</span> Descargar PDF
+            </a>
+        </div>
+        <div class="p-6">
+            <form method="GET" class="grid sm:grid-cols-3 gap-4 mb-6">
+                <input type="hidden" name="tab" value="reembolsos">
+                <div>
+                    <label class="block text-sm font-medium mb-1">Evento</label>
+                    <select name="refund_event_id" class="w-full rounded-lg border border-slate-300 dark:border-slate-600 dark:bg-slate-700 px-3 py-2">
+                        <option value="">Todos</option>
+                        @foreach($eventsForRefunds as $ev)
+                            <option value="{{ $ev->id }}" @selected($selectedEventId === $ev->id)>{{ $ev->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">Desde</label>
+                    <input type="date" name="refund_date_from" value="{{ request('refund_date_from') }}" class="w-full rounded-lg border border-slate-300 dark:border-slate-600 dark:bg-slate-700 px-3 py-2">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">Hasta</label>
+                    <input type="date" name="refund_date_to" value="{{ request('refund_date_to') }}" class="w-full rounded-lg border border-slate-300 dark:border-slate-600 dark:bg-slate-700 px-3 py-2">
+                </div>
+                <div class="sm:col-span-3">
+                    <button type="submit" class="rounded-xl bg-violet-600 text-white px-4 py-2 font-semibold">Filtrar</button>
+                </div>
+            </form>
+            <div class="flex flex-wrap gap-4 mb-6">
+                <div class="rounded-xl bg-orange-100 dark:bg-orange-900/40 text-orange-800 dark:text-orange-200 p-4">
+                    <p class="text-xs font-semibold uppercase">Total reembolsos</p>
+                    <p class="text-2xl font-bold">{{ $refundsCount }}</p>
+                </div>
+                <div class="rounded-xl bg-violet-100 dark:bg-violet-900/40 text-violet-800 dark:text-violet-200 p-4">
+                    <p class="text-xs font-semibold uppercase">Monto reembolsado</p>
+                    <p class="text-2xl font-bold">{{ number_format($refundsTotal, 2) }} Bs</p>
+                </div>
+            </div>
+            @if($refundsByEvent->isNotEmpty())
+                <table class="w-full mb-6">
+                    <thead class="bg-slate-100 dark:bg-slate-700/50"><tr><th class="text-left px-4 py-2">Evento</th><th class="text-right px-4 py-2">Cantidad</th><th class="text-right px-4 py-2">Total</th></tr></thead>
+                    <tbody>
+                        @foreach($refundsByEvent as $row)
+                            <tr class="border-t border-slate-200 dark:border-slate-700">
+                                <td class="px-4 py-2">{{ $row->event_name }}</td>
+                                <td class="px-4 py-2 text-right">{{ $row->count }}</td>
+                                <td class="px-4 py-2 text-right">{{ number_format($row->total, 2) }} Bs</td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            @endif
+            @if($refundedReservations->isNotEmpty())
+                <div class="overflow-x-auto">
+                    <table class="w-full min-w-[640px] text-sm">
+                        <thead class="bg-slate-100 dark:bg-slate-700/50">
+                            <tr>
+                                <th class="text-left px-3 py-2">Fecha reembolso</th>
+                                <th class="text-left px-3 py-2">Cliente</th>
+                                <th class="text-left px-3 py-2">Evento</th>
+                                <th class="text-left px-3 py-2">Código</th>
+                                <th class="text-right px-3 py-2">Monto</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($refundedReservations as $r)
+                                <tr class="border-t border-slate-200 dark:border-slate-700">
+                                    <td class="px-3 py-2">{{ $r->refunded_at?->format('d/m/Y H:i') }}</td>
+                                    <td class="px-3 py-2">{{ $r->user?->name }}<br><span class="text-slate-500">{{ $r->user?->email }}</span></td>
+                                    <td class="px-3 py-2">{{ $r->event?->name }}</td>
+                                    <td class="px-3 py-2 font-mono">{{ $r->payment_code }}</td>
+                                    <td class="px-3 py-2 text-right">{{ number_format($r->refund_amount ?? 0, 2) }} Bs</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            @else
+                <p class="text-slate-500">No hay reembolsos con los filtros seleccionados.</p>
+            @endif
+        </div>
     </div>
 
     {{-- Reporte: Entradas vendidas --}}
@@ -346,7 +442,9 @@
             <div class="grid sm:grid-cols-2 xl:grid-cols-3 gap-4">
                 <div class="rounded-xl border border-violet-200/60 dark:border-violet-700/50 p-4"><p class="text-xs uppercase text-slate-500">Visitas</p><p class="text-2xl font-bold">{{ number_format($metrics['kpis']['visits']) }}</p></div>
                 <div class="rounded-xl border border-violet-200/60 dark:border-violet-700/50 p-4"><p class="text-xs uppercase text-slate-500">Conversiones</p><p class="text-2xl font-bold">{{ number_format($metrics['kpis']['conversions']) }}</p><p class="text-sm text-emerald-600">{{ number_format($metrics['kpis']['conversion_rate'], 2) }}%</p></div>
-                <div class="rounded-xl border border-violet-200/60 dark:border-violet-700/50 p-4"><p class="text-xs uppercase text-slate-500">Ventas</p><p class="text-2xl font-bold">{{ number_format($metrics['kpis']['sales_total'], 2) }}</p></div>
+                <div class="rounded-xl border border-violet-200/60 dark:border-violet-700/50 p-4"><p class="text-xs uppercase text-slate-500">Ventas brutas</p><p class="text-2xl font-bold">{{ number_format($metrics['kpis']['sales_total'], 2) }}</p></div>
+                <div class="rounded-xl border border-orange-200/60 dark:border-orange-700/50 p-4"><p class="text-xs uppercase text-slate-500">Reembolsos</p><p class="text-2xl font-bold">{{ number_format($metrics['kpis']['refunds_total'], 2) }}</p></div>
+                <div class="rounded-xl border border-emerald-200/60 dark:border-emerald-700/50 p-4"><p class="text-xs uppercase text-slate-500">Ventas netas</p><p class="text-2xl font-bold">{{ number_format($metrics['kpis']['net_sales'], 2) }}</p><p class="text-xs text-slate-500 mt-1">Ventas − reembolsos (por fecha de reembolso)</p></div>
                 <div class="rounded-xl border border-violet-200/60 dark:border-violet-700/50 p-4"><p class="text-xs uppercase text-slate-500">Publico confirmado</p><p class="text-2xl font-bold">{{ number_format($metrics['kpis']['confirmed_audience']) }}</p></div>
                 <div class="rounded-xl border border-violet-200/60 dark:border-violet-700/50 p-4"><p class="text-xs uppercase text-slate-500">Reservado / pendiente</p><p class="text-2xl font-bold">{{ number_format($metrics['kpis']['reserved_pending']) }}</p></div>
                 <div class="rounded-xl border border-violet-200/60 dark:border-violet-700/50 p-4"><p class="text-xs uppercase text-slate-500">Asistencia confirmada</p><p class="text-2xl font-bold">{{ number_format($metrics['kpis']['attendance_confirmed']) }}</p></div>

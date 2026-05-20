@@ -5,9 +5,11 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Jobs\SendReservationTicketsJob;
 use App\Models\AnalyticsEvent;
+use App\Models\Event;
 use App\Models\Reservation;
 use App\Models\ReservationAuditLog;
 use App\Services\ReservationAuditService;
+use App\Services\ReservationPricingService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -21,7 +23,7 @@ class ReservationController extends Controller
         $query = Reservation::with(['user', 'soldBy', 'sellerDeliveryAcknowledgedBy', 'event', 'reservationTickets.seat'])->latest();
 
         if ($request->filled('event_id')) {
-            $query->where('event_id', $request->event_id);
+            $query->where('event_id', (int) $request->event_id);
         }
         if ($request->filled('status')) {
             $query->where('status', $request->status);
@@ -31,7 +33,9 @@ class ReservationController extends Controller
         }
 
         $reservations = $query->paginate(15);
-        return view('admin.reservations.index', compact('reservations'));
+        $events = Event::orderByDesc('starts_at')->get(['id', 'name', 'starts_at']);
+
+        return view('admin.reservations.index', compact('reservations', 'events'));
     }
 
     public function authorizeReservation(Reservation $reservation): RedirectResponse
@@ -41,6 +45,8 @@ class ReservationController extends Controller
         }
 
         $reservation->update(['status' => Reservation::STATUS_CONFIRMADO]);
+        $reservation->refresh();
+        app(ReservationPricingService::class)->snapshotSaleAmount($reservation);
         $reservation->load('event');
         app(ReservationAuditService::class)->log(
             ReservationAuditLog::ACTION_AUTHORIZED,

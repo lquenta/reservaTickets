@@ -43,6 +43,11 @@
                         </a>
                     </li>
                     <li>
+                        <a href="{{ route('admin.refunds.index') }}" @click="adminMenuOpen = false" class="flex items-center gap-2 px-3 py-2 rounded-xl text-white/80 hover:bg-red-900/30 hover:text-[#e50914] font-medium transition {{ request()->routeIs('admin.refunds.*') ? 'bg-red-900/30 text-[#e50914]' : '' }}">
+                            <span aria-hidden="true">↩️</span> Reembolsos
+                        </a>
+                    </li>
+                    <li>
                         <a href="{{ route('admin.users.index') }}" @click="adminMenuOpen = false" class="flex items-center gap-2 px-3 py-2 rounded-xl text-white/80 hover:bg-red-900/30 hover:text-[#e50914] font-medium transition {{ request()->routeIs('admin.users.*') ? 'bg-red-900/30 text-[#e50914]' : '' }}">
                             <span aria-hidden="true">👥</span> Usuarios
                         </a>

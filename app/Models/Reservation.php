@@ -15,6 +15,7 @@ class Reservation extends Model
     public const STATUS_PENDIENTE_PAGO = 'PENDIENTE_PAGO';
     public const STATUS_CONFIRMADO = 'CONFIRMADO';
     public const STATUS_CANCELADO = 'CANCELADO';
+    public const STATUS_REEMBOLSADO = 'REEMBOLSADO';
 
     public const SALE_TYPE_STANDARD = 'standard';
     public const SALE_TYPE_SURROGATE = 'surrogate';
@@ -29,6 +30,11 @@ class Reservation extends Model
         'payment_code',
         'expires_at',
         'confirmed_payment_at',
+        'sale_amount',
+        'refunded_at',
+        'refunded_by_user_id',
+        'refund_reason',
+        'refund_amount',
         'payment_receipt_path',
         'seller_delivery_acknowledged_at',
         'seller_delivery_acknowledged_by_user_id',
@@ -39,6 +45,9 @@ class Reservation extends Model
         return [
             'expires_at' => 'datetime',
             'confirmed_payment_at' => 'datetime',
+            'sale_amount' => 'decimal:2',
+            'refunded_at' => 'datetime',
+            'refund_amount' => 'decimal:2',
             'seller_delivery_acknowledged_at' => 'datetime',
         ];
     }
@@ -61,6 +70,11 @@ class Reservation extends Model
     public function event(): BelongsTo
     {
         return $this->belongsTo(Event::class);
+    }
+
+    public function refundedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'refunded_by_user_id');
     }
 
     public function reservationTickets(): HasMany
@@ -86,5 +100,14 @@ class Reservation extends Model
     public function isAdminSale(): bool
     {
         return $this->isSurrogateSale() || $this->isHonoredGuest();
+    }
+
+    public function hasValidatedTickets(): bool
+    {
+        if ($this->relationLoaded('reservationTickets')) {
+            return $this->reservationTickets->contains(fn ($t) => $t->validated_at !== null);
+        }
+
+        return $this->reservationTickets()->whereNotNull('validated_at')->exists();
     }
 }
