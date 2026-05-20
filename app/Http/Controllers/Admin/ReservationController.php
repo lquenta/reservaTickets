@@ -18,13 +18,16 @@ class ReservationController extends Controller
 {
     public function index(Request $request): View
     {
-        $query = Reservation::with(['user', 'event', 'reservationTickets.seat'])->latest();
+        $query = Reservation::with(['user', 'soldBy', 'sellerDeliveryAcknowledgedBy', 'event', 'reservationTickets.seat'])->latest();
 
         if ($request->filled('event_id')) {
             $query->where('event_id', $request->event_id);
         }
         if ($request->filled('status')) {
             $query->where('status', $request->status);
+        }
+        if ($request->filled('sale_type')) {
+            $query->where('sale_type', $request->sale_type);
         }
 
         $reservations = $query->paginate(15);
@@ -38,6 +41,16 @@ class ReservationController extends Controller
         }
 
         $reservation->update(['status' => Reservation::STATUS_CONFIRMADO]);
+        $reservation->load('event');
+        app(ReservationAuditService::class)->log(
+            ReservationAuditLog::ACTION_AUTHORIZED,
+            ReservationAuditLog::RESULT_SUCCESS,
+            auth()->user(),
+            $reservation->event,
+            $reservation,
+            $reservation->user,
+            'Reserva autorizada por admin.'
+        );
         AnalyticsEvent::create([
             'event_name' => AnalyticsEvent::EVENT_PURCHASE,
             'session_id' => null,
@@ -67,7 +80,9 @@ class ReservationController extends Controller
             ReservationAuditLog::RESULT_SUCCESS,
             auth()->user(),
             $reservation->event,
-            $reservation
+            $reservation,
+            $reservation->user,
+            'Reserva rechazada por admin.'
         );
 
         return redirect()->route('admin.reservations.index')->with('message', 'Reserva rechazada. Las butacas quedan liberadas.');
@@ -87,7 +102,9 @@ class ReservationController extends Controller
             ReservationAuditLog::RESULT_SUCCESS,
             auth()->user(),
             $reservation->event,
-            $reservation
+            $reservation,
+            $reservation->user,
+            'Reserva cancelada por admin.'
         );
 
         return redirect()->route('admin.reservations.index')->with('message', 'Reserva cancelada. Las butacas quedan liberadas.');
@@ -99,7 +116,7 @@ class ReservationController extends Controller
             abort(404, 'Solo se puede ver el PDF de reservas confirmadas.');
         }
 
-        $reservation->load(['event.ticketTemplate', 'reservationTickets.seat']);
+        $reservation->load(['event.ticketTemplate', 'reservationTickets.seat', 'soldBy']);
         $template = $reservation->event->ticketTemplate;
         $design = $template ? $template->design : \App\Models\TicketTemplate::defaultDesign();
         $price = $template ? (float) $template->price : 0;

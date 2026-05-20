@@ -29,9 +29,13 @@
         $rows = [];
         foreach ($reservations as $res) {
             foreach ($res->reservationTickets as $t) {
+                $holderName = $t->holder_name ?: '—';
+                if ($res->sale_type === \App\Models\Reservation::SALE_TYPE_HONORED_GUEST) {
+                    $holderName .= ' (Invitado de Honor)';
+                }
                 $rows[] = (object) [
                     'reservation' => $res->payment_code ?? ('#'.$res->id),
-                    'name' => $t->holder_name ?: '—',
+                    'name' => $holderName,
                     'seat' => $t->seat?->display_label ?? 'Sin butaca',
                 ];
             }

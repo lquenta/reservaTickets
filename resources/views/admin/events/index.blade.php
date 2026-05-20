@@ -51,6 +51,10 @@
                                 @if($event->venue_id)
                                     <a href="{{ route('admin.events.seats', $event) }}" class="rounded-lg px-3 py-1.5 text-sm font-medium text-violet-600 dark:text-violet-400 hover:bg-violet-100 dark:hover:bg-violet-900/40 transition">Ver butacas</a>
                                 @endif
+                                @if($event->is_active && !$event->sales_paused)
+                                    <a href="{{ route('admin.events.surrogate-sale.create', $event) }}" class="rounded-lg px-3 py-1.5 text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition">Venta surrogada</a>
+                                    <a href="{{ route('admin.events.honored-guest.create', $event) }}" class="rounded-lg px-3 py-1.5 text-sm font-medium text-fuchsia-600 dark:text-fuchsia-400 hover:bg-fuchsia-100 dark:hover:bg-fuchsia-900/40 transition">Invitado de honor</a>
+                                @endif
                                 <a href="{{ route('admin.ticket-templates.edit', $event) }}" class="rounded-lg px-3 py-1.5 text-sm font-medium text-violet-600 dark:text-violet-400 hover:bg-violet-100 dark:hover:bg-violet-900/40 transition">Ticket</a>
                                 <a href="{{ route('admin.events.edit', $event) }}" class="rounded-lg px-3 py-1.5 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 transition">Editar</a>
                                 <form method="POST" action="{{ route('admin.events.destroy', $event) }}" class="inline" onsubmit="return confirm('¿Eliminar este evento?');">

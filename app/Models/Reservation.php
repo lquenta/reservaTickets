@@ -16,14 +16,22 @@ class Reservation extends Model
     public const STATUS_CONFIRMADO = 'CONFIRMADO';
     public const STATUS_CANCELADO = 'CANCELADO';
 
+    public const SALE_TYPE_STANDARD = 'standard';
+    public const SALE_TYPE_SURROGATE = 'surrogate';
+    public const SALE_TYPE_HONORED_GUEST = 'honored_guest';
+
     protected $fillable = [
         'user_id',
+        'sold_by_user_id',
+        'sale_type',
         'event_id',
         'status',
         'payment_code',
         'expires_at',
         'confirmed_payment_at',
         'payment_receipt_path',
+        'seller_delivery_acknowledged_at',
+        'seller_delivery_acknowledged_by_user_id',
     ];
 
     protected function casts(): array
@@ -31,12 +39,23 @@ class Reservation extends Model
         return [
             'expires_at' => 'datetime',
             'confirmed_payment_at' => 'datetime',
+            'seller_delivery_acknowledged_at' => 'datetime',
         ];
     }
 
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function soldBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'sold_by_user_id');
+    }
+
+    public function sellerDeliveryAcknowledgedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'seller_delivery_acknowledged_by_user_id');
     }
 
     public function event(): BelongsTo
@@ -52,5 +71,20 @@ class Reservation extends Model
     public function isExpired(): bool
     {
         return $this->expires_at && $this->expires_at->isPast();
+    }
+
+    public function isSurrogateSale(): bool
+    {
+        return $this->sale_type === self::SALE_TYPE_SURROGATE;
+    }
+
+    public function isHonoredGuest(): bool
+    {
+        return $this->sale_type === self::SALE_TYPE_HONORED_GUEST;
+    }
+
+    public function isAdminSale(): bool
+    {
+        return $this->isSurrogateSale() || $this->isHonoredGuest();
     }
 }

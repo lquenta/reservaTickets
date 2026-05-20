@@ -14,6 +14,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'admin' => \App\Http\Middleware\EnsureUserIsAdmin::class,
+            'seller' => \App\Http\Middleware\EnsureUserIsSeller::class,
             'can.reserve' => \App\Http\Middleware\EnsureUserCanReserve::class,
             'ticket.api.key' => \App\Http\Middleware\ValidateTicketApiKey::class,
         ]);

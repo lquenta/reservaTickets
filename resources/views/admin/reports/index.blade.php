@@ -239,7 +239,9 @@
                                 @foreach($res->reservationTickets as $t)
                                     <tr class="border-t border-slate-200 dark:border-slate-700">
                                         <td class="px-4 py-3 text-sm text-slate-700 dark:text-slate-300">{{ $res->payment_code ?? ('#'.$res->id) }}</td>
-                                        <td class="px-4 py-3 font-medium text-slate-800 dark:text-white">{{ $t->holder_name ?: '—' }}</td>
+                                        <td class="px-4 py-3 font-medium text-slate-800 dark:text-white">
+                                            {{ $t->holder_name ?: '—' }}@if($res->sale_type === \App\Models\Reservation::SALE_TYPE_HONORED_GUEST) (Invitado de Honor)@endif
+                                        </td>
                                         <td class="px-4 py-3 text-slate-700 dark:text-slate-300">{{ $t->seat?->display_label ?? 'Sin butaca' }}</td>
                                     </tr>
                                 @endforeach

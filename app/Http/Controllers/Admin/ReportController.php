@@ -54,6 +54,7 @@ class ReportController extends Controller
         $ticketsByEvent = ReservationTicket::query()
             ->join('reservations', 'reservation_tickets.reservation_id', '=', 'reservations.id')
             ->where('reservations.status', Reservation::STATUS_CONFIRMADO)
+            ->where('reservations.sale_type', '!=', Reservation::SALE_TYPE_HONORED_GUEST)
             ->select('reservations.event_id', DB::raw('COUNT(*) as tickets_sold'))
             ->groupBy('reservations.event_id')
             ->get();
@@ -63,8 +64,11 @@ class ReportController extends Controller
 
         // Tickets confirmados con reserva y evento (para eventos con secciones: precio por sección)
         $confirmedTickets = ReservationTicket::query()
-            ->whereHas('reservation', fn ($q) => $q->where('status', Reservation::STATUS_CONFIRMADO)->whereIn('event_id', $eventIds))
-            ->with(['seat', 'reservation' => fn ($q) => $q->select('id', 'event_id')->with(['event' => fn ($q) => $q->with('sections')])])
+            ->whereHas('reservation', fn ($q) => $q
+                ->where('status', Reservation::STATUS_CONFIRMADO)
+                ->where('sale_type', '!=', Reservation::SALE_TYPE_HONORED_GUEST)
+                ->whereIn('event_id', $eventIds))
+            ->with(['seat', 'reservation' => fn ($q) => $q->select('id', 'event_id', 'sale_type')->with(['event' => fn ($q) => $q->with('sections')])])
             ->get();
 
         $salesByEvent = $ticketsByEvent->map(function ($row) use ($eventsWithPrice, $confirmedTickets) {
@@ -74,7 +78,9 @@ class ReportController extends Controller
             $unitPrice = 0.0;
 
             if ($event && $event->hasSections()) {
-                $eventTickets = $confirmedTickets->filter(fn ($t) => $t->reservation && (int) $t->reservation->event_id === (int) $row->event_id);
+                $eventTickets = $confirmedTickets->filter(fn ($t) => $t->reservation
+                    && (int) $t->reservation->event_id === (int) $row->event_id
+                    && $t->reservation->sale_type !== Reservation::SALE_TYPE_HONORED_GUEST);
                 foreach ($eventTickets as $ticket) {
                     $eventSection = null;
                     if ($ticket->seat) {
@@ -157,6 +163,7 @@ class ReportController extends Controller
                 ->with([
                     'reservationTickets' => fn ($q) => $q->with('seat')->orderBy('position'),
                 ])
+                ->select(['id', 'event_id', 'status', 'payment_code', 'sale_type', 'created_at'])
                 ->orderBy('created_at', 'desc')
                 ->get();
         }
@@ -218,6 +225,7 @@ class ReportController extends Controller
             ->with([
                 'reservationTickets' => fn ($q) => $q->with('seat')->orderBy('position'),
             ])
+            ->select(['id', 'event_id', 'status', 'payment_code', 'sale_type', 'created_at'])
             ->orderBy('created_at', 'desc')
             ->get();
 
@@ -237,7 +245,7 @@ class ReportController extends Controller
 
     public function audit(Request $request): View
     {
-        $query = ReservationAuditLog::with(['user', 'event', 'reservation'])
+        $query = ReservationAuditLog::with(['user', 'performedBy', 'event', 'reservation'])
             ->latest();
 
         if ($request->filled('action')) {
@@ -245,6 +253,9 @@ class ReportController extends Controller
         }
         if ($request->filled('result')) {
             $query->where('result', $request->result);
+        }
+        if ($request->filled('performed_by_user_id')) {
+            $query->where('performed_by_user_id', $request->performed_by_user_id);
         }
         if ($request->filled('user_id')) {
             $query->where('user_id', $request->user_id);
@@ -262,6 +273,7 @@ class ReportController extends Controller
         $logs = $query->paginate(25)->withQueryString();
         $events = Event::orderBy('name')->get(['id', 'name']);
         $usersWithLogs = User::whereHas('reservationAuditLogs')->orderBy('name')->get(['id', 'name', 'email']);
+        $adminsWithLogs = User::where('role', 'admin')->orderBy('name')->get(['id', 'name']);
 
         $actionLabels = [
             ReservationAuditLog::ACTION_RESERVATION_ATTEMPT => 'Intento de reserva',
@@ -269,14 +281,20 @@ class ReportController extends Controller
             ReservationAuditLog::ACTION_CHECKOUT_CONFIRMED => 'Checkout confirmado',
             ReservationAuditLog::ACTION_AUTHORIZED => 'Autorizada (admin)',
             ReservationAuditLog::ACTION_REJECTED => 'Rechazada (admin)',
+            ReservationAuditLog::ACTION_USER_PROVISIONED_BY_ADMIN => 'Usuario creado por admin',
+            ReservationAuditLog::ACTION_SURROGATE_SALE_EXISTING_USER => 'Surrogada — cliente existente',
+            ReservationAuditLog::ACTION_SURROGATE_SALE_CREATED => 'Venta surrogada creada',
+            ReservationAuditLog::ACTION_SURROGATE_CHECKOUT_CONFIRMED => 'Checkout surrogada',
+            ReservationAuditLog::ACTION_SURROGATE_DELIVERY_RESPONSIBILITY_ACCEPTED => 'Responsabilidad entrega (surrogada)',
+            ReservationAuditLog::ACTION_HONORED_GUEST_CREATED => 'Invitado de honor',
         ];
 
-        return view('admin.reports.audit', compact('logs', 'events', 'usersWithLogs', 'actionLabels'));
+        return view('admin.reports.audit', compact('logs', 'events', 'usersWithLogs', 'adminsWithLogs', 'actionLabels'));
     }
 
     public function downloadAuditPdf(Request $request): Response
     {
-        $query = ReservationAuditLog::with(['user', 'event', 'reservation'])
+        $query = ReservationAuditLog::with(['user', 'performedBy', 'event', 'reservation'])
             ->latest();
 
         if ($request->filled('action')) {
@@ -284,6 +302,9 @@ class ReportController extends Controller
         }
         if ($request->filled('result')) {
             $query->where('result', $request->result);
+        }
+        if ($request->filled('performed_by_user_id')) {
+            $query->where('performed_by_user_id', $request->performed_by_user_id);
         }
         if ($request->filled('user_id')) {
             $query->where('user_id', $request->user_id);
@@ -306,6 +327,12 @@ class ReportController extends Controller
             ReservationAuditLog::ACTION_CHECKOUT_CONFIRMED => 'Checkout confirmado',
             ReservationAuditLog::ACTION_AUTHORIZED => 'Autorizada (admin)',
             ReservationAuditLog::ACTION_REJECTED => 'Rechazada (admin)',
+            ReservationAuditLog::ACTION_USER_PROVISIONED_BY_ADMIN => 'Usuario creado por admin',
+            ReservationAuditLog::ACTION_SURROGATE_SALE_EXISTING_USER => 'Surrogada — cliente existente',
+            ReservationAuditLog::ACTION_SURROGATE_SALE_CREATED => 'Venta surrogada creada',
+            ReservationAuditLog::ACTION_SURROGATE_CHECKOUT_CONFIRMED => 'Checkout surrogada',
+            ReservationAuditLog::ACTION_SURROGATE_DELIVERY_RESPONSIBILITY_ACCEPTED => 'Responsabilidad entrega (surrogada)',
+            ReservationAuditLog::ACTION_HONORED_GUEST_CREATED => 'Invitado de honor',
         ];
 
         $pdf = Pdf::loadView('admin.reports.pdf.audit', compact('logs', 'actionLabels'));

@@ -13,16 +13,19 @@ class ReservationAuditService
     public function log(
         string $action,
         string $result,
-        ?User $user = null,
+        ?User $performedBy = null,
         ?Event $event = null,
         ?Reservation $reservation = null,
+        ?User $subjectUser = null,
         ?string $message = null
     ): ReservationAuditLog {
         $eventId = $event?->id ?? $reservation?->event_id;
-        $userId = $user?->id ?? $reservation?->user_id;
+        $performedById = $performedBy?->id ?? auth()->id();
+        $subjectUserId = $subjectUser?->id ?? $reservation?->user_id;
 
         return ReservationAuditLog::create([
-            'user_id' => $userId,
+            'user_id' => $subjectUserId,
+            'performed_by_user_id' => $performedById,
             'event_id' => $eventId,
             'reservation_id' => $reservation?->id,
             'action' => $action,

@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\DTOs\AdminSaleContext;
 use App\Models\Event;
 use App\Models\Reservation;
 use App\Models\ReservationAuditLog;
@@ -24,24 +25,18 @@ class ReservationService
      * Reserva por butacas (evento con venue). Valida y crea en transacción.
      * Cuando $seatAssignments está presente (un nombre por ticket), cada posición i usa seatAssignments[i] y names[i].
      */
-    public function createReservation(User $user, Event $event, array $seatIds, bool $singleName, array $names, ?array $seatAssignments = null): Reservation
+    public function createReservation(User $user, Event $event, array $seatIds, bool $singleName, array $names, ?array $seatAssignments = null, ?AdminSaleContext $adminSale = null): Reservation
     {
-        $this->ensureUserCanReserveForEvent($user, $event);
+        $this->ensureUserCanReserveForEvent($user, $event, $adminSale);
         $this->validateSeatsForEvent($event, $seatIds);
 
         $prefix = $event->payment_code_prefix ?? 'EV';
         $code = strtoupper($prefix).'-'.strtoupper(Str::random(6)).'-'.Str::random(4);
 
-        return DB::transaction(function () use ($user, $event, $seatIds, $singleName, $names, $seatAssignments, $code) {
+        return DB::transaction(function () use ($user, $event, $seatIds, $singleName, $names, $seatAssignments, $code, $adminSale) {
             $this->validateSeatsForEvent($event, $seatIds);
 
-            $reservation = Reservation::create([
-                'user_id' => $user->id,
-                'event_id' => $event->id,
-                'status' => Reservation::STATUS_INICIADO,
-                'payment_code' => $code,
-                'expires_at' => now()->addMinutes(10),
-            ]);
+            $reservation = Reservation::create($this->baseReservationAttributes($user, $event, $code, $adminSale));
 
             $holderName = $singleName ? ($names[0] ?? '') : null;
             $order = $seatAssignments !== null ? $seatAssignments : $seatIds;
@@ -61,20 +56,14 @@ class ReservationService
     /**
      * Reserva sin butacas (evento sin venue, legacy).
      */
-    public function createReservationWithoutSeats(User $user, Event $event, int $quantity, bool $singleName, array $names): Reservation
+    public function createReservationWithoutSeats(User $user, Event $event, int $quantity, bool $singleName, array $names, ?AdminSaleContext $adminSale = null): Reservation
     {
-        $this->ensureUserCanReserveForEvent($user, $event);
+        $this->ensureUserCanReserveForEvent($user, $event, $adminSale);
 
         $prefix = $event->payment_code_prefix ?? 'EV';
         $code = strtoupper($prefix).'-'.strtoupper(Str::random(6)).'-'.Str::random(4);
 
-        $reservation = Reservation::create([
-            'user_id' => $user->id,
-            'event_id' => $event->id,
-            'status' => Reservation::STATUS_INICIADO,
-            'payment_code' => $code,
-            'expires_at' => now()->addMinutes(10),
-        ]);
+        $reservation = Reservation::create($this->baseReservationAttributes($user, $event, $code, $adminSale));
 
         $holderName = $singleName ? ($names[0] ?? '') : null;
         for ($i = 0; $i < $quantity; $i++) {
@@ -92,9 +81,9 @@ class ReservationService
      * Reserva con secciones: butacas (opcional) + cantidades por sección sin butacas (opcional).
      * $sectionQuantities = [ section_id => quantity ].
      */
-    public function createReservationWithSections(User $user, Event $event, array $seatIds, array $sectionQuantities, array $requestData, bool $singleName): Reservation
+    public function createReservationWithSections(User $user, Event $event, array $seatIds, array $sectionQuantities, array $requestData, bool $singleName, ?AdminSaleContext $adminSale = null): Reservation
     {
-        $this->ensureUserCanReserveForEvent($user, $event);
+        $this->ensureUserCanReserveForEvent($user, $event, $adminSale);
 
         $sectionQuantities = array_filter(array_map('intval', $sectionQuantities));
         $seatCount = count($seatIds);
@@ -136,14 +125,8 @@ class ReservationService
         $prefix = $event->payment_code_prefix ?? 'EV';
         $code = strtoupper($prefix).'-'.strtoupper(Str::random(6)).'-'.Str::random(4);
 
-        return DB::transaction(function () use ($user, $event, $seatIds, $sectionQuantities, $names, $singleName, $code) {
-            $reservation = Reservation::create([
-                'user_id' => $user->id,
-                'event_id' => $event->id,
-                'status' => Reservation::STATUS_INICIADO,
-                'payment_code' => $code,
-                'expires_at' => now()->addMinutes(10),
-            ]);
+        return DB::transaction(function () use ($user, $event, $seatIds, $sectionQuantities, $names, $singleName, $code, $adminSale) {
+            $reservation = Reservation::create($this->baseReservationAttributes($user, $event, $code, $adminSale));
 
             $holderName = $singleName ? ($names[0] ?? '') : null;
             $position = 1;
@@ -230,8 +213,30 @@ class ReservationService
         }
     }
 
-    private function ensureUserCanReserveForEvent(User $user, Event $event): void
+    private function baseReservationAttributes(User $user, Event $event, string $code, ?AdminSaleContext $adminSale): array
     {
+        $attrs = [
+            'user_id' => $user->id,
+            'event_id' => $event->id,
+            'status' => $adminSale?->initialStatus ?? Reservation::STATUS_INICIADO,
+            'payment_code' => $code,
+            'expires_at' => now()->addMinutes($adminSale?->expiryMinutes ?? 10),
+            'sale_type' => $adminSale?->saleType ?? Reservation::SALE_TYPE_STANDARD,
+        ];
+
+        if ($adminSale) {
+            $attrs['sold_by_user_id'] = $adminSale->soldBy->id;
+        }
+
+        return $attrs;
+    }
+
+    private function ensureUserCanReserveForEvent(User $user, Event $event, ?AdminSaleContext $adminSale = null): void
+    {
+        if ($adminSale?->skipPendingLimit) {
+            return;
+        }
+
         $count = Reservation::where('user_id', $user->id)
             ->where('event_id', $event->id)
             ->whereIn('status', [Reservation::STATUS_INICIADO, Reservation::STATUS_PENDIENTE_PAGO])
@@ -245,6 +250,7 @@ class ReservationService
                 $user,
                 $event,
                 null,
+                $user,
                 $message
             );
             throw ValidationException::withMessages([

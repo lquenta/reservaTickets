@@ -1,7 +1,10 @@
 <?php
 
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\Auth\EmailVerificationNotificationController;
+use App\Http\Controllers\Auth\EmailVerificationPromptController;
 use App\Http\Controllers\Auth\RegisteredUserController;
+use App\Http\Controllers\Auth\VerifyEmailController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\HomeController;
@@ -30,7 +33,24 @@ Route::middleware('guest')->group(function () {
 
 Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout')->middleware('auth');
 
-Route::middleware(['auth', 'can.reserve'])->group(function () {
+Route::middleware('auth')->group(function () {
+    Route::get('email/verify', EmailVerificationPromptController::class)->name('verification.notice');
+    Route::get('email/verify/{id}/{hash}', VerifyEmailController::class)->middleware(['signed', 'throttle:6,1'])->name('verification.verify');
+    Route::post('email/verification-notification', [EmailVerificationNotificationController::class, 'store'])->middleware('throttle:6,1')->name('verification.send');
+});
+
+Route::middleware(['auth', 'verified', 'seller'])->name('seller.')->group(function () {
+    Route::get('seller/events', [\App\Http\Controllers\Seller\EventController::class, 'index'])->name('events.index');
+    Route::get('events/{event}/surrogate-sale', [\App\Http\Controllers\Seller\SurrogateSaleController::class, 'create'])->name('events.surrogate-sale.create');
+    Route::post('events/{event}/surrogate-sale/lookup', [\App\Http\Controllers\Seller\SurrogateSaleController::class, 'lookup'])->name('events.surrogate-sale.lookup');
+    Route::post('events/{event}/surrogate-sale/start', [\App\Http\Controllers\Seller\SurrogateSaleController::class, 'start'])->name('events.surrogate-sale.start');
+    Route::get('events/{event}/surrogate-sale/seats', [\App\Http\Controllers\Seller\SurrogateSaleController::class, 'seats'])->name('events.surrogate-sale.seats');
+    Route::post('events/{event}/surrogate-sale', [\App\Http\Controllers\Seller\SurrogateSaleController::class, 'store'])->name('events.surrogate-sale.store');
+    Route::get('seller/surrogate-sale/checkout/{reservation}', [\App\Http\Controllers\Seller\SurrogateSaleController::class, 'checkout'])->name('surrogate-sale.checkout');
+    Route::post('seller/surrogate-sale/checkout/{reservation}/confirm', [\App\Http\Controllers\Seller\SurrogateSaleController::class, 'confirm'])->name('surrogate-sale.checkout.confirm');
+});
+
+Route::middleware(['auth', 'verified', 'can.reserve'])->group(function () {
     Route::get('reservations', [\App\Http\Controllers\ReservationController::class, 'index'])->name('reservations.index');
     Route::get('events/{event}/reserve', [\App\Http\Controllers\ReservationController::class, 'create'])->name('reservations.create');
     Route::get('events/{event}/seats', [\App\Http\Controllers\ReservationController::class, 'seats'])->name('reservations.seats');
@@ -73,6 +93,18 @@ Route::prefix('admin')->middleware(['auth', 'admin'])->name('admin.')->group(fun
     Route::patch('events/{event}/resume-sales', [\App\Http\Controllers\Admin\EventController::class, 'resumePausedSales'])->name('events.resume-sales');
     Route::patch('events/{event}/reopen-sales', [\App\Http\Controllers\Admin\EventController::class, 'reopenSales'])->name('events.reopen-sales');
     Route::resource('events', \App\Http\Controllers\Admin\EventController::class)->except(['show']);
+    Route::get('events/{event}/surrogate-sale', [\App\Http\Controllers\Admin\SurrogateSaleController::class, 'create'])->name('events.surrogate-sale.create');
+    Route::post('events/{event}/surrogate-sale/lookup', [\App\Http\Controllers\Admin\SurrogateSaleController::class, 'lookup'])->name('events.surrogate-sale.lookup');
+    Route::post('events/{event}/surrogate-sale/start', [\App\Http\Controllers\Admin\SurrogateSaleController::class, 'start'])->name('events.surrogate-sale.start');
+    Route::get('events/{event}/surrogate-sale/seats', [\App\Http\Controllers\Admin\SurrogateSaleController::class, 'seats'])->name('events.surrogate-sale.seats');
+    Route::post('events/{event}/surrogate-sale', [\App\Http\Controllers\Admin\SurrogateSaleController::class, 'store'])->name('events.surrogate-sale.store');
+    Route::get('surrogate-sale/checkout/{reservation}', [\App\Http\Controllers\Admin\SurrogateSaleController::class, 'checkout'])->name('surrogate-sale.checkout');
+    Route::post('surrogate-sale/checkout/{reservation}/confirm', [\App\Http\Controllers\Admin\SurrogateSaleController::class, 'confirm'])->name('surrogate-sale.checkout.confirm');
+    Route::get('events/{event}/honored-guest', [\App\Http\Controllers\Admin\HonoredGuestController::class, 'create'])->name('events.honored-guest.create');
+    Route::post('events/{event}/honored-guest/lookup', [\App\Http\Controllers\Admin\HonoredGuestController::class, 'lookup'])->name('events.honored-guest.lookup');
+    Route::post('events/{event}/honored-guest/start', [\App\Http\Controllers\Admin\HonoredGuestController::class, 'start'])->name('events.honored-guest.start');
+    Route::get('events/{event}/honored-guest/seats', [\App\Http\Controllers\Admin\HonoredGuestController::class, 'seats'])->name('events.honored-guest.seats');
+    Route::post('events/{event}/honored-guest', [\App\Http\Controllers\Admin\HonoredGuestController::class, 'store'])->name('events.honored-guest.store');
     Route::get('reservations', [\App\Http\Controllers\Admin\ReservationController::class, 'index'])->name('reservations.index');
     Route::post('reservations/{reservation}/authorize', [\App\Http\Controllers\Admin\ReservationController::class, 'authorizeReservation'])->name('reservations.authorize');
     Route::post('reservations/{reservation}/reject', [\App\Http\Controllers\Admin\ReservationController::class, 'rejectReservation'])->name('reservations.reject');
@@ -80,7 +112,8 @@ Route::prefix('admin')->middleware(['auth', 'admin'])->name('admin.')->group(fun
     Route::get('reservations/{reservation}/tickets-pdf', [\App\Http\Controllers\Admin\ReservationController::class, 'ticketsPdf'])->name('reservations.tickets-pdf');
     Route::post('reservations/{reservation}/resend-tickets', [\App\Http\Controllers\Admin\ReservationController::class, 'resendTickets'])->name('reservations.resend-tickets');
     Route::get('users', [\App\Http\Controllers\Admin\UserController::class, 'index'])->name('users.index');
-    Route::patch('users/{user}/toggle-role', [\App\Http\Controllers\Admin\UserController::class, 'toggleRole'])->name('users.toggle-role');
+    Route::patch('users/{user}/set-role', [\App\Http\Controllers\Admin\UserController::class, 'setRole'])->name('users.set-role');
+    Route::patch('users/{user}/verify-email', [\App\Http\Controllers\Admin\UserController::class, 'verifyEmail'])->name('users.verify-email');
     Route::get('events/{event}/ticket-template', [\App\Http\Controllers\Admin\TicketTemplateController::class, 'edit'])->name('ticket-templates.edit');
     Route::put('events/{event}/ticket-template', [\App\Http\Controllers\Admin\TicketTemplateController::class, 'update'])->name('ticket-templates.update');
     Route::get('reports', [\App\Http\Controllers\Admin\ReportController::class, 'index'])->name('reports.index');

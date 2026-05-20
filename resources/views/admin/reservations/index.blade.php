@@ -17,6 +17,13 @@
         <option value="CONFIRMADO" {{ request('status') === 'CONFIRMADO' ? 'selected' : '' }}>Confirmado</option>
         <option value="CANCELADO" {{ request('status') === 'CANCELADO' ? 'selected' : '' }}>Cancelado</option>
     </select>
+    <label for="sale_type" class="text-sm font-medium text-slate-700 dark:text-slate-300">Tipo venta</label>
+    <select id="sale_type" name="sale_type" class="rounded-xl border-2 border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 px-4 py-2.5 text-slate-900 dark:text-white focus:ring-2 focus:ring-violet-500">
+        <option value="">Todos</option>
+        <option value="standard" {{ request('sale_type') === 'standard' ? 'selected' : '' }}>Estándar</option>
+        <option value="surrogate" {{ request('sale_type') === 'surrogate' ? 'selected' : '' }}>Surrogada</option>
+        <option value="honored_guest" {{ request('sale_type') === 'honored_guest' ? 'selected' : '' }}>Invitado de honor</option>
+    </select>
     <button type="submit" class="rounded-xl bg-violet-600 px-4 py-2.5 text-white font-semibold hover:bg-violet-700 transition">Filtrar</button>
 </form>
 
@@ -39,6 +46,17 @@
                             <p class="font-medium text-slate-800 dark:text-white">{{ $r->user->name }}</p>
                             <p class="text-sm text-slate-500 dark:text-slate-400">{{ $r->user->email }}</p>
                             <p class="text-sm text-violet-600 dark:text-violet-400 font-medium mt-0.5">{{ $r->event->name }}</p>
+                            @if($r->sale_type === 'surrogate')
+                                <span class="inline-flex mt-1 rounded-full bg-indigo-100 dark:bg-indigo-900/40 text-indigo-800 dark:text-indigo-200 px-2 py-0.5 text-xs font-medium">Venta surrogada</span>
+                            @elseif($r->sale_type === 'honored_guest')
+                                <span class="inline-flex mt-1 rounded-full bg-fuchsia-100 dark:bg-fuchsia-900/40 text-fuchsia-800 dark:text-fuchsia-200 px-2 py-0.5 text-xs font-medium">Invitado de honor</span>
+                            @endif
+                            @if($r->soldBy)
+                                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Vendido/invitado por: <strong>{{ $r->soldBy->name }}</strong></p>
+                            @endif
+                            @if($r->seller_delivery_acknowledged_at)
+                                <p class="text-xs text-amber-700 dark:text-amber-300 mt-0.5">Entrega asumida por {{ $r->sellerDeliveryAcknowledgedBy?->name ?? 'vendedor' }}</p>
+                            @endif
                             <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                                 @foreach($r->reservationTickets as $t)
                                     {{ $t->holder_name }}{{ $t->seat ? ' (' . $t->seat->display_label . ')' : '' }}{{ !$loop->last ? ', ' : '' }}
@@ -67,6 +85,8 @@
                                 <a href="{{ asset('storage/'.$r->payment_receipt_path) }}" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-violet-600 dark:text-violet-400 hover:bg-violet-100 dark:hover:bg-violet-900/40 transition">
                                     <span aria-hidden="true">🖼️</span> Ver comprobante
                                 </a>
+                            @elseif($r->sale_type === 'honored_guest')
+                                <span class="text-slate-500 dark:text-slate-400 text-sm">— (invitación)</span>
                             @else
                                 <span class="text-slate-400 dark:text-slate-500 text-sm">—</span>
                             @endif
@@ -74,6 +94,9 @@
                         <td class="px-5 py-4 text-right">
                             @if($r->status === 'INICIADO')
                                 <div class="flex flex-wrap items-center justify-end gap-2">
+                                    @if($r->sale_type === 'surrogate')
+                                        <a href="{{ route('admin.surrogate-sale.checkout', $r) }}" class="rounded-xl bg-violet-600 px-4 py-2 text-white font-semibold hover:bg-violet-700 transition">Checkout</a>
+                                    @endif
                                     <form method="POST" action="{{ route('admin.reservations.cancel', $r) }}" class="inline" onsubmit="return confirm('¿Cancelar esta reserva en proceso? Las butacas quedarán liberadas.');">
                                         @csrf
                                         <button type="submit" class="rounded-xl bg-red-600 px-4 py-2 text-white font-semibold hover:bg-red-700 transition">Cancelar</button>

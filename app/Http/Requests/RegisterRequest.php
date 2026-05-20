@@ -18,6 +18,7 @@ class RegisterRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:255', 'regex:/^[\pL\s\-\.\']+$/u'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
+            'email_confirmation' => ['required', 'same:email'],
             'ci' => ['required', 'string', 'max:15', 'regex:/^[0-9\-]+$/'],
             'phone' => ['required', 'string', 'max:20', 'regex:/^[0-9\s+\-]+$/'],
             'password' => ['required', 'string', 'min:8', 'max:255', 'confirmed'],
@@ -31,6 +32,7 @@ class RegisterRequest extends FormRequest
             'name.regex' => __('El nombre solo puede contener letras, espacios y guiones.'),
             'ci.regex' => __('El CI solo puede contener dígitos y guiones.'),
             'phone.regex' => __('El teléfono solo puede contener números, espacios, + y -.'),
+            'email_confirmation.same' => __('La confirmación del correo debe coincidir.'),
             'g-recaptcha-response.required' => __('Debe completar la verificación de seguridad.'),
         ];
     }

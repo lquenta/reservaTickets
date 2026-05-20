@@ -1,8 +1,29 @@
-@extends('layouts.app')
+@php
+    $storeRoute = $storeRoute ?? route('reservations.store');
+    $layoutName = $layout ?? 'layouts.app';
+    $contentSection = $contentSection ?? 'content';
+    $isAdminSale = $isAdminSale ?? false;
+    $isHonoredGuest = ! empty($isHonoredGuest);
+@endphp
+@extends($layoutName)
 
 @section('title', 'Checkout - ' . $event->name)
 
-@section('content')
+@section($contentSection)
+@if($isHonoredGuest)
+<div class="max-w-4xl mx-auto mb-6 rounded-2xl border-2 border-emerald-600/50 bg-emerald-900/20 p-4">
+    <p class="font-semibold text-emerald-200">Invitado de honor — sin cargo</p>
+    <p class="text-sm text-emerald-100/80 mt-1">Todas las entradas se registran como <strong>Invitación (Bs 0)</strong>. No se requiere comprobante de pago.</p>
+</div>
+@endif
+@if($isAdminSale && isset($client))
+<div class="max-w-4xl mx-auto mb-6 rounded-2xl border-2 border-violet-300 dark:border-violet-600 bg-violet-50 dark:bg-violet-900/30 p-4">
+    <p class="font-semibold text-violet-900 dark:text-violet-200">{{ $isHonoredGuest ? 'Invitado de honor' : 'Venta surrogada' }} — {{ $client->name }}</p>
+    <p class="text-sm text-violet-800 dark:text-violet-300">{{ $client->email }} · {{ $client->phone }}
+        @if($client->hasVerifiedEmail()) <span class="text-emerald-600">(email verificado)</span> @else <span class="text-amber-600">(email sin verificar)</span> @endif
+    </p>
+</div>
+@endif
 {{-- Indicador de pasos del checkout (responsive: texto corto en móvil, completo en sm+) --}}
 <div class="max-w-2xl mx-auto mb-6 sm:mb-8 px-1">
     <div class="flex flex-wrap items-center justify-center gap-x-2 gap-y-2 sm:gap-x-4">
@@ -98,7 +119,7 @@
         <p class="text-lg sm:text-xl text-white/80 mb-2">{{ $event->name }}</p>
         <p class="text-white/60 text-sm mb-4 sm:mb-6">Elige butacas y/o entradas por sección. Máximo {{ $maxSeats }} entradas en total.</p>
 
-        <form id="reservation-form-sections" method="POST" action="{{ route('reservations.store') }}" class="space-y-8">
+        <form id="reservation-form-sections" method="POST" action="{{ $storeRoute }}" class="space-y-8">
             @csrf
             <input type="hidden" name="event_id" value="{{ $event->id }}">
 
@@ -183,7 +204,9 @@
                         @foreach($seatSectionsForLegend as $sec)
                             <li class="flex flex-wrap items-center justify-between gap-2 px-4 py-3 bg-black/30 text-white/90">
                                 <span class="font-medium">{{ $sec['name'] }}</span>
-                                @if(isset($sec['price']) && $sec['price'] !== null && $sec['price'] > 0)
+                                @if($isHonoredGuest)
+                                    <span class="text-emerald-300/90 text-sm">Invitación (Bs 0)</span>
+                                @elseif(isset($sec['price']) && $sec['price'] !== null && $sec['price'] > 0)
                                     <span class="text-white/70 text-sm tabular-nums">{{ number_format((float) $sec['price'], 2) }} Bs</span>
                                 @else
                                     <span class="text-white/50 text-sm">—</span>
@@ -200,7 +223,9 @@
                 @endif
                 <div class="rounded-2xl border border-red-900/50 bg-black/60 backdrop-blur px-4 py-5 sm:p-6">
                     <h2 class="text-lg font-semibold text-[#e50914] mb-1">{{ $section['name'] }}</h2>
-                    @if(isset($section['price']) && $section['price'] !== null && $section['price'] > 0)
+                    @if($isHonoredGuest)
+                        <p class="text-emerald-300/90 text-sm mb-4">Invitación (Bs 0)</p>
+                    @elseif(isset($section['price']) && $section['price'] !== null && $section['price'] > 0)
                         <p class="text-white/60 text-sm mb-4">Precio: {{ number_format($section['price'], 2) }} Bs</p>
                     @endif
                     @if($section['has_seats'])
@@ -270,7 +295,11 @@
 
             <div class="rounded-2xl border border-red-900/50 bg-black/60 backdrop-blur px-4 py-5 sm:p-6">
                 <p class="text-white/80 mb-2" x-show="totalTickets > 0">Total: <strong x-text="totalTickets"></strong> entrada(s).</p>
-                <p class="cost-total-block text-white/90 mb-2" x-show="totalTickets > 0 && totalCost > 0">Costo total: <span class="cost-total-price block mt-1" x-text="'Bs ' + (typeof totalCost === 'number' ? totalCost.toFixed(2) : '0.00')"></span></p>
+                @if($isHonoredGuest)
+                    <p class="text-emerald-300/90 mb-2" x-show="totalTickets > 0">Invitación (Bs 0) — sin cargo</p>
+                @else
+                    <p class="cost-total-block text-white/90 mb-2" x-show="totalTickets > 0 && totalCost > 0">Costo total: <span class="cost-total-price block mt-1" x-text="'Bs ' + (typeof totalCost === 'number' ? totalCost.toFixed(2) : '0.00')"></span></p>
+                @endif
                 <template x-for="id in selectedSeatIds" :key="id">
                     <input type="hidden" name="seat_ids[]" :value="id">
                 </template>
@@ -307,7 +336,7 @@
                 </div>
             </div>
 
-            @if(config('services.recaptcha.site_key'))
+            @if(config('services.recaptcha.site_key') && !$isAdminSale)
             <div class="g-recaptcha" data-sitekey="{{ config('services.recaptcha.site_key') }}"></div>
             @endif
             @error('g-recaptcha-response')<p class="text-sm text-red-400">{{ $message }}</p>@enderror
@@ -707,7 +736,7 @@
         <p class="text-white/60 text-sm mb-2">Cantidad y nombres para los tickets.</p>
         <p class="text-amber-200/90 text-sm mb-6 sm:mb-8">Este evento no tiene selección de butacas; solo elige la cantidad. En el paso 2 verás el resumen y subirás el comprobante.</p>
 
-        <form method="POST" action="{{ route('reservations.store') }}" class="rounded-2xl border border-red-900/50 bg-black/60 backdrop-blur px-4 py-6 sm:p-8 md:p-10 space-y-6">
+        <form method="POST" action="{{ $storeRoute }}" class="rounded-2xl border border-red-900/50 bg-black/60 backdrop-blur px-4 py-6 sm:p-8 md:p-10 space-y-6">
             @csrf
             <input type="hidden" name="event_id" value="{{ $event->id }}">
             @error('event_id')<p class="text-sm text-red-400">{{ $message }}</p>@enderror
@@ -754,7 +783,7 @@
                 @endfor
             </div>
 
-            @if(config('services.recaptcha.site_key'))
+            @if(config('services.recaptcha.site_key') && !$isAdminSale)
             <div class="g-recaptcha" data-sitekey="{{ config('services.recaptcha.site_key') }}"></div>
             @endif
             @error('g-recaptcha-response')
@@ -1042,7 +1071,7 @@
         <p class="text-lg sm:text-xl text-white/80 mb-2">{{ $event->name }}</p>
         <p class="text-white/60 text-sm mb-4 sm:mb-6">Elige tus butacas haciendo clic (máximo {{ $maxSeats }}). Luego los nombres. Al continuar pasarás al paso 2 para subir el comprobante.</p>
 
-        <form method="POST" action="{{ route('reservations.store') }}" class="space-y-6"
+        <form method="POST" action="{{ $storeRoute }}" class="space-y-6"
               @submit="const t = $el.querySelector('[name=seat_ids_csv]'); if (t && Array.isArray(selectedIds)) t.value = selectedIds.join(',');">
             @csrf
             <input type="hidden" name="event_id" value="{{ $event->id }}">
@@ -1217,7 +1246,7 @@
                 </div>
             </div>
 
-            @if(config('services.recaptcha.site_key'))
+            @if(config('services.recaptcha.site_key') && !$isAdminSale)
             <div class="g-recaptcha" data-sitekey="{{ config('services.recaptcha.site_key') }}"></div>
             @endif
             @error('g-recaptcha-response')
@@ -1226,7 +1255,13 @@
 
             <button type="submit" class="w-full rounded-xl bg-[#e50914] px-5 py-4 text-white font-bold hover:bg-red-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
                     :disabled="!Array.isArray(selectedIds) || selectedIds.length === 0">
-                Continuar al paso 2 — Comprobante de pago
+                @if(!empty($isHonoredGuest))
+                    Registrar invitación (pendiente autorización)
+                @elseif($isAdminSale)
+                    Continuar al checkout (comprobante)
+                @else
+                    Continuar al paso 2 — Comprobante de pago
+                @endif
             </button>
         </form>
     </div>

@@ -228,7 +228,8 @@ class ReservationController extends Controller
             ReservationAuditLog::RESULT_SUCCESS,
             auth()->user(),
             $event,
-            $reservation
+            $reservation,
+            auth()->user()
         );
 
         return redirect()->route('checkout.show', $reservation);

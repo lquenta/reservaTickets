@@ -29,6 +29,14 @@
                     <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
                 @enderror
             </div>
+            <div>
+                <label for="email_confirmation" class="block text-sm font-medium text-white/80 mb-1">Confirmar correo</label>
+                <input id="email_confirmation" type="email" name="email_confirmation" value="{{ old('email_confirmation') }}" required autocomplete="email" maxlength="255"
+                       class="w-full rounded-xl border border-red-900/50 bg-black/60 px-4 py-3 text-white placeholder-white/40 focus:ring-2 focus:ring-[#e50914] @error('email_confirmation') border-red-500 @enderror">
+                @error('email_confirmation')
+                    <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
+                @enderror
+            </div>
 
             <div>
                 <label for="ci" class="block text-sm font-medium text-white/80 mb-1">CI</label>

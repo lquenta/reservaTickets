@@ -57,7 +57,9 @@
                     <a href="{{ route('home') }}#boletin" class="text-sm transition tracking-wide hidden sm:inline" :class="$store.scrollSpy.activeSection === 'boletin' ? 'text-[#e50914] font-semibold' : 'text-white/80 hover:text-[#e50914]'">Boletín</a>
                     <a href="{{ route('events.index') }}" class="text-sm font-semibold text-[#e50914] border border-[#e50914] px-4 py-2 rounded hover:bg-[#e50914] hover:text-black transition">Eventos</a>
                     @auth
-                        @if(!auth()->user()->isAdmin())
+                        @if(auth()->user()->isVendedor())
+                            <a href="{{ route('seller.events.index') }}" class="text-sm text-[#e50914] font-semibold">Vender tickets</a>
+                        @elseif(!auth()->user()->isAdmin())
                             <a href="{{ route('reservations.index') }}" class="text-sm text-white/80 hover:text-[#e50914] transition">Mis reservas</a>
                         @endif
                         @if(auth()->user()->isAdmin())

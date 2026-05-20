@@ -120,7 +120,8 @@ class CheckoutController extends Controller
             ReservationAuditLog::RESULT_SUCCESS,
             $request->user(),
             $reservation->event,
-            $reservation
+            $reservation,
+            $request->user()
         );
 
         NotifyAdminNewReservationJob::dispatch($reservation)->onConnection('database');

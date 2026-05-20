@@ -42,5 +42,8 @@
             <p class="ticket-qr"><img src="{{ \App\Support\TicketQrCode::dataUri($reservation->payment_code, $ticket->position, 80) }}" alt="QR entrada" width="80" height="80" /></p>
         </div>
     @endforeach
+    @if($reservation->sale_type === \App\Models\Reservation::SALE_TYPE_SURROGATE && $reservation->soldBy)
+        <p style="font-size: 9px; color: #64748b; margin-top: 16px;">Vendido por: {{ $reservation->soldBy->name }}</p>
+    @endif
 </body>
 </html>

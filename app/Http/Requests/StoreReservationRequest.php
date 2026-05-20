@@ -213,6 +213,7 @@ class StoreReservationRequest extends FormRequest
                 auth()->user(),
                 $event,
                 null,
+                auth()->user(),
                 'Verificación reCAPTCHA fallida'
             );
             throw ValidationException::withMessages([
@@ -232,6 +233,7 @@ class StoreReservationRequest extends FormRequest
             auth()->user(),
             $event,
             null,
+            auth()->user(),
             $message
         );
         parent::failedValidation($validator);

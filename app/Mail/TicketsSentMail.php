@@ -35,7 +35,7 @@ class TicketsSentMail extends Mailable
 
     public function attachments(): array
     {
-        $reservation = $this->reservation->load(['event.ticketTemplate', 'reservationTickets.seat']);
+        $reservation = $this->reservation->load(['event.ticketTemplate', 'reservationTickets.seat', 'soldBy']);
         $template = $reservation->event->ticketTemplate;
         $design = $template ? $template->design : \App\Models\TicketTemplate::defaultDesign();
         $price = $template ? (float) $template->price : 0;

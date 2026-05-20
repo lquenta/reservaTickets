@@ -38,7 +38,16 @@
             </select>
         </div>
         <div>
-            <label for="user_id" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Usuario</label>
+            <label for="performed_by_user_id" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Admin (ejecutó)</label>
+            <select name="performed_by_user_id" id="performed_by_user_id" class="rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-800 dark:text-white px-3 py-2 min-w-[180px]">
+                <option value="">Todos</option>
+                @foreach($adminsWithLogs ?? [] as $a)
+                    <option value="{{ $a->id }}" {{ request('performed_by_user_id') == $a->id ? 'selected' : '' }}>{{ $a->name }}</option>
+                @endforeach
+            </select>
+        </div>
+        <div>
+            <label for="user_id" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Cliente afectado</label>
             <select name="user_id" id="user_id" class="rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-800 dark:text-white px-3 py-2 min-w-[200px]">
                 <option value="">Todos</option>
                 @foreach($usersWithLogs as $u)
@@ -77,7 +86,8 @@
                     <th class="text-left px-4 py-3 text-slate-700 dark:text-slate-300 font-semibold">Fecha</th>
                     <th class="text-left px-4 py-3 text-slate-700 dark:text-slate-300 font-semibold">Acción</th>
                     <th class="text-left px-4 py-3 text-slate-700 dark:text-slate-300 font-semibold">Resultado</th>
-                    <th class="text-left px-4 py-3 text-slate-700 dark:text-slate-300 font-semibold">Usuario</th>
+                    <th class="text-left px-4 py-3 text-slate-700 dark:text-slate-300 font-semibold">Cliente</th>
+                    <th class="text-left px-4 py-3 text-slate-700 dark:text-slate-300 font-semibold">Ejecutado por</th>
                     <th class="text-left px-4 py-3 text-slate-700 dark:text-slate-300 font-semibold">Evento</th>
                     <th class="text-left px-4 py-3 text-slate-700 dark:text-slate-300 font-semibold">IP</th>
                     <th class="text-left px-4 py-3 text-slate-700 dark:text-slate-300 font-semibold">Detalle</th>
@@ -102,13 +112,14 @@
                                 —
                             @endif
                         </td>
+                        <td class="px-4 py-3 text-slate-700 dark:text-slate-300 text-sm">{{ $log->performedBy?->name ?? '—' }}</td>
                         <td class="px-4 py-3 text-slate-700 dark:text-slate-300">{{ $log->event?->name ?? '—' }}</td>
                         <td class="px-4 py-3 text-slate-600 dark:text-slate-400 font-mono text-sm">{{ $log->ip_address ?? '—' }}</td>
                         <td class="px-4 py-3 text-slate-600 dark:text-slate-400 text-sm max-w-xs truncate" title="{{ $log->message }}">{{ $log->message ? Str::limit($log->message, 40) : '—' }}</td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="7" class="px-4 py-8 text-center text-slate-500 dark:text-slate-400">No hay registros de auditoría con los filtros aplicados.</td>
+                        <td colspan="8" class="px-4 py-8 text-center text-slate-500 dark:text-slate-400">No hay registros de auditoría con los filtros aplicados.</td>
                     </tr>
                 @endforelse
             </tbody>
