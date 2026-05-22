@@ -13,7 +13,15 @@ class AdminSurrogateClientRequest extends FormRequest
 
     public function rules(): array
     {
+        if ($this->guestClientMode()) {
+            return [
+                'seller_will_deliver_tickets' => ['nullable', 'boolean'],
+                'client_name' => ['required', 'string', 'max:255', 'regex:/^[\pL\s\-\.\']+$/u'],
+            ];
+        }
+
         return [
+            'seller_will_deliver_tickets' => ['nullable', 'boolean'],
             'client_name' => ['required', 'string', 'max:255', 'regex:/^[\pL\s\-\.\']+$/u'],
             'client_email' => ['required', 'string', 'email', 'max:255'],
             'client_email_confirmation' => ['required', 'same:client_email'],
@@ -29,5 +37,10 @@ class AdminSurrogateClientRequest extends FormRequest
             'client_email_confirmation.same' => 'La confirmación del correo debe coincidir.',
             'client_phone.regex' => 'El teléfono solo puede contener números, espacios, + y -.',
         ];
+    }
+
+    public function guestClientMode(): bool
+    {
+        return $this->boolean('seller_will_deliver_tickets', true);
     }
 }

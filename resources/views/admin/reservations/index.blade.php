@@ -52,7 +52,11 @@
                     <tr class="border-t border-slate-200 dark:border-slate-700 hover:bg-slate-50/50 dark:hover:bg-slate-700/30 transition">
                         <td class="px-5 py-4">
                             <p class="font-medium text-slate-800 dark:text-white">{{ $r->user->name }}</p>
-                            <p class="text-sm text-slate-500 dark:text-slate-400">{{ $r->user->email }}</p>
+                            @if($r->user->isGuest())
+                                <p class="text-sm text-slate-500 dark:text-slate-400">Sin correo — entrega manual</p>
+                            @else
+                                <p class="text-sm text-slate-500 dark:text-slate-400">{{ $r->user->email }}</p>
+                            @endif
                             <p class="text-sm text-violet-600 dark:text-violet-400 font-medium mt-0.5">{{ $r->event->name }}</p>
                             @if($r->sale_type === 'surrogate')
                                 <span class="inline-flex mt-1 rounded-full bg-indigo-100 dark:bg-indigo-900/40 text-indigo-800 dark:text-indigo-200 px-2 py-0.5 text-xs font-medium">Venta surrogada</span>
@@ -131,7 +135,7 @@
                                     <a href="{{ route('admin.reservations.tickets-pdf', ['reservation' => $r, 'download' => 1]) }}" class="inline-flex items-center gap-1.5 rounded-xl bg-violet-600 px-4 py-2 text-sm font-semibold text-white hover:bg-violet-700 transition">
                                         <span aria-hidden="true">⬇️</span> Descargar
                                     </a>
-                                    <form method="POST" action="{{ route('admin.reservations.resend-tickets', $r) }}" class="inline" onsubmit="return confirm('¿Reenviar los boletos por correo a {{ $r->user->email }}?');">
+                                    <form method="POST" action="{{ route('admin.reservations.resend-tickets', $r) }}" class="inline" onsubmit="return confirm('¿Reenviar los boletos por correo a {{ $r->ticketDeliveryEmail() ?? '—' }}?');">
                                         @csrf
                                         <button type="submit" class="rounded-xl bg-slate-600 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-700 transition">Reenviar tickets</button>
                                     </form>

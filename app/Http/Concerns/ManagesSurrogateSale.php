@@ -72,7 +72,8 @@ trait ManagesSurrogateSale
             $request->validated('client_phone'),
             $request->user(),
             User::PROVISIONED_VIA_SURROGATE,
-            $request->boolean('update_existing_profile')
+            $request->boolean('update_existing_profile'),
+            $request->boolean('seller_will_deliver_tickets', true)
         );
 
         session([
@@ -195,7 +196,10 @@ trait ManagesSurrogateSale
         ];
 
         $client = $reservation->user;
-        if ($client && ! $client->hasVerifiedEmail() && $request->boolean('seller_delivery_responsibility')) {
+        if ($client?->isGuest()) {
+            $update['seller_delivery_acknowledged_at'] = now();
+            $update['seller_delivery_acknowledged_by_user_id'] = $request->user()->id;
+        } elseif ($client && ! $client->hasVerifiedEmail() && $request->boolean('seller_delivery_responsibility')) {
             $update['seller_delivery_acknowledged_at'] = now();
             $update['seller_delivery_acknowledged_by_user_id'] = $request->user()->id;
         }
@@ -220,7 +224,9 @@ trait ManagesSurrogateSale
                 $reservation->event,
                 $reservation,
                 $client,
-                'Vendedor asumió responsabilidad de entrega (email no verificado).'
+                $client?->isGuest()
+                    ? 'Entrega manual de tickets (invitado temporal).'
+                    : 'Vendedor asumió responsabilidad de entrega (email no verificado).'
             );
         }
 

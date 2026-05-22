@@ -153,6 +153,8 @@ class ReservationController extends Controller
 
         SendReservationTicketsJob::dispatch($reservation, force: true)->onConnection('database');
 
-        return redirect()->route('admin.reservations.index')->with('message', 'Tickets en cola. Se reenviarán por correo a '.$reservation->user->email.' en breve.');
+        $email = $reservation->ticketDeliveryEmail() ?? '—';
+
+        return redirect()->route('admin.reservations.index')->with('message', 'Tickets en cola. Se reenviarán por correo a '.$email.' en breve.');
     }
 }

@@ -33,9 +33,8 @@ class SendReservationTicketsJob implements ShouldQueue
             return;
         }
 
-        $reservation->load(['user', 'event', 'reservationTickets.seat']);
-        $user = $reservation->user;
-        $email = $user?->email;
+        $reservation->load(['user', 'soldBy', 'event', 'reservationTickets.seat']);
+        $email = $reservation->ticketDeliveryEmail();
         if (! $email) {
             return;
         }

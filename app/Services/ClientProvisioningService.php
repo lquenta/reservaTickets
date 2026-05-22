@@ -12,14 +12,19 @@ class ClientProvisioningService
 {
     public function resolveForAdminSale(
         string $name,
-        string $email,
-        string $phone,
+        ?string $email,
+        ?string $phone,
         User $admin,
         string $provisionedVia,
-        bool $updateProfile = false
+        bool $updateProfile = false,
+        bool $guestMode = false
     ): ClientResolution {
-        $email = strtolower(trim($email));
-        $phone = PhoneNormalizer::normalize($phone) ?? $phone;
+        if ($guestMode) {
+            return $this->createGuestUser($name, $admin, $provisionedVia);
+        }
+
+        $email = strtolower(trim((string) $email));
+        $phone = PhoneNormalizer::normalize((string) $phone) ?? $phone;
         $existing = User::where('email', $email)->first();
 
         if ($existing) {
@@ -62,6 +67,7 @@ class ClientProvisioningService
             'role' => 'user',
             'created_by_user_id' => $admin->id,
             'provisioned_via' => $provisionedVia,
+            'is_guest' => false,
         ]);
 
         $user->sendEmailVerificationNotification();
@@ -79,11 +85,40 @@ class ClientProvisioningService
         return new ClientResolution($user, true);
     }
 
+    private function createGuestUser(string $name, User $admin, string $provisionedVia): ClientResolution
+    {
+        $email = 'guest+'.strtolower((string) Str::ulid()).'@guest.local';
+
+        $user = User::create([
+            'name' => $name,
+            'email' => $email,
+            'phone' => null,
+            'ci' => null,
+            'password' => Str::password(32),
+            'role' => 'user',
+            'created_by_user_id' => $admin->id,
+            'provisioned_via' => $provisionedVia,
+            'is_guest' => true,
+        ]);
+
+        app(ReservationAuditService::class)->log(
+            ReservationAuditLog::ACTION_USER_PROVISIONED_BY_ADMIN,
+            ReservationAuditLog::RESULT_SUCCESS,
+            $admin,
+            null,
+            null,
+            $user,
+            "Invitado temporal creado ({$provisionedVia}): {$name}."
+        );
+
+        return new ClientResolution($user, true);
+    }
+
     public function lookupByEmail(string $email): ?User
     {
         $user = User::where('email', strtolower(trim($email)))->first();
 
-        if ($user && $user->isAdmin()) {
+        if ($user && ($user->isAdmin() || $user->isGuest())) {
             return null;
         }
 

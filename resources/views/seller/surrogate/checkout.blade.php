@@ -29,14 +29,18 @@
 
     <div class="rounded-2xl border border-violet-500/40 bg-violet-900/20 px-4 py-4 mb-6">
         <p class="font-semibold text-violet-100">Venta surrogada — {{ $client->name }}</p>
-        <p class="text-sm text-violet-200/80 mt-1">{{ $client->email }} · {{ $client->phone }}
-            @if($client->hasVerifiedEmail())
-                <span class="text-emerald-400">(email verificado)</span>
-            @else
-                <span class="text-amber-300">(email sin verificar)</span>
-            @endif
-        </p>
-        <p class="text-sm text-violet-200/70 mt-2">Los tickets se enviarán por correo cuando un administrador autorice el pago.</p>
+        @if($client->isGuest())
+            <p class="text-sm text-amber-200/90 mt-1">Invitado temporal — los tickets llegarán a tu correo ({{ $reservation->soldBy?->email }}) al autorizar. Tú entregas los tickets al invitado.</p>
+        @else
+            <p class="text-sm text-violet-200/80 mt-1">{{ $client->email }} · {{ $client->phone }}
+                @if($client->hasVerifiedEmail())
+                    <span class="text-emerald-400">(email verificado)</span>
+                @else
+                    <span class="text-amber-300">(email sin verificar)</span>
+                @endif
+            </p>
+            <p class="text-sm text-violet-200/70 mt-2">Los tickets se enviarán por correo cuando un administrador autorice el pago.</p>
+        @endif
     </div>
 
     <div class="rounded-2xl border border-red-900/50 bg-black/60 backdrop-blur px-4 py-6 sm:p-8 md:p-10 space-y-8">
@@ -102,7 +106,7 @@
             </label>
             @error('accept_terms')<p class="text-sm text-red-400">{{ $message }}</p>@enderror
 
-            @if(!$client->hasVerifiedEmail())
+            @if(!$client->isGuest() && !$client->hasVerifiedEmail())
             <div class="rounded-xl border-2 border-amber-500/50 bg-amber-900/20 p-4">
                 <label class="flex items-start gap-3 text-sm text-amber-100 cursor-pointer">
                     <input type="checkbox" name="seller_delivery_responsibility" value="1" required class="mt-1 rounded border-amber-600/50 text-[#e50914] focus:ring-[#e50914] bg-black/60 size-5">

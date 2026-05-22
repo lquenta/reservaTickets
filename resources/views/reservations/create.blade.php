@@ -19,9 +19,13 @@
 @if($isAdminSale && isset($client))
 <div class="max-w-4xl mx-auto mb-6 rounded-2xl border-2 border-violet-300 dark:border-violet-600 bg-violet-50 dark:bg-violet-900/30 p-4">
     <p class="font-semibold text-violet-900 dark:text-violet-200">{{ $isHonoredGuest ? 'Invitado de honor' : 'Venta surrogada' }} — {{ $client->name }}</p>
-    <p class="text-sm text-violet-800 dark:text-violet-300">{{ $client->email }} · {{ $client->phone }}
-        @if($client->hasVerifiedEmail()) <span class="text-emerald-600">(email verificado)</span> @else <span class="text-amber-600">(email sin verificar)</span> @endif
-    </p>
+    @if($client->isGuest())
+        <p class="text-sm text-violet-800 dark:text-violet-300 mt-1">Invitado temporal — entrega manual de tickets</p>
+    @else
+        <p class="text-sm text-violet-800 dark:text-violet-300">{{ $client->email }} · {{ $client->phone }}
+            @if($client->hasVerifiedEmail()) <span class="text-emerald-600">(email verificado)</span> @else <span class="text-amber-600">(email sin verificar)</span> @endif
+        </p>
+    @endif
 </div>
 @endif
 {{-- Indicador de pasos del checkout (responsive: texto corto en móvil, completo en sm+) --}}

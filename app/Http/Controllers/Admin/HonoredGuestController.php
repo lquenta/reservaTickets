@@ -66,7 +66,8 @@ class HonoredGuestController extends Controller
             $request->validated('client_phone'),
             $request->user(),
             User::PROVISIONED_VIA_HONORED_GUEST,
-            $request->boolean('update_existing_profile')
+            $request->boolean('update_existing_profile'),
+            $request->boolean('seller_will_deliver_tickets', true)
         );
 
         session([

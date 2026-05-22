@@ -115,6 +115,17 @@ class Reservation extends Model
         return $this->isSurrogateSale() || $this->isHonoredGuest();
     }
 
+    public function ticketDeliveryEmail(): ?string
+    {
+        $this->loadMissing(['user', 'soldBy']);
+
+        if ($this->user?->isGuest()) {
+            return $this->soldBy?->email;
+        }
+
+        return $this->user?->email;
+    }
+
     public function hasValidatedTickets(): bool
     {
         if ($this->relationLoaded('reservationTickets')) {

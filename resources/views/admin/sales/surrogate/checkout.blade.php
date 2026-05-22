@@ -17,11 +17,15 @@
 <div class="max-w-2xl mx-auto rounded-2xl border-2 border-violet-200/60 dark:border-violet-700/50 bg-white dark:bg-slate-800/80 p-6 md:p-8 space-y-6">
     <div class="rounded-xl bg-slate-100 dark:bg-slate-700/50 p-4">
         <p class="font-semibold text-slate-800 dark:text-white">Cliente: {{ $client->name }}</p>
-        <p class="text-sm text-slate-600 dark:text-slate-400">{{ $client->email }} · {{ $client->phone }}</p>
-        @if($client->hasVerifiedEmail())
-            <p class="text-sm text-emerald-600 dark:text-emerald-400 mt-1">Correo verificado — los tickets se enviarán a {{ $client->email }} cuando un administrador autorice el pago.</p>
+        @if($client->isGuest())
+            <p class="text-sm text-amber-700 dark:text-amber-300 mt-1 font-medium">Invitado temporal — los tickets se enviarán a {{ $reservation->soldBy?->email }} cuando un administrador autorice el pago. Tú entregas los tickets al invitado.</p>
         @else
-            <p class="text-sm text-amber-700 dark:text-amber-300 mt-1 font-medium">Correo sin verificar — tras la autorización se intentará enviar a {{ $client->email }}; si no llega, debes entregar los tickets al cliente.</p>
+            <p class="text-sm text-slate-600 dark:text-slate-400">{{ $client->email }} · {{ $client->phone }}</p>
+            @if($client->hasVerifiedEmail())
+                <p class="text-sm text-emerald-600 dark:text-emerald-400 mt-1">Correo verificado — los tickets se enviarán a {{ $client->email }} cuando un administrador autorice el pago.</p>
+            @else
+                <p class="text-sm text-amber-700 dark:text-amber-300 mt-1 font-medium">Correo sin verificar — tras la autorización se intentará enviar a {{ $client->email }}; si no llega, debes entregar los tickets al cliente.</p>
+            @endif
         @endif
         <p class="text-sm text-violet-700 dark:text-violet-300 mt-2">Vendido por: {{ $reservation->soldBy?->name }}</p>
     </div>
@@ -62,7 +66,7 @@
         </label>
         @error('accept_terms')<p class="text-sm text-red-600">{{ $message }}</p>@enderror
 
-        @if(!$client->hasVerifiedEmail())
+        @if(!$client->isGuest() && !$client->hasVerifiedEmail())
         <div class="rounded-xl border-2 border-amber-400 bg-amber-50 dark:bg-amber-900/20 p-4">
             <label class="inline-flex items-start gap-2 text-sm text-amber-900 dark:text-amber-100">
                 <input type="checkbox" name="seller_delivery_responsibility" value="1" required class="mt-1 rounded">

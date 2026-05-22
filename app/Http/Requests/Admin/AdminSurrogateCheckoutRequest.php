@@ -20,7 +20,7 @@ class AdminSurrogateCheckoutRequest extends FormRequest
 
         $reservation = $this->route('reservation');
         $client = $reservation?->user;
-        if ($client && ! $client->hasVerifiedEmail()) {
+        if ($client && ! $client->isGuest() && ! $client->hasVerifiedEmail()) {
             $rules['seller_delivery_responsibility'] = ['required', 'accepted'];
         }
 

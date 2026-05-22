@@ -62,7 +62,7 @@
 
                         <td class="px-5 py-4 font-medium text-slate-800 dark:text-white">{{ $u->name }}</td>
 
-                        <td class="px-5 py-4 text-slate-600 dark:text-slate-400">{{ $u->email }}</td>
+                        <td class="px-5 py-4 text-slate-600 dark:text-slate-400">{{ $u->displayEmail() ?? '— (invitado temporal)' }}</td>
 
                         <td class="px-5 py-4 text-slate-600 dark:text-slate-400 text-sm">{{ $u->ci ?? '—' }} / {{ $u->phone }}</td>
 
@@ -81,6 +81,12 @@
                             @if($u->createdBy)
 
                                 <p class="text-xs text-slate-500 mt-1">Creado por {{ $u->createdBy->name }}</p>
+
+                            @endif
+
+                            @if($u->isGuest())
+
+                                <span class="inline-flex mt-1 rounded-full bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-200 px-2 py-0.5 text-xs font-medium">Invitado temporal</span>
 
                             @endif
 

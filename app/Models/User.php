@@ -28,6 +28,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'role',
         'created_by_user_id',
         'provisioned_via',
+        'is_guest',
     ];
 
     protected $hidden = [
@@ -40,7 +41,22 @@ class User extends Authenticatable implements MustVerifyEmail
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_guest' => 'boolean',
         ];
+    }
+
+    public function isGuest(): bool
+    {
+        return (bool) $this->is_guest;
+    }
+
+    public function displayEmail(): ?string
+    {
+        if ($this->isGuest()) {
+            return null;
+        }
+
+        return $this->email;
     }
 
     public function reservations(): HasMany
