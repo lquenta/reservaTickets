@@ -67,7 +67,8 @@ class ReservationController extends Controller
             'device_type' => 'server',
             'occurred_at' => now(),
         ]);
-        SendReservationTicketsJob::dispatch($reservation)->onConnection('database');
+        // Mandatory ticket email on admin authorize (see SendReservationTicketsJob::fromAuthorize).
+        SendReservationTicketsJob::dispatch($reservation, fromAuthorize: true)->onConnection('database');
 
         return redirect()->route('admin.reservations.index')->with('message', 'Reserva autorizada. Los tickets se enviarán por correo en breve.');
     }
@@ -135,12 +136,12 @@ class ReservationController extends Controller
             'price' => $price,
         ]);
 
-        $filename = 'tickets-' . $reservation->payment_code . '.pdf';
+        $filename = 'tickets-'.$reservation->payment_code.'.pdf';
         $disposition = $request->boolean('download') ? 'attachment' : 'inline';
 
         return response($pdf->output(), 200, [
             'Content-Type' => 'application/pdf',
-            'Content-Disposition' => $disposition . '; filename="' . $filename . '"',
+            'Content-Disposition' => $disposition.'; filename="'.$filename.'"',
         ]);
     }
 
@@ -150,8 +151,8 @@ class ReservationController extends Controller
             return redirect()->route('admin.reservations.index')->with('error', 'Solo se pueden reenviar tickets de reservas confirmadas.');
         }
 
-        SendReservationTicketsJob::dispatch($reservation)->onConnection('database');
+        SendReservationTicketsJob::dispatch($reservation, force: true)->onConnection('database');
 
-        return redirect()->route('admin.reservations.index')->with('message', 'Tickets en cola. Se reenviarán por correo a ' . $reservation->user->email . ' en breve.');
+        return redirect()->route('admin.reservations.index')->with('message', 'Tickets en cola. Se reenviarán por correo a '.$reservation->user->email.' en breve.');
     }
 }

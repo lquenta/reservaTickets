@@ -9,7 +9,7 @@ use App\Models\Reservation;
 use App\Models\Seat;
 use App\Models\Section;
 use App\Models\Venue;
-use App\Support\SectionLayoutColors;
+use App\Support\EventSeatOverviewMapData;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -243,66 +243,12 @@ class EventController extends Controller
 
     public function seats(Event $event): View|RedirectResponse
     {
-        if (! $event->venue_id) {
+        $mapData = EventSeatOverviewMapData::forEvent($event);
+        if ($mapData === null) {
             return redirect()->route('admin.events.index')->with('error', 'Este evento no tiene butacas.');
         }
 
-        $event->load('venue.seats', 'venue.layoutElements.seat');
-        $venue = $event->getRelationValue('venue');
-        if (! $venue) {
-            return redirect()->route('admin.events.index')->with('error', 'Lugar no encontrado.');
-        }
-
-        $seats = $venue->seats()->orderBy('row')->orderBy('number')->get();
-        $seatsByRow = $seats->groupBy('row');
-        $occupiedSeatIds = $event->occupiedSeatIds()->flip();
-        $blockedSeatIds = $event->blockedSeatIds()->flip();
-        $layoutElements = $venue->layoutElements->map(function ($element) use ($occupiedSeatIds, $blockedSeatIds) {
-            $seat = $element->seat;
-            $isOccupied = false;
-            $isBlockedForEvent = false;
-            $isBlockedGlobally = false;
-            if ($seat) {
-                $isOccupied = $occupiedSeatIds->has($seat->id);
-                $isBlockedForEvent = $blockedSeatIds->has($seat->id);
-                $isBlockedGlobally = (bool) $seat->blocked;
-            }
-
-            return [
-                'id' => $element->id,
-                'type' => $element->type,
-                'seat_id' => $element->seat_id,
-                'x' => (float) $element->x,
-                'y' => (float) $element->y,
-                'w' => (float) $element->w,
-                'h' => (float) $element->h,
-                'rotation' => (float) $element->rotation,
-                'z_index' => (int) $element->z_index,
-                'meta' => $element->meta ?? [],
-                'seat' => $seat ? [
-                    'id' => $seat->id,
-                    'label' => $seat->display_label,
-                    'row' => $seat->row,
-                    'number' => $seat->number,
-                    'section_id' => $seat->section_id,
-                    'occupied' => $isOccupied,
-                    'blocked_globally' => $isBlockedGlobally,
-                    'blocked_for_event' => $isBlockedForEvent,
-                ] : null,
-            ];
-        })->values();
-
-        $venue->load('sections');
-        $sectionPaletteById = [];
-        foreach ($venue->sections as $sec) {
-            $t = SectionLayoutColors::tripletForSection($sec);
-            $sectionPaletteById[$sec->id] = ['bg' => $t['fill'], 'border' => $t['stroke'], 'text' => $t['text']];
-        }
-        $legendSampleSeatStyle = $venue->sections->isNotEmpty()
-            ? $sectionPaletteById[$venue->sections->first()->id]
-            : ['bg' => '#2563eb', 'border' => '#1e40af', 'text' => '#ffffff'];
-
-        return view('admin.events.seats', compact('event', 'seatsByRow', 'occupiedSeatIds', 'blockedSeatIds', 'layoutElements', 'sectionPaletteById', 'legendSampleSeatStyle'));
+        return view('admin.events.seats', array_merge(['event' => $event], $mapData));
     }
 
     public function blockSeat(Event $event, Seat $seat): RedirectResponse

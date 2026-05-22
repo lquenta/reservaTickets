@@ -1,15 +1,16 @@
 <?php
 
+use App\Http\Controllers\AnalyticsEventController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\EmailVerificationNotificationController;
 use App\Http\Controllers\Auth\EmailVerificationPromptController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Auth\VerifyEmailController;
+use App\Http\Controllers\Auth\VerifyEmailTokenController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\NewsletterController;
-use App\Http\Controllers\AnalyticsEventController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', HomeController::class)->name('home');
@@ -33,6 +34,10 @@ Route::middleware('guest')->group(function () {
 
 Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout')->middleware('auth');
 
+Route::get('email/verify-token/{token}', VerifyEmailTokenController::class)
+    ->middleware('throttle:6,1')
+    ->name('verification.verify-token');
+
 Route::middleware('auth')->group(function () {
     Route::get('email/verify', EmailVerificationPromptController::class)->name('verification.notice');
     Route::get('email/verify/{id}/{hash}', VerifyEmailController::class)->middleware(['signed', 'throttle:6,1'])->name('verification.verify');
@@ -41,6 +46,7 @@ Route::middleware('auth')->group(function () {
 
 Route::middleware(['auth', 'verified', 'seller'])->name('seller.')->group(function () {
     Route::get('seller/events', [\App\Http\Controllers\Seller\EventController::class, 'index'])->name('events.index');
+    Route::get('seller/events/{event}/seats', [\App\Http\Controllers\Seller\EventController::class, 'seats'])->name('events.seats');
     Route::get('events/{event}/surrogate-sale', [\App\Http\Controllers\Seller\SurrogateSaleController::class, 'create'])->name('events.surrogate-sale.create');
     Route::post('events/{event}/surrogate-sale/lookup', [\App\Http\Controllers\Seller\SurrogateSaleController::class, 'lookup'])->name('events.surrogate-sale.lookup');
     Route::post('events/{event}/surrogate-sale/start', [\App\Http\Controllers\Seller\SurrogateSaleController::class, 'start'])->name('events.surrogate-sale.start');

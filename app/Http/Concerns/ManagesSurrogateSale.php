@@ -15,6 +15,7 @@ use App\Services\ClientProvisioningService;
 use App\Services\ReservationAuditService;
 use App\Services\ReservationService;
 use App\Support\EventSeatSelectionData;
+use App\Support\ReservationCheckoutMapData;
 use App\Support\SurrogateSaleFlow;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -168,8 +169,9 @@ trait ManagesSurrogateSale
 
         $reservation->load(['event.sections', 'event.ticketTemplate', 'user', 'reservationTickets.seat', 'reservationTickets.section']);
         $totalPrice = $this->calculateSurrogateTotalPrice($reservation);
+        $checkoutMap = ReservationCheckoutMapData::forReservation($reservation);
 
-        return view('admin.sales.surrogate.checkout', compact('reservation', 'totalPrice', 'flow'));
+        return view('admin.sales.surrogate.checkout', compact('reservation', 'totalPrice', 'flow', 'checkoutMap'));
     }
 
     public function confirm(AdminSurrogateCheckoutRequest $request, Reservation $reservation): RedirectResponse
@@ -222,7 +224,8 @@ trait ManagesSurrogateSale
             );
         }
 
-        NotifyAdminNewReservationJob::dispatch($reservation->fresh())->onConnection('database');
+        $reservation = $reservation->fresh();
+        NotifyAdminNewReservationJob::dispatch($reservation)->onConnection('database');
 
         session()->forget([$flow->sessionClientKey, $flow->sessionEventKey]);
 

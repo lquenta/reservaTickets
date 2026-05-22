@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Notifications\VerifyEmail as VerifyEmailNotification;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -15,6 +16,7 @@ class User extends Authenticatable implements MustVerifyEmail
     use HasFactory, Notifiable;
 
     public const PROVISIONED_VIA_SURROGATE = 'admin_surrogate';
+
     public const PROVISIONED_VIA_HONORED_GUEST = 'admin_honored_guest';
 
     protected $fillable = [
@@ -62,7 +64,9 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     public const ROLE_USER = 'user';
+
     public const ROLE_ADMIN = 'admin';
+
     public const ROLE_VENDEDOR = 'vendedor';
 
     public function isAdmin(): bool
@@ -78,5 +82,10 @@ class User extends Authenticatable implements MustVerifyEmail
     public function canSellOnBehalf(): bool
     {
         return $this->isAdmin() || $this->isVendedor();
+    }
+
+    public function sendEmailVerificationNotification(): void
+    {
+        $this->notify(new VerifyEmailNotification);
     }
 }

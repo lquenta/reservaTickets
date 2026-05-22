@@ -16,10 +16,18 @@
             @if($event->venue)
                 <p class="text-sm text-white/50 mt-1">{{ $event->venue }}</p>
             @endif
-            <a href="{{ route('seller.events.surrogate-sale.create', $event) }}"
-               class="mt-4 inline-flex justify-center rounded-lg bg-[#e50914] px-4 py-2 text-sm font-semibold text-white hover:bg-red-600 transition">
-                Vender para cliente
-            </a>
+            <div class="mt-4 flex flex-col gap-2">
+                <a href="{{ route('seller.events.surrogate-sale.create', $event) }}"
+                   class="inline-flex justify-center rounded-lg bg-[#e50914] px-4 py-2 text-sm font-semibold text-white hover:bg-red-600 transition">
+                    Vender para cliente
+                </a>
+                @if($event->venue_id)
+                    <a href="{{ route('seller.events.seats', $event) }}"
+                       class="inline-flex justify-center rounded-lg border border-red-900/60 bg-black/40 px-4 py-2 text-sm font-medium text-white/90 hover:border-[#e50914] hover:text-[#e50914] transition">
+                        Ver mapa de butacas
+                    </a>
+                @endif
+            </div>
         </div>
     @empty
         <p class="text-white/60 col-span-full">No hay eventos con venta activa en este momento.</p>

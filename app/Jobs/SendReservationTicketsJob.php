@@ -16,12 +16,35 @@ class SendReservationTicketsJob implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public function __construct(
-        public Reservation $reservation
+        public Reservation $reservation,
+        public bool $force = false,
+        /** Admin authorize must email tickets; bypass tickets_emailed_at idempotency. */
+        public bool $fromAuthorize = false,
     ) {}
 
     public function handle(): void
     {
-        $this->reservation->load(['user', 'event', 'reservationTickets.seat']);
-        Mail::to($this->reservation->user->email)->send(new TicketsSentMail($this->reservation));
+        $reservation = $this->reservation->fresh();
+        if (! $reservation) {
+            return;
+        }
+
+        if ($reservation->status !== Reservation::STATUS_CONFIRMADO) {
+            return;
+        }
+
+        $reservation->load(['user', 'event', 'reservationTickets.seat']);
+        $user = $reservation->user;
+        $email = $user?->email;
+        if (! $email) {
+            return;
+        }
+
+        if (! $this->force && ! $this->fromAuthorize && $reservation->hasTicketsEmailed()) {
+            return;
+        }
+
+        Mail::to($email)->send(new TicketsSentMail($reservation));
+        $reservation->update(['tickets_emailed_at' => now()]);
     }
 }

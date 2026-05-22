@@ -8,6 +8,7 @@ use App\Models\ReservationTicket;
 use App\Models\Seat;
 use App\Models\User;
 use App\Models\Venue;
+use App\Models\VenueLayoutElement;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -49,7 +50,7 @@ class EventSeatBlockingTest extends TestCase
             'user_id' => $buyer->id,
             'event_id' => $event->id,
             'status' => Reservation::STATUS_CONFIRMADO,
-            'payment_code' => 'TEST-' . strtoupper(\Illuminate\Support\Str::random(8)),
+            'payment_code' => 'TEST-'.strtoupper(\Illuminate\Support\Str::random(8)),
             'expires_at' => null,
         ]);
 
@@ -85,6 +86,83 @@ class EventSeatBlockingTest extends TestCase
         $this->assertNotNull($returnedSeat);
         $this->assertTrue($returnedSeat['blocked']);
         $this->assertFalse($returnedSeat['available']);
+    }
+
+    public function test_admin_seats_layout_map_includes_available_and_occupied_seat_data(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $venue = Venue::create([
+            'name' => 'Venue layout',
+            'address' => 'Calle 123',
+            'seat_rows' => 5,
+            'seat_columns' => 5,
+        ]);
+
+        $availableSeat = Seat::create([
+            'venue_id' => $venue->id,
+            'row' => 1,
+            'number' => 1,
+            'label' => 'A-1',
+            'blocked' => false,
+        ]);
+        $occupiedSeat = Seat::create([
+            'venue_id' => $venue->id,
+            'row' => 1,
+            'number' => 2,
+            'label' => 'A-2',
+            'blocked' => false,
+        ]);
+
+        foreach ([$availableSeat, $occupiedSeat] as $seat) {
+            VenueLayoutElement::create([
+                'venue_id' => $venue->id,
+                'seat_id' => $seat->id,
+                'type' => VenueLayoutElement::TYPE_SEAT,
+                'x' => 10 + ($seat->number * 50),
+                'y' => 20,
+                'w' => 48,
+                'h' => 48,
+                'rotation' => 0,
+                'z_index' => $seat->number,
+                'meta' => [],
+            ]);
+        }
+
+        $event = Event::create([
+            'name' => 'Evento layout',
+            'description' => 'Test',
+            'starts_at' => now()->addDay(),
+            'venue' => $venue->name,
+            'venue_id' => $venue->id,
+            'payment_code_prefix' => 'EVT',
+            'is_active' => true,
+        ]);
+
+        $buyer = User::factory()->create(['role' => 'user']);
+        $reservation = Reservation::create([
+            'user_id' => $buyer->id,
+            'event_id' => $event->id,
+            'status' => Reservation::STATUS_CONFIRMADO,
+            'payment_code' => 'TEST-'.strtoupper(\Illuminate\Support\Str::random(8)),
+            'expires_at' => null,
+        ]);
+        ReservationTicket::create([
+            'reservation_id' => $reservation->id,
+            'seat_id' => $occupiedSeat->id,
+            'holder_name' => 'Comprador',
+            'position' => 1,
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('admin.events.seats', $event))
+            ->assertOk()
+            ->assertSee('href="'.route('admin.events.index').'"', false)
+            ->assertSee('Plano del venue', false)
+            ->assertSee('&quot;readonly&quot;:true', false)
+            ->assertSee('Bloqueada solo en este evento', false)
+            ->assertDontSee('Clic en una butaca disponible para bloquearla', false)
+            ->assertSee('&quot;occupied&quot;:false', false)
+            ->assertSee('&quot;occupied&quot;:true', false);
     }
 
     public function test_client_cannot_reserve_event_blocked_seat_even_if_payload_is_manipulated(): void

@@ -234,6 +234,103 @@ class VenueLayoutWysiwygTest extends TestCase
             ->assertSee('Elige tus butacas haciendo clic');
     }
 
+    public function test_seller_surrogate_seats_shows_layout_map_like_client_checkout(): void
+    {
+        $seller = User::factory()->create(['role' => User::ROLE_VENDEDOR]);
+        $client = User::factory()->create(['role' => 'user']);
+        [$venue, $seat] = $this->createVenueWithSeat();
+        $event = $this->createEventForVenue($venue);
+
+        $venue->layoutElements()->create([
+            'type' => 'seat',
+            'seat_id' => $seat->id,
+            'x' => 80,
+            'y' => 120,
+            'w' => 48,
+            'h' => 48,
+            'rotation' => 0,
+            'z_index' => 1,
+            'meta' => [],
+        ]);
+
+        $this->withSession([
+            'seller_surrogate.client_user_id' => $client->id,
+            'seller_surrogate.event_id' => $event->id,
+        ]);
+
+        $this->actingAs($seller)
+            ->get(route('seller.events.surrogate-sale.seats', $event))
+            ->assertOk()
+            ->assertSee('Plano del venue', false)
+            ->assertSee('layoutZoomResetFitSimple()', false)
+            ->assertSee('hasCustomLayout()', false);
+    }
+
+    public function test_seller_can_view_readonly_event_seat_map(): void
+    {
+        $seller = User::factory()->create(['role' => User::ROLE_VENDEDOR]);
+        [$venue, $seat] = $this->createVenueWithSeat();
+        $event = $this->createEventForVenue($venue);
+
+        $venue->layoutElements()->create([
+            'type' => 'seat',
+            'seat_id' => $seat->id,
+            'x' => 80,
+            'y' => 120,
+            'w' => 48,
+            'h' => 48,
+            'rotation' => 0,
+            'z_index' => 1,
+            'meta' => [],
+        ]);
+
+        $backUrl = route('seller.events.index');
+
+        $this->actingAs($seller)
+            ->get(route('seller.events.seats', $event))
+            ->assertOk()
+            ->assertSee('Mapa de butacas', false)
+            ->assertSee('Plano del venue', false)
+            ->assertSee('Mismo plano que en el checkout del cliente', false)
+            ->assertSee('layoutZoomResetFit()', false)
+            ->assertSee('&quot;readonly&quot;:true', false)
+            ->assertSee('Volver a eventos', false)
+            ->assertSee('href="'.$backUrl.'"', false)
+            ->assertSee('sticky top-20 z-50', false)
+            ->assertSee('pointer-events-auto', false)
+            ->assertSee('Navegación del mapa de butacas', false);
+    }
+
+    public function test_seller_seat_map_requires_seller_role(): void
+    {
+        $client = User::factory()->create(['role' => 'user']);
+        [$venue] = $this->createVenueWithSeat();
+        $event = $this->createEventForVenue($venue);
+
+        $this->actingAs($client)
+            ->get(route('seller.events.seats', $event))
+            ->assertForbidden();
+    }
+
+    public function test_seller_seat_map_redirects_when_event_has_no_venue(): void
+    {
+        $seller = User::factory()->create(['role' => User::ROLE_VENDEDOR]);
+        $event = Event::create([
+            'name' => 'Sin venue',
+            'description' => 'Descripcion',
+            'starts_at' => now()->addDay(),
+            'venue' => 'Sala X',
+            'venue_id' => null,
+            'payment_code_prefix' => 'EVT',
+            'is_active' => true,
+        ]);
+
+        $this->actingAs($seller)
+            ->get(route('seller.events.seats', $event))
+            ->assertRedirect(route('seller.events.index'))
+            ->assertSessionHas('error');
+    }
+
     private function createVenueWithSeat(): array
     {
         $venue = Venue::create([

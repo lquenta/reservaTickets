@@ -4,6 +4,9 @@
 
 @section($flow->contentSection ?? 'admin')
 @php $isSellerLayout = ($flow->layout ?? '') === 'layouts.app'; @endphp
+@if($isSellerLayout)
+    @include('seller.surrogate.checkout', compact('reservation', 'totalPrice', 'flow', 'checkoutMap'))
+@else
 <div class="max-w-2xl mx-auto mb-6">
     <a href="{{ route($flow->checkoutSuccessRoute) }}" class="text-sm {{ $isSellerLayout ? 'text-[#e50914] hover:text-red-400' : 'text-violet-600 dark:text-violet-400 hover:underline' }}">← Volver</a>
     <h1 class="text-3xl font-bold text-slate-800 dark:text-white mt-2">Checkout — venta surrogada</h1>
@@ -16,9 +19,9 @@
         <p class="font-semibold text-slate-800 dark:text-white">Cliente: {{ $client->name }}</p>
         <p class="text-sm text-slate-600 dark:text-slate-400">{{ $client->email }} · {{ $client->phone }}</p>
         @if($client->hasVerifiedEmail())
-            <p class="text-sm text-emerald-600 dark:text-emerald-400 mt-1">Correo verificado</p>
+            <p class="text-sm text-emerald-600 dark:text-emerald-400 mt-1">Correo verificado — los tickets se enviarán a {{ $client->email }} cuando un administrador autorice el pago.</p>
         @else
-            <p class="text-sm text-amber-700 dark:text-amber-300 mt-1 font-medium">Correo sin verificar — al autorizar se enviará a {{ $client->email }}; si falla, debes entregar los tickets al cliente.</p>
+            <p class="text-sm text-amber-700 dark:text-amber-300 mt-1 font-medium">Correo sin verificar — tras la autorización se intentará enviar a {{ $client->email }}; si no llega, debes entregar los tickets al cliente.</p>
         @endif
         <p class="text-sm text-violet-700 dark:text-violet-300 mt-2">Vendido por: {{ $reservation->soldBy?->name }}</p>
     </div>
@@ -63,7 +66,7 @@
         <div class="rounded-xl border-2 border-amber-400 bg-amber-50 dark:bg-amber-900/20 p-4">
             <label class="inline-flex items-start gap-2 text-sm text-amber-900 dark:text-amber-100">
                 <input type="checkbox" name="seller_delivery_responsibility" value="1" required class="mt-1 rounded">
-                <span>Asumo la responsabilidad de que el cliente reciba sus tickets (correo, WhatsApp u otro medio) si el envío automático no llega o el correo no está verificado.</span>
+                <span>Asumo la responsabilidad de que el cliente reciba sus tickets (correo, WhatsApp u otro medio) tras la autorización si el envío por correo no llega o el correo no está verificado.</span>
             </label>
             @error('seller_delivery_responsibility')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
         </div>
@@ -74,4 +77,5 @@
         </button>
     </form>
 </div>
+@endif
 @endsection

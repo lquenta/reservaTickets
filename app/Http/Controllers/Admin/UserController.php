@@ -10,9 +10,31 @@ use Illuminate\View\View;
 
 class UserController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
-        $users = User::with('createdBy')->latest()->paginate(15);
+        $query = User::with('createdBy')->latest();
+
+        if ($request->filled('q')) {
+            $search = $request->string('q')->trim()->toString();
+            $term = '%'.$search.'%';
+            $query->where(function ($q) use ($term, $search) {
+                $q->where('name', 'like', $term)
+                    ->orWhere('email', 'like', $term);
+
+                if (ctype_digit($search)) {
+                    $q->orWhere('id', (int) $search);
+                    if (strlen($search) >= 4) {
+                        $q->orWhere('ci', 'like', $term)
+                            ->orWhere('phone', 'like', $term);
+                    }
+                } else {
+                    $q->orWhere('ci', 'like', $term)
+                        ->orWhere('phone', 'like', $term);
+                }
+            });
+        }
+
+        $users = $query->paginate(15)->withQueryString();
 
         return view('admin.users.index', compact('users'));
     }

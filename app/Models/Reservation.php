@@ -12,13 +12,19 @@ class Reservation extends Model
     use HasFactory;
 
     public const STATUS_INICIADO = 'INICIADO';
+
     public const STATUS_PENDIENTE_PAGO = 'PENDIENTE_PAGO';
+
     public const STATUS_CONFIRMADO = 'CONFIRMADO';
+
     public const STATUS_CANCELADO = 'CANCELADO';
+
     public const STATUS_REEMBOLSADO = 'REEMBOLSADO';
 
     public const SALE_TYPE_STANDARD = 'standard';
+
     public const SALE_TYPE_SURROGATE = 'surrogate';
+
     public const SALE_TYPE_HONORED_GUEST = 'honored_guest';
 
     protected $fillable = [
@@ -38,6 +44,7 @@ class Reservation extends Model
         'payment_receipt_path',
         'seller_delivery_acknowledged_at',
         'seller_delivery_acknowledged_by_user_id',
+        'tickets_emailed_at',
     ];
 
     protected function casts(): array
@@ -49,7 +56,13 @@ class Reservation extends Model
             'refunded_at' => 'datetime',
             'refund_amount' => 'decimal:2',
             'seller_delivery_acknowledged_at' => 'datetime',
+            'tickets_emailed_at' => 'datetime',
         ];
+    }
+
+    public function hasTicketsEmailed(): bool
+    {
+        return $this->tickets_emailed_at !== null;
     }
 
     public function user(): BelongsTo
