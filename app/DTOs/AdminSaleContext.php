@@ -10,7 +10,7 @@ readonly class AdminSaleContext
         public User $soldBy,
         public string $saleType,
         public bool $skipPendingLimit = true,
-        public int $expiryMinutes = 60,
+        public int $expiryMinutes = 10,
         public ?string $initialStatus = null,
     ) {}
 }
