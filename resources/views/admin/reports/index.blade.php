@@ -64,7 +64,7 @@
     </div>
 
     {{-- Reporte: Reembolsos --}}
-    <div x-show="tab === 'reembolsos'" @unless($activeTab === 'reembolsos') hidden @endunless class="rounded-2xl border-2 border-violet-200/60 dark:border-violet-700/50 bg-white dark:bg-slate-800/80 overflow-hidden shadow-lg">
+    <div x-show="tab === 'reembolsos'" class="rounded-2xl border-2 border-violet-200/60 dark:border-violet-700/50 bg-white dark:bg-slate-800/80 overflow-hidden shadow-lg">
         <div class="p-6 border-b border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 flex flex-wrap items-center justify-between gap-4">
             <div>
                 <h2 class="text-xl font-bold text-slate-800 dark:text-white">Reembolsos por evento</h2>
@@ -154,7 +154,7 @@
     </div>
 
     {{-- Reporte: Entradas vendidas --}}
-    <div x-show="tab === 'entradas'" @unless($activeTab === 'entradas') hidden @endunless class="rounded-2xl border-2 border-violet-200/60 dark:border-violet-700/50 bg-white dark:bg-slate-800/80 overflow-hidden shadow-lg">
+    <div x-show="tab === 'entradas'" class="rounded-2xl border-2 border-violet-200/60 dark:border-violet-700/50 bg-white dark:bg-slate-800/80 overflow-hidden shadow-lg">
         <div class="p-6 border-b border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 flex flex-wrap items-center justify-between gap-4">
             <div>
                 <h2 class="text-xl font-bold text-slate-800 dark:text-white">Entradas vendidas</h2>
@@ -196,7 +196,7 @@
     </div>
 
     {{-- Reporte: Clientes que compraron --}}
-    <div x-show="tab === 'clientes'" @unless($activeTab === 'clientes') hidden @endunless class="rounded-2xl border-2 border-violet-200/60 dark:border-violet-700/50 bg-white dark:bg-slate-800/80 overflow-hidden shadow-lg">
+    <div x-show="tab === 'clientes'" class="rounded-2xl border-2 border-violet-200/60 dark:border-violet-700/50 bg-white dark:bg-slate-800/80 overflow-hidden shadow-lg">
         <div class="p-6 border-b border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 flex flex-wrap items-center justify-between gap-4">
             <div>
                 <h2 class="text-xl font-bold text-slate-800 dark:text-white">Clientes que ya compraron entrada</h2>
@@ -231,7 +231,7 @@
     </div>
 
     {{-- Reporte: Clientes por evento --}}
-    <div x-show="tab === 'clientes-por-evento'" @unless($activeTab === 'clientes-por-evento') hidden @endunless class="rounded-2xl border-2 border-violet-200/60 dark:border-violet-700/50 bg-white dark:bg-slate-800/80 overflow-hidden shadow-lg">
+    <div x-show="tab === 'clientes-por-evento'" class="rounded-2xl border-2 border-violet-200/60 dark:border-violet-700/50 bg-white dark:bg-slate-800/80 overflow-hidden shadow-lg">
         <div class="p-6 border-b border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 flex flex-wrap items-center justify-between gap-4">
             <div>
                 <h2 class="text-xl font-bold text-slate-800 dark:text-white">Clientes por evento</h2>
@@ -280,7 +280,7 @@
     </div>
 
     {{-- Reporte: Nombres por evento --}}
-    <div x-show="tab === 'nombres-por-evento'" @unless($activeTab === 'nombres-por-evento') hidden @endunless class="rounded-2xl border-2 border-violet-200/60 dark:border-violet-700/50 bg-white dark:bg-slate-800/80 overflow-hidden shadow-lg">
+    <div x-show="tab === 'nombres-por-evento'" class="rounded-2xl border-2 border-violet-200/60 dark:border-violet-700/50 bg-white dark:bg-slate-800/80 overflow-hidden shadow-lg">
         <div class="p-6 border-b border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 flex flex-wrap items-center justify-between gap-4">
             <div>
                 <h2 class="text-xl font-bold text-slate-800 dark:text-white">Nombres por evento</h2>
@@ -355,7 +355,7 @@
     </div>
 
     {{-- Reporte de ventas --}}
-    <div x-show="tab === 'ventas'" @unless($activeTab === 'ventas') hidden @endunless class="rounded-2xl border-2 border-violet-200/60 dark:border-violet-700/50 bg-white dark:bg-slate-800/80 overflow-hidden shadow-lg">
+    <div x-show="tab === 'ventas'" class="rounded-2xl border-2 border-violet-200/60 dark:border-violet-700/50 bg-white dark:bg-slate-800/80 overflow-hidden shadow-lg">
         <div class="p-6 border-b border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 flex flex-wrap items-center justify-between gap-4">
             <div>
                 <h2 class="text-xl font-bold text-slate-800 dark:text-white">Reporte de ventas</h2>
@@ -400,7 +400,7 @@
     </div>
 
     {{-- Reporte: Metricas --}}
-    <div x-show="tab === 'metricas'" @unless($activeTab === 'metricas') hidden @endunless class="rounded-2xl border-2 border-violet-200/60 dark:border-violet-700/50 bg-white dark:bg-slate-800/80 overflow-hidden shadow-lg">
+    <div x-show="tab === 'metricas'" class="rounded-2xl border-2 border-violet-200/60 dark:border-violet-700/50 bg-white dark:bg-slate-800/80 overflow-hidden shadow-lg">
         <div class="p-6 border-b border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 flex flex-wrap items-center justify-between gap-4">
             <div>
                 <h2 class="text-xl font-bold text-slate-800 dark:text-white">Reporte de metricas</h2>
