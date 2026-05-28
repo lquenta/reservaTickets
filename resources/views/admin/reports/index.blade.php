@@ -13,7 +13,10 @@
     </a>
 </div>
 
-<div x-data="{ tab: @js(request('tab', 'entradas')) }" class="space-y-6">
+@php
+    $activeTab = request('tab', 'entradas');
+@endphp
+<div x-data="{ tab: @js($activeTab) }" class="space-y-6">
     {{-- Tabs --}}
     <div class="flex flex-wrap gap-2 border-b border-slate-200 dark:border-slate-700 pb-2">
         <button type="button"
@@ -61,7 +64,7 @@
     </div>
 
     {{-- Reporte: Reembolsos --}}
-    <div x-show="tab === 'reembolsos'" x-transition class="rounded-2xl border-2 border-violet-200/60 dark:border-violet-700/50 bg-white dark:bg-slate-800/80 overflow-hidden shadow-lg">
+    <div x-show="tab === 'reembolsos'" @unless($activeTab === 'reembolsos') hidden @endunless class="rounded-2xl border-2 border-violet-200/60 dark:border-violet-700/50 bg-white dark:bg-slate-800/80 overflow-hidden shadow-lg">
         <div class="p-6 border-b border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 flex flex-wrap items-center justify-between gap-4">
             <div>
                 <h2 class="text-xl font-bold text-slate-800 dark:text-white">Reembolsos por evento</h2>
@@ -79,7 +82,7 @@
                     <select name="refund_event_id" class="w-full rounded-lg border border-slate-300 dark:border-slate-600 dark:bg-slate-700 px-3 py-2">
                         <option value="">Todos</option>
                         @foreach($eventsForRefunds as $ev)
-                            <option value="{{ $ev->id }}" @selected($selectedEventId === $ev->id)>{{ $ev->name }}</option>
+                            <option value="{{ $ev->id }}" @selected($selectedRefundEventId === $ev->id)>{{ $ev->name }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -151,7 +154,7 @@
     </div>
 
     {{-- Reporte: Entradas vendidas --}}
-    <div x-show="tab === 'entradas'" x-transition class="rounded-2xl border-2 border-violet-200/60 dark:border-violet-700/50 bg-white dark:bg-slate-800/80 overflow-hidden shadow-lg">
+    <div x-show="tab === 'entradas'" @unless($activeTab === 'entradas') hidden @endunless class="rounded-2xl border-2 border-violet-200/60 dark:border-violet-700/50 bg-white dark:bg-slate-800/80 overflow-hidden shadow-lg">
         <div class="p-6 border-b border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 flex flex-wrap items-center justify-between gap-4">
             <div>
                 <h2 class="text-xl font-bold text-slate-800 dark:text-white">Entradas vendidas</h2>
@@ -193,7 +196,7 @@
     </div>
 
     {{-- Reporte: Clientes que compraron --}}
-    <div x-show="tab === 'clientes'" x-transition class="rounded-2xl border-2 border-violet-200/60 dark:border-violet-700/50 bg-white dark:bg-slate-800/80 overflow-hidden shadow-lg">
+    <div x-show="tab === 'clientes'" @unless($activeTab === 'clientes') hidden @endunless class="rounded-2xl border-2 border-violet-200/60 dark:border-violet-700/50 bg-white dark:bg-slate-800/80 overflow-hidden shadow-lg">
         <div class="p-6 border-b border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 flex flex-wrap items-center justify-between gap-4">
             <div>
                 <h2 class="text-xl font-bold text-slate-800 dark:text-white">Clientes que ya compraron entrada</h2>
@@ -228,7 +231,7 @@
     </div>
 
     {{-- Reporte: Clientes por evento --}}
-    <div x-show="tab === 'clientes-por-evento'" x-transition class="rounded-2xl border-2 border-violet-200/60 dark:border-violet-700/50 bg-white dark:bg-slate-800/80 overflow-hidden shadow-lg">
+    <div x-show="tab === 'clientes-por-evento'" @unless($activeTab === 'clientes-por-evento') hidden @endunless class="rounded-2xl border-2 border-violet-200/60 dark:border-violet-700/50 bg-white dark:bg-slate-800/80 overflow-hidden shadow-lg">
         <div class="p-6 border-b border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 flex flex-wrap items-center justify-between gap-4">
             <div>
                 <h2 class="text-xl font-bold text-slate-800 dark:text-white">Clientes por evento</h2>
@@ -277,7 +280,7 @@
     </div>
 
     {{-- Reporte: Nombres por evento --}}
-    <div x-show="tab === 'nombres-por-evento'" x-transition class="rounded-2xl border-2 border-violet-200/60 dark:border-violet-700/50 bg-white dark:bg-slate-800/80 overflow-hidden shadow-lg">
+    <div x-show="tab === 'nombres-por-evento'" @unless($activeTab === 'nombres-por-evento') hidden @endunless class="rounded-2xl border-2 border-violet-200/60 dark:border-violet-700/50 bg-white dark:bg-slate-800/80 overflow-hidden shadow-lg">
         <div class="p-6 border-b border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 flex flex-wrap items-center justify-between gap-4">
             <div>
                 <h2 class="text-xl font-bold text-slate-800 dark:text-white">Nombres por evento</h2>
@@ -291,7 +294,7 @@
                     <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">Evento</label>
                     <select name="event_id" class="w-full rounded-xl border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white focus:border-violet-500 focus:ring-violet-500" onchange="this.form.submit()">
                         @forelse($eventsForNamesReport as $ev)
-                            <option value="{{ $ev->id }}" @selected((int)$selectedEventId === (int)$ev->id)>
+                            <option value="{{ $ev->id }}" @selected((int) $selectedNamesEventId === (int) $ev->id)>
                                 {{ $ev->name }} — {{ $ev->starts_at?->translatedFormat('d/m/Y H:i') ?? '—' }}@if(! $ev->is_active) (SOLD OUT)@endif
                             </option>
                         @empty
@@ -301,9 +304,9 @@
                 </div>
 
                 <div class="ml-auto">
-                    <a href="{{ $selectedEventId ? route('admin.reports.pdf.nombres-por-evento', ['event_id' => $selectedEventId]) : '#' }}"
+                    <a href="{{ $selectedNamesEventId ? route('admin.reports.pdf.nombres-por-evento', ['event_id' => $selectedNamesEventId]) : '#' }}"
                        target="_blank"
-                       class="inline-flex items-center gap-2 rounded-xl bg-red-600 hover:bg-red-700 px-4 py-2.5 text-white font-semibold transition {{ $selectedEventId ? '' : 'pointer-events-none opacity-50' }}">
+                       class="inline-flex items-center gap-2 rounded-xl bg-red-600 hover:bg-red-700 px-4 py-2.5 text-white font-semibold transition">
                         <span aria-hidden="true">📄</span> Descargar PDF
                     </a>
                 </div>
@@ -352,7 +355,7 @@
     </div>
 
     {{-- Reporte de ventas --}}
-    <div x-show="tab === 'ventas'" x-transition class="rounded-2xl border-2 border-violet-200/60 dark:border-violet-700/50 bg-white dark:bg-slate-800/80 overflow-hidden shadow-lg">
+    <div x-show="tab === 'ventas'" @unless($activeTab === 'ventas') hidden @endunless class="rounded-2xl border-2 border-violet-200/60 dark:border-violet-700/50 bg-white dark:bg-slate-800/80 overflow-hidden shadow-lg">
         <div class="p-6 border-b border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 flex flex-wrap items-center justify-between gap-4">
             <div>
                 <h2 class="text-xl font-bold text-slate-800 dark:text-white">Reporte de ventas</h2>
@@ -397,7 +400,7 @@
     </div>
 
     {{-- Reporte: Metricas --}}
-    <div x-show="tab === 'metricas'" x-transition class="rounded-2xl border-2 border-violet-200/60 dark:border-violet-700/50 bg-white dark:bg-slate-800/80 overflow-hidden shadow-lg">
+    <div x-show="tab === 'metricas'" @unless($activeTab === 'metricas') hidden @endunless class="rounded-2xl border-2 border-violet-200/60 dark:border-violet-700/50 bg-white dark:bg-slate-800/80 overflow-hidden shadow-lg">
         <div class="p-6 border-b border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 flex flex-wrap items-center justify-between gap-4">
             <div>
                 <h2 class="text-xl font-bold text-slate-800 dark:text-white">Reporte de metricas</h2>

@@ -149,7 +149,7 @@ class ReportController extends Controller
     private function getRefundsReportData(Request $request): array
     {
         $eventsForRefunds = Event::query()->orderByDesc('starts_at')->get(['id', 'name', 'starts_at']);
-        $selectedEventId = (int) ($request->integer('refund_event_id') ?: 0);
+        $selectedRefundEventId = (int) ($request->integer('refund_event_id') ?: 0);
         $dateFrom = $request->filled('refund_date_from') ? $request->date('refund_date_from')->startOfDay() : null;
         $dateTo = $request->filled('refund_date_to') ? $request->date('refund_date_to')->endOfDay() : null;
 
@@ -158,8 +158,8 @@ class ReportController extends Controller
             ->with(['user', 'refundedBy', 'event', 'reservationTickets.seat'])
             ->orderByDesc('refunded_at');
 
-        if ($selectedEventId > 0) {
-            $query->where('event_id', $selectedEventId);
+        if ($selectedRefundEventId > 0) {
+            $query->where('event_id', $selectedRefundEventId);
         }
         if ($dateFrom) {
             $query->where('refunded_at', '>=', $dateFrom);
@@ -188,7 +188,7 @@ class ReportController extends Controller
 
         return compact(
             'eventsForRefunds',
-            'selectedEventId',
+            'selectedRefundEventId',
             'refundedReservations',
             'refundsTotal',
             'refundsCount',
@@ -213,8 +213,8 @@ class ReportController extends Controller
         $metricsData = $this->metricsForRequest($request);
 
         $eventsForNamesReport = $this->getEventsForNamesReport();
-        $selectedEventId = (int) ($request->integer('event_id') ?: ($eventsForNamesReport->first()?->id ?? 0));
-        $selectedEvent = $selectedEventId ? Event::query()->whereKey($selectedEventId)->first(['id', 'name', 'starts_at', 'is_active']) : null;
+        $selectedNamesEventId = (int) ($request->integer('event_id') ?: ($eventsForNamesReport->first()?->id ?? 0));
+        $selectedEvent = $selectedNamesEventId ? Event::query()->whereKey($selectedNamesEventId)->first(['id', 'name', 'starts_at', 'is_active']) : null;
 
         $reservationsForSelectedEvent = collect();
         if ($selectedEvent) {
@@ -231,11 +231,16 @@ class ReportController extends Controller
 
         $refundsData = $this->getRefundsReportData($request);
 
-        return view('admin.reports.index', $data + $metricsData + $refundsData + compact(
-            'eventsForNamesReport',
-            'selectedEventId',
-            'selectedEvent',
-            'reservationsForSelectedEvent'
+        return view('admin.reports.index', array_merge(
+            $data,
+            $metricsData,
+            $refundsData,
+            compact(
+                'eventsForNamesReport',
+                'selectedNamesEventId',
+                'selectedEvent',
+                'reservationsForSelectedEvent'
+            )
         ));
     }
 
@@ -297,7 +302,8 @@ class ReportController extends Controller
 
     public function downloadNombresPorEventoPdf(Request $request): Response
     {
-        $eventId = (int) $request->integer('event_id');
+        $eventId = (int) ($request->integer('event_id') ?: ($this->getEventsForNamesReport()->first()?->id ?? 0));
+        abort_if($eventId <= 0, 404);
         [$event, $reservations] = $this->getNombresPorEventoReportData($eventId);
 
         $pdf = Pdf::loadView('admin.reports.pdf.nombres-por-evento', compact('event', 'reservations'));
