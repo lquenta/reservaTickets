@@ -98,7 +98,7 @@ class Event extends Model
                 $q->where('events.id', $this->id);
             })
             ->whereDoesntHave('reservationTickets', function ($q) {
-                $q->whereHas('reservation', function ($q2) {
+                $q->active()->whereHas('reservation', function ($q2) {
                     $q2->where('event_id', $this->id)
                         ->where(function ($q3) {
                             $q3->whereIn('status', [
@@ -143,6 +143,7 @@ class Event extends Model
     public function reservedCountForSection(int $sectionId): int
     {
         return ReservationTicket::query()
+            ->active()
             ->where('section_id', $sectionId)
             ->whereHas('reservation', function ($q) {
                 $q->where('event_id', $this->id)
@@ -185,6 +186,7 @@ class Event extends Model
         }
 
         return \App\Models\ReservationTicket::query()
+            ->active()
             ->whereNotNull('seat_id')
             ->whereHas('reservation', function ($q) {
                 $q->where('event_id', $this->id)

@@ -19,6 +19,8 @@ class ReservationAuditLog extends Model
     public const ACTION_SURROGATE_DELIVERY_RESPONSIBILITY_ACCEPTED = 'surrogate_delivery_responsibility_accepted';
     public const ACTION_HONORED_GUEST_CREATED = 'honored_guest_created';
     public const ACTION_REFUNDED = 'refunded';
+
+    public const ACTION_PARTIALLY_REFUNDED = 'partially_refunded';
     public const ACTION_EVENT_RESCHEDULED = 'event_rescheduled';
 
     public const RESULT_SUCCESS = 'success';

@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Event;
 use App\Models\Reservation;
 use App\Models\ReservationTicket;
+use Illuminate\Support\Collection;
 
 class ReservationPricingService
 {
@@ -29,8 +30,39 @@ class ReservationPricingService
             return 0.0;
         }
 
-        $tickets = $reservation->reservationTickets;
+        $tickets = $this->activeTickets($reservation);
         if ($tickets->isEmpty()) {
+            return 0.0;
+        }
+
+        return $this->totalForTickets($reservation, $tickets);
+    }
+
+    public function totalForActiveTickets(Reservation $reservation): float
+    {
+        $reservation->loadMissing([
+            'event.sections',
+            'event.ticketTemplate',
+            'reservationTickets.seat',
+            'reservationTickets.section',
+        ]);
+
+        return $this->totalForTickets($reservation, $this->activeTickets($reservation));
+    }
+
+    /**
+     * @param  Collection<int, ReservationTicket>  $tickets
+     */
+    public function totalForTickets(Reservation $reservation, Collection $tickets): float
+    {
+        if ($reservation->isHonoredGuest()) {
+            return 0.0;
+        }
+
+        $reservation->loadMissing(['event.sections', 'event.ticketTemplate', 'reservationTickets.seat']);
+
+        $event = $reservation->event;
+        if (! $event || $tickets->isEmpty()) {
             return 0.0;
         }
 
@@ -41,6 +73,42 @@ class ReservationPricingService
         $unitPrice = $event->ticketTemplate ? (float) $event->ticketTemplate->price : 0.0;
 
         return $unitPrice * $tickets->count();
+    }
+
+    public function unitPriceForTicket(Reservation $reservation, ReservationTicket $ticket): float
+    {
+        if ($reservation->isHonoredGuest()) {
+            return 0.0;
+        }
+
+        $reservation->loadMissing(['event.sections', 'event.ticketTemplate']);
+        $event = $reservation->event;
+        if (! $event) {
+            return 0.0;
+        }
+
+        if ($event->hasSections()) {
+            $eventSection = $this->resolveEventSection($event, $ticket);
+            if ($eventSection && $eventSection->pivot && $eventSection->pivot->price !== null) {
+                return (float) $eventSection->pivot->price;
+            }
+
+            return 0.0;
+        }
+
+        return $event->ticketTemplate ? (float) $event->ticketTemplate->price : 0.0;
+    }
+
+    /**
+     * @return \Illuminate\Support\Collection<int, ReservationTicket>
+     */
+    private function activeTickets(Reservation $reservation): Collection
+    {
+        $tickets = $reservation->relationLoaded('reservationTickets')
+            ? $reservation->reservationTickets
+            : $reservation->reservationTickets()->get();
+
+        return $tickets->filter(fn (ReservationTicket $t) => ! $t->isRefunded())->values();
     }
 
     /**

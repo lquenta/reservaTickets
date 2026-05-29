@@ -24,6 +24,7 @@ class RefundController extends Controller
             $query = Reservation::query()
                 ->where('event_id', $selectedEvent->id)
                 ->where('status', Reservation::STATUS_CONFIRMADO)
+                ->whereHas('reservationTickets', fn ($t) => $t->active()->whereNull('validated_at'))
                 ->with([
                     'user',
                     'event',
@@ -59,22 +60,37 @@ class RefundController extends Controller
     {
         $validated = $request->validate([
             'refund_reason' => ['nullable', 'string', 'max:2000'],
+            'ticket_ids' => ['nullable', 'array', 'min:1'],
+            'ticket_ids.*' => ['integer'],
         ]);
 
         $reservation->load('reservationTickets');
 
-        if ($reservation->hasValidatedTickets()) {
-            return back()->with('error', 'No se puede reembolsar: al menos una entrada ya fue validada en puerta.');
-        }
-
         try {
-            $refundService->refund($reservation, $request->user(), $validated['refund_reason'] ?? null);
+            if (! empty($validated['ticket_ids'])) {
+                $updated = $refundService->refundTickets(
+                    $reservation,
+                    $request->user(),
+                    $validated['ticket_ids'],
+                    $validated['refund_reason'] ?? null
+                );
+            } else {
+                if ($reservation->hasValidatedTickets()) {
+                    return back()->with('error', 'No se puede reembolsar la reserva completa: al menos una entrada ya fue validada en puerta. Selecciona solo las entradas reembolsables.');
+                }
+
+                $updated = $refundService->refund($reservation, $request->user(), $validated['refund_reason'] ?? null);
+            }
         } catch (\InvalidArgumentException $e) {
             return back()->with('error', $e->getMessage());
         }
 
         $redirect = $request->input('redirect', route('admin.refunds.index', ['event_id' => $reservation->event_id]));
 
-        return redirect()->to($redirect)->with('message', 'Reserva reembolsada. Las butacas quedan liberadas.');
+        $message = $updated->status === Reservation::STATUS_CONFIRMADO
+            ? 'Reembolso parcial registrado. Las butacas seleccionadas quedan liberadas.'
+            : 'Reserva reembolsada. Las butacas quedan liberadas.';
+
+        return redirect()->to($redirect)->with('message', $message);
     }
 }

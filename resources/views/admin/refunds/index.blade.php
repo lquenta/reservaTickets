@@ -5,7 +5,7 @@
 @section('admin')
 <div class="mb-8">
     <h1 class="text-3xl font-bold text-slate-800 dark:text-white">Reembolsos manuales</h1>
-    <p class="text-slate-600 dark:text-slate-400 mt-1">Revisa el comprobante y el monto de la reserva antes de confirmar el reembolso.</p>
+    <p class="text-slate-600 dark:text-slate-400 mt-1">Revisa el comprobante y el monto antes de confirmar. Puedes reembolsar entradas sueltas o la reserva completa.</p>
 </div>
 
 <form method="GET" action="{{ route('admin.refunds.index') }}" class="rounded-2xl border-2 border-violet-200/60 dark:border-violet-700/50 bg-white dark:bg-slate-800/80 p-6 mb-6 space-y-4">
@@ -30,15 +30,36 @@
 </form>
 
 @if($selectedEvent && $reservations->isNotEmpty())
-    <p class="text-sm text-slate-600 dark:text-slate-400 mb-4">{{ $reservations->total() }} reserva(s) confirmada(s) en <strong>{{ $selectedEvent->name }}</strong></p>
+    <p class="text-sm text-slate-600 dark:text-slate-400 mb-4">{{ $reservations->total() }} reserva(s) confirmada(s) con entradas reembolsables en <strong>{{ $selectedEvent->name }}</strong></p>
 
     <div class="space-y-6">
         @foreach($reservations as $reservation)
             @php
-                $hasValidated = $reservation->hasValidatedTickets();
-                $refundAmount = $reservation->sale_amount ?? app(\App\Services\ReservationPricingService::class)->totalForReservation($reservation);
+                $pricing = app(\App\Services\ReservationPricingService::class);
+                $refundableTickets = $reservation->reservationTickets->filter(fn ($t) => $t->isRefundable());
+                $refundedTickets = $reservation->reservationTickets->filter(fn ($t) => $t->isRefunded());
+                $ticketPrices = $refundableTickets->mapWithKeys(fn ($t) => [$t->id => $pricing->unitPriceForTicket($reservation, $t)])->all();
             @endphp
-            <article class="rounded-2xl border-2 border-violet-200/60 dark:border-violet-700/50 bg-white dark:bg-slate-800/80 overflow-hidden shadow-lg">
+            <article class="rounded-2xl border-2 border-violet-200/60 dark:border-violet-700/50 bg-white dark:bg-slate-800/80 overflow-hidden shadow-lg"
+                     x-data="{
+                        prices: @js($ticketPrices),
+                        selected: [],
+                        toggle(id) {
+                            const i = this.selected.indexOf(id);
+                            if (i === -1) this.selected.push(id);
+                            else this.selected.splice(i, 1);
+                        },
+                        selectAll() {
+                            this.selected = Object.keys(this.prices).map(Number);
+                        },
+                        amount() {
+                            return this.selected.reduce((sum, id) => sum + (this.prices[id] ?? 0), 0);
+                        },
+                        allSelected() {
+                            const keys = Object.keys(this.prices);
+                            return keys.length > 0 && this.selected.length === keys.length;
+                        }
+                     }">
                 <div class="px-5 py-4 border-b border-slate-200 dark:border-slate-700 bg-slate-50/80 dark:bg-slate-800/80 flex flex-wrap items-center justify-between gap-3">
                     <div>
                         <p class="font-bold text-slate-800 dark:text-white text-lg">{{ $reservation->user?->name }}</p>
@@ -64,6 +85,10 @@
                                 <dt class="font-medium text-slate-500">Pago confirmado</dt>
                                 <dd>{{ $reservation->confirmed_payment_at->translatedFormat('d/m/Y H:i') }}</dd>
                             @endif
+                            @if((float) ($reservation->refund_amount ?? 0) > 0)
+                                <dt class="font-medium text-slate-500">Ya reembolsado</dt>
+                                <dd class="text-orange-700 dark:text-orange-300 font-medium">{{ number_format((float) $reservation->refund_amount, 2) }} Bs</dd>
+                            @endif
                             <dt class="font-medium text-slate-500">Tipo</dt>
                             <dd>
                                 @if($reservation->sale_type === 'surrogate')
@@ -79,21 +104,40 @@
                             </dd>
                             <dt class="font-medium text-slate-500">Entradas</dt>
                             <dd>
-                                <ul class="list-disc list-inside space-y-0.5">
+                                <ul class="space-y-2">
                                     @foreach($reservation->reservationTickets as $ticket)
-                                        <li>
-                                            <span class="font-medium text-slate-800 dark:text-slate-200">{{ $ticket->holder_name }}</span>
-                                            @if($ticket->seat)
-                                                — {{ $ticket->seat->display_label }}
-                                            @elseif($ticket->section)
-                                                — {{ $ticket->section->name ?? 'Sección' }}
+                                        <li class="flex items-start gap-2 @if($ticket->isRefunded()) opacity-60 @endif">
+                                            @if($ticket->isRefundable())
+                                                <input type="checkbox"
+                                                       class="mt-1 rounded border-slate-300 text-violet-600 focus:ring-violet-500"
+                                                       :checked="selected.includes({{ $ticket->id }})"
+                                                       @change="toggle({{ $ticket->id }})">
+                                            @else
+                                                <span class="mt-1 w-4 shrink-0" aria-hidden="true"></span>
                                             @endif
-                                            @if($ticket->validated_at)
-                                                <span class="text-amber-600 dark:text-amber-400 text-xs">(validada en puerta)</span>
-                                            @endif
+                                            <span>
+                                                <span class="font-medium text-slate-800 dark:text-slate-200">{{ $ticket->holder_name }}</span>
+                                                @if($ticket->seat)
+                                                    — {{ $ticket->seat->display_label }}
+                                                @elseif($ticket->section)
+                                                    — {{ $ticket->section->name ?? 'Sección' }}
+                                                @endif
+                                                @if($ticket->validated_at)
+                                                    <span class="text-amber-600 dark:text-amber-400 text-xs">(validada en puerta)</span>
+                                                @elseif($ticket->isRefunded())
+                                                    <span class="text-slate-500 text-xs">(reembolsada)</span>
+                                                @else
+                                                    <span class="text-violet-600 dark:text-violet-400 text-xs">({{ number_format($pricing->unitPriceForTicket($reservation, $ticket), 2) }} Bs)</span>
+                                                @endif
+                                            </span>
                                         </li>
                                     @endforeach
                                 </ul>
+                                @if($refundableTickets->count() > 1)
+                                    <button type="button" @click="selectAll()" class="mt-2 text-xs font-semibold text-violet-600 dark:text-violet-400 hover:underline">
+                                        Seleccionar todas las reembolsables
+                                    </button>
+                                @endif
                             </dd>
                         </dl>
                     </div>
@@ -121,24 +165,38 @@
 
                 <div class="px-5 py-4 border-t border-slate-200 dark:border-slate-700 bg-orange-50/60 dark:bg-orange-900/20 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div>
-                        <p class="text-xs uppercase font-semibold text-orange-700 dark:text-orange-300">Monto a reembolsar</p>
-                        <p class="text-3xl font-bold text-slate-900 dark:text-white">{{ number_format($refundAmount, 2) }} <span class="text-lg font-semibold">Bs</span></p>
-                        <p class="text-xs text-slate-500 mt-1">Reembolso de la reserva completa ({{ $reservation->reservationTickets->count() }} entrada(s)).</p>
+                        <p class="text-xs uppercase font-semibold text-orange-700 dark:text-orange-300">Monto seleccionado</p>
+                        <p class="text-3xl font-bold text-slate-900 dark:text-white">
+                            <span x-text="amount().toFixed(2)">0.00</span>
+                            <span class="text-lg font-semibold">Bs</span>
+                        </p>
+                        <p class="text-xs text-slate-500 mt-1">
+                            <span x-show="!allSelected()">Reembolso parcial — libera solo las butacas marcadas.</span>
+                            <span x-show="allSelected()" x-cloak>Reembolso total — {{ $refundableTickets->count() }} entrada(s) activa(s).</span>
+                        </p>
+                        @if($refundedTickets->isNotEmpty())
+                            <p class="text-xs text-slate-500 mt-1">{{ $refundedTickets->count() }} entrada(s) ya reembolsada(s) en esta reserva.</p>
+                        @endif
                     </div>
-                    <div class="sm:min-w-[240px]">
-                        @if($hasValidated)
+                    <div class="sm:min-w-[280px]">
+                        @if($refundableTickets->isEmpty())
                             <p class="rounded-xl bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 px-4 py-3 text-sm font-medium text-center">
-                                No reembolsable: entrada validada en puerta.
+                                No quedan entradas reembolsables.
                             </p>
                         @else
                             <form method="POST" action="{{ route('admin.refunds.refund', $reservation) }}"
-                                  onsubmit="return confirm('¿Confirmar reembolso de {{ number_format($refundAmount, 2) }} Bs para {{ $reservation->user?->name }}?');">
+                                  @submit="if (selected.length === 0) { $event.preventDefault(); alert('Selecciona al menos una entrada.'); return false; } return confirm('¿Confirmar reembolso de ' + amount().toFixed(2) + ' Bs?');">
                                 @csrf
                                 <input type="hidden" name="redirect" value="{{ request()->fullUrl() }}">
+                                <template x-for="id in selected" :key="id">
+                                    <input type="hidden" name="ticket_ids[]" :value="id">
+                                </template>
                                 <label for="refund_reason_{{ $reservation->id }}" class="sr-only">Motivo</label>
                                 <input type="text" id="refund_reason_{{ $reservation->id }}" name="refund_reason" placeholder="Motivo del reembolso (opcional)"
                                        class="w-full mb-2 rounded-lg border border-slate-300 dark:border-slate-600 dark:bg-slate-800 px-3 py-2 text-sm">
-                                <button type="submit" class="w-full rounded-xl bg-red-600 hover:bg-red-700 text-white font-semibold py-2.5 transition">
+                                <button type="submit"
+                                        class="w-full rounded-xl bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-2.5 transition"
+                                        :disabled="selected.length === 0">
                                     Confirmar reembolso
                                 </button>
                             </form>
@@ -152,7 +210,7 @@
     <div class="mt-6">{{ $reservations->links() }}</div>
 @elseif($selectedEvent)
     <p class="text-slate-500 dark:text-slate-400 rounded-xl border border-dashed border-slate-300 dark:border-slate-600 px-6 py-10 text-center">
-        No hay reservas confirmadas que coincidan con la búsqueda.
+        No hay reservas confirmadas con entradas reembolsables que coincidan con la búsqueda.
     </p>
 @endif
 @endsection

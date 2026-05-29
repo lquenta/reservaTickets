@@ -95,6 +95,11 @@ class Reservation extends Model
         return $this->hasMany(ReservationTicket::class);
     }
 
+    public function activeReservationTickets(): HasMany
+    {
+        return $this->reservationTickets()->whereNull('refunded_at');
+    }
+
     public function isExpired(): bool
     {
         return $this->expires_at && $this->expires_at->isPast();
@@ -133,5 +138,17 @@ class Reservation extends Model
         }
 
         return $this->reservationTickets()->whereNotNull('validated_at')->exists();
+    }
+
+    public function hasRefundableTickets(): bool
+    {
+        if ($this->relationLoaded('reservationTickets')) {
+            return $this->reservationTickets->contains(fn ($t) => $t->isRefundable());
+        }
+
+        return $this->reservationTickets()
+            ->whereNull('refunded_at')
+            ->whereNull('validated_at')
+            ->exists();
     }
 }

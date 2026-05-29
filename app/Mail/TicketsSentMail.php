@@ -40,10 +40,12 @@ class TicketsSentMail extends Mailable
         $design = $template ? $template->design : \App\Models\TicketTemplate::defaultDesign();
         $price = $template ? (float) $template->price : 0;
 
+        $activeTickets = $reservation->reservationTickets->filter(fn ($t) => ! $t->isRefunded())->values();
+
         $pdf = Pdf::loadView('tickets.pdf', [
             'reservation' => $reservation,
             'event' => $reservation->event,
-            'tickets' => $reservation->reservationTickets,
+            'tickets' => $activeTickets,
             'design' => $design,
             'price' => $price,
         ]);

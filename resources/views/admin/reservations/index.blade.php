@@ -139,14 +139,25 @@
                                         @csrf
                                         <button type="submit" class="rounded-xl bg-slate-600 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-700 transition">Reenviar tickets</button>
                                     </form>
-                                    @if($r->hasValidatedTickets())
-                                        <span class="rounded-xl bg-slate-200 dark:bg-slate-600 text-slate-600 dark:text-slate-400 px-4 py-2 text-sm font-medium" title="Al menos una entrada ya fue validada en puerta">No reembolsable</span>
+                                    @if($r->hasRefundableTickets())
+                                        @if($r->hasValidatedTickets())
+                                            <a href="{{ route('admin.refunds.index', ['event_id' => $r->event_id, 'q' => $r->payment_code]) }}"
+                                               class="rounded-xl bg-orange-600 px-4 py-2 text-sm font-semibold text-white hover:bg-orange-700 transition inline-flex items-center">
+                                                Reembolsar entradas
+                                            </a>
+                                        @else
+                                            <form method="POST" action="{{ route('admin.refunds.refund', $r) }}" class="inline" onsubmit="return confirm('¿Reembolsar esta reserva completa?');">
+                                                @csrf
+                                                <input type="hidden" name="redirect" value="{{ request()->fullUrl() }}">
+                                                <button type="submit" class="rounded-xl bg-orange-600 px-4 py-2 text-sm font-semibold text-white hover:bg-orange-700 transition">Reembolsar</button>
+                                            </form>
+                                            <a href="{{ route('admin.refunds.index', ['event_id' => $r->event_id, 'q' => $r->payment_code]) }}"
+                                               class="rounded-xl border-2 border-orange-500 px-4 py-2 text-sm font-semibold text-orange-600 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-900/30 transition inline-flex items-center">
+                                                Parcial
+                                            </a>
+                                        @endif
                                     @else
-                                        <form method="POST" action="{{ route('admin.refunds.refund', $r) }}" class="inline" onsubmit="return confirm('¿Reembolsar esta reserva completa?');">
-                                            @csrf
-                                            <input type="hidden" name="redirect" value="{{ request()->fullUrl() }}">
-                                            <button type="submit" class="rounded-xl bg-orange-600 px-4 py-2 text-sm font-semibold text-white hover:bg-orange-700 transition">Reembolsar</button>
-                                        </form>
+                                        <span class="rounded-xl bg-slate-200 dark:bg-slate-600 text-slate-600 dark:text-slate-400 px-4 py-2 text-sm font-medium">No reembolsable</span>
                                     @endif
                                 </div>
                             @else

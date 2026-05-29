@@ -124,6 +124,10 @@ class ReservationController extends Controller
         }
 
         $reservation->load(['event.ticketTemplate', 'reservationTickets.seat', 'soldBy']);
+        $activeTickets = $reservation->reservationTickets->filter(fn ($t) => ! $t->isRefunded())->values();
+        if ($activeTickets->isEmpty()) {
+            abort(404, 'No hay entradas activas en esta reserva.');
+        }
         $template = $reservation->event->ticketTemplate;
         $design = $template ? $template->design : \App\Models\TicketTemplate::defaultDesign();
         $price = $template ? (float) $template->price : 0;
@@ -131,7 +135,7 @@ class ReservationController extends Controller
         $pdf = Pdf::loadView('tickets.pdf', [
             'reservation' => $reservation,
             'event' => $reservation->event,
-            'tickets' => $reservation->reservationTickets,
+            'tickets' => $activeTickets,
             'design' => $design,
             'price' => $price,
         ]);

@@ -84,6 +84,13 @@ class TicketValidationController extends Controller
             ], 404);
         }
 
+        if ($ticket->refunded_at !== null) {
+            return response()->json([
+                'valid' => false,
+                'message' => 'Entrada reembolsada',
+            ], 403);
+        }
+
         $holderName = $ticket->holder_name;
         $seatLabel = $this->seatLabel($ticket);
 
