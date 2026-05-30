@@ -284,7 +284,7 @@
         <div class="p-6 border-b border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 flex flex-wrap items-center justify-between gap-4">
             <div>
                 <h2 class="text-xl font-bold text-slate-800 dark:text-white">Nombres por evento</h2>
-                <p class="text-slate-600 dark:text-slate-400 text-sm mt-1">Titulares y butaca asignada (reservas confirmadas). Incluye eventos activos y SOLD OUT.</p>
+                <p class="text-slate-600 dark:text-slate-400 text-sm mt-1">Titulares y butaca asignada (reservas confirmadas), ordenados por butaca. Incluye eventos activos y SOLD OUT.</p>
             </div>
         </div>
         <div class="p-6">
@@ -323,27 +323,27 @@
                 </div>
             @endif
 
-            @if($reservationsForSelectedEvent->isNotEmpty())
+            @if($namesReportRows->isNotEmpty())
                 <div class="overflow-x-auto">
-                    <table class="w-full min-w-[520px]">
+                    <table class="w-full min-w-[720px]">
                         <thead class="bg-slate-100 dark:bg-slate-700/50">
                             <tr>
-                                <th class="text-left px-4 py-3 text-slate-700 dark:text-slate-300 font-semibold">Reserva</th>
-                                <th class="text-left px-4 py-3 text-slate-700 dark:text-slate-300 font-semibold">Nombre completo</th>
                                 <th class="text-left px-4 py-3 text-slate-700 dark:text-slate-300 font-semibold">Butaca</th>
+                                <th class="text-left px-4 py-3 text-slate-700 dark:text-slate-300 font-semibold">Nombre completo</th>
+                                <th class="text-left px-4 py-3 text-slate-700 dark:text-slate-300 font-semibold">Cliente</th>
+                                <th class="text-left px-4 py-3 text-slate-700 dark:text-slate-300 font-semibold">Fecha y hora</th>
+                                <th class="text-left px-4 py-3 text-slate-700 dark:text-slate-300 font-semibold">Reserva</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach($reservationsForSelectedEvent as $res)
-                                @foreach($res->reservationTickets as $t)
-                                    <tr class="border-t border-slate-200 dark:border-slate-700">
-                                        <td class="px-4 py-3 text-sm text-slate-700 dark:text-slate-300">{{ $res->payment_code ?? ('#'.$res->id) }}</td>
-                                        <td class="px-4 py-3 font-medium text-slate-800 dark:text-white">
-                                            {{ $t->holder_name ?: '—' }}@if($res->sale_type === \App\Models\Reservation::SALE_TYPE_HONORED_GUEST) (Invitado de Honor)@endif
-                                        </td>
-                                        <td class="px-4 py-3 text-slate-700 dark:text-slate-300">{{ $t->seat?->display_label ?? 'Sin butaca' }}</td>
-                                    </tr>
-                                @endforeach
+                            @foreach($namesReportRows as $row)
+                                <tr class="border-t border-slate-200 dark:border-slate-700">
+                                    <td class="px-4 py-3 font-mono text-slate-700 dark:text-slate-300">{{ $row->seat_label }}</td>
+                                    <td class="px-4 py-3 font-medium text-slate-800 dark:text-white">{{ $row->holder_name }}</td>
+                                    <td class="px-4 py-3 text-slate-700 dark:text-slate-300">{{ $row->client_name }}</td>
+                                    <td class="px-4 py-3 text-sm text-slate-700 dark:text-slate-300 whitespace-nowrap">{{ $row->reserved_at?->translatedFormat('d/m/Y H:i') ?? '—' }}</td>
+                                    <td class="px-4 py-3 text-sm text-slate-700 dark:text-slate-300">{{ $row->reservation }}</td>
+                                </tr>
                             @endforeach
                         </tbody>
                     </table>

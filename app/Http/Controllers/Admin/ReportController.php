@@ -9,6 +9,7 @@ use App\Models\ReservationAuditLog;
 use App\Models\ReservationTicket;
 use App\Models\User;
 use App\Services\AdminDashboardMetricsService;
+use App\Support\NombresPorEventoReportRows;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -216,9 +217,9 @@ class ReportController extends Controller
         $selectedNamesEventId = (int) ($request->integer('event_id') ?: ($eventsForNamesReport->first()?->id ?? 0));
         $selectedEvent = $selectedNamesEventId ? Event::query()->whereKey($selectedNamesEventId)->first(['id', 'name', 'starts_at', 'is_active']) : null;
 
-        $reservationsForSelectedEvent = collect();
+        $namesReportRows = collect();
         if ($selectedEvent) {
-            [, $reservationsForSelectedEvent] = $this->getNombresPorEventoReportData($selectedEvent->id);
+            [, $namesReportRows] = $this->getNombresPorEventoReportData($selectedEvent->id);
         }
 
         $refundsData = $this->getRefundsReportData($request);
@@ -231,7 +232,7 @@ class ReportController extends Controller
                 'eventsForNamesReport',
                 'selectedNamesEventId',
                 'selectedEvent',
-                'reservationsForSelectedEvent'
+                'namesReportRows'
             )
         ));
     }
@@ -275,7 +276,7 @@ class ReportController extends Controller
     /**
      * Reporte: titulares (holder_name) y butaca asignada por evento (reservas confirmadas).
      */
-    private function getNombresPorEventoReportData(int $eventId)
+    private function getNombresPorEventoReportData(int $eventId): array
     {
         $event = Event::query()->whereKey($eventId)->firstOrFail(['id', 'name', 'starts_at']);
 
@@ -284,22 +285,24 @@ class ReportController extends Controller
             ->where('event_id', $event->id)
             ->whereHas('activeReservationTickets')
             ->with([
+                'user:id,name',
                 'reservationTickets' => fn ($q) => $q->active()->with('seat')->orderBy('position'),
             ])
-            ->select(['id', 'event_id', 'status', 'payment_code', 'sale_type', 'created_at'])
-            ->orderBy('created_at', 'desc')
+            ->select(['id', 'event_id', 'user_id', 'status', 'payment_code', 'sale_type', 'created_at', 'confirmed_payment_at'])
             ->get();
 
-        return [$event, $reservations];
+        $rows = NombresPorEventoReportRows::fromReservations($reservations);
+
+        return [$event, $rows];
     }
 
     public function downloadNombresPorEventoPdf(Request $request): Response
     {
         $eventId = (int) ($request->integer('event_id') ?: ($this->getEventsForNamesReport()->first()?->id ?? 0));
         abort_if($eventId <= 0, 404);
-        [$event, $reservations] = $this->getNombresPorEventoReportData($eventId);
+        [$event, $rows] = $this->getNombresPorEventoReportData($eventId);
 
-        $pdf = Pdf::loadView('admin.reports.pdf.nombres-por-evento', compact('event', 'reservations'));
+        $pdf = Pdf::loadView('admin.reports.pdf.nombres-por-evento', compact('event', 'rows'));
         $pdf->setPaper('a4', 'portrait');
 
         return $pdf->download('reporte-nombres-por-evento-'.now()->format('Y-m-d').'.pdf');

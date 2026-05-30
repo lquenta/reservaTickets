@@ -18,45 +18,32 @@
 </head>
 <body>
     <h1>Reporte: Nombres por evento</h1>
-    <p class="subtitle">Generado el {{ now()->format('d/m/Y H:i') }} — Reservas confirmadas.</p>
+    <p class="subtitle">Generado el {{ now()->format('d/m/Y H:i') }} — Reservas confirmadas, ordenadas por butaca.</p>
 
     <div class="event-title">
         <p class="event-name">{{ $event->name }}</p>
         <p class="event-meta">{{ $event->starts_at?->translatedFormat('d/m/Y H:i') ?? '—' }}</p>
     </div>
 
-    @php
-        $rows = [];
-        foreach ($reservations as $res) {
-            foreach ($res->reservationTickets as $t) {
-                $holderName = $t->holder_name ?: '—';
-                if ($res->sale_type === \App\Models\Reservation::SALE_TYPE_HONORED_GUEST) {
-                    $holderName .= ' (Invitado de Honor)';
-                }
-                $rows[] = (object) [
-                    'reservation' => $res->payment_code ?? ('#'.$res->id),
-                    'name' => $holderName,
-                    'seat' => $t->seat?->display_label ?? 'Sin butaca',
-                ];
-            }
-        }
-    @endphp
-
-    @if(count($rows))
+    @if($rows->isNotEmpty())
         <table>
             <thead>
                 <tr>
-                    <th>Reserva</th>
-                    <th>Nombre completo</th>
                     <th>Butaca</th>
+                    <th>Nombre completo</th>
+                    <th>Cliente</th>
+                    <th>Fecha y hora</th>
+                    <th>Reserva</th>
                 </tr>
             </thead>
             <tbody>
-                @foreach($rows as $r)
+                @foreach($rows as $row)
                     <tr>
-                        <td>{{ $r->reservation }}</td>
-                        <td>{{ $r->name }}</td>
-                        <td>{{ $r->seat }}</td>
+                        <td>{{ $row->seat_label }}</td>
+                        <td>{{ $row->holder_name }}</td>
+                        <td>{{ $row->client_name }}</td>
+                        <td>{{ $row->reserved_at?->format('d/m/Y H:i') ?? '—' }}</td>
+                        <td>{{ $row->reservation }}</td>
                     </tr>
                 @endforeach
             </tbody>
@@ -68,4 +55,3 @@
     <p class="footer">NOVA - Reporte administrativo</p>
 </body>
 </html>
-
