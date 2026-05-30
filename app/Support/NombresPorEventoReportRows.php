@@ -16,7 +16,6 @@ class NombresPorEventoReportRows
      *     reservation: string,
      *     holder_name: string,
      *     seat_label: string,
-     *     client_name: string,
      *     reserved_at: \Illuminate\Support\Carbon|null
      * }>
      */
@@ -25,11 +24,10 @@ class NombresPorEventoReportRows
         $rows = collect();
 
         foreach ($reservations as $reservation) {
-            $clientName = $reservation->user?->name ?? '—';
             $reservedAt = $reservation->confirmed_payment_at ?? $reservation->created_at;
 
             foreach ($reservation->reservationTickets as $ticket) {
-                $rows->push(self::rowFromTicket($reservation, $ticket, $clientName, $reservedAt));
+                $rows->push(self::rowFromTicket($reservation, $ticket, $reservedAt));
             }
         }
 
@@ -39,7 +37,6 @@ class NombresPorEventoReportRows
     private static function rowFromTicket(
         Reservation $reservation,
         ReservationTicket $ticket,
-        string $clientName,
         ?\Illuminate\Support\Carbon $reservedAt,
     ): object {
         $holderName = $ticket->holder_name ?: '—';
@@ -56,7 +53,6 @@ class NombresPorEventoReportRows
             'seat_row' => $seat ? (int) $seat->row : PHP_INT_MAX,
             'seat_number' => $seat ? (int) $seat->number : PHP_INT_MAX,
             'has_seat' => $seat !== null,
-            'client_name' => $clientName,
             'reserved_at' => $reservedAt,
         ];
     }

@@ -31,7 +31,6 @@
                 <tr>
                     <th>Butaca</th>
                     <th>Nombre completo</th>
-                    <th>Cliente</th>
                     <th>Fecha y hora</th>
                     <th>Reserva</th>
                 </tr>
@@ -41,7 +40,6 @@
                     <tr>
                         <td>{{ $row->seat_label }}</td>
                         <td>{{ $row->holder_name }}</td>
-                        <td>{{ $row->client_name }}</td>
                         <td>{{ $row->reserved_at?->format('d/m/Y H:i') ?? '—' }}</td>
                         <td>{{ $row->reservation }}</td>
                     </tr>

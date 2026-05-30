@@ -54,7 +54,6 @@ class NamesByEventReportTest extends TestCase
         $response->assertSee('Titular nuevo', false);
         $response->assertDontSee('Titular original', false);
         $response->assertSee($seat->display_label, false);
-        $response->assertSee($buyer->name, false);
     }
 
     /**

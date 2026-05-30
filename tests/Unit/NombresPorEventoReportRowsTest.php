@@ -63,11 +63,10 @@ class NombresPorEventoReportRowsTest extends TestCase
             'position' => 2,
         ]);
 
-        $reservation->load(['user:id,name', 'reservationTickets.seat']);
+        $reservation->load(['reservationTickets.seat']);
         $rows = NombresPorEventoReportRows::fromReservations(collect([$reservation]));
 
         $this->assertSame(['A-2', 'B-1'], $rows->pluck('seat_label')->all());
-        $this->assertSame('Comprador Test', $rows->first()->client_name);
         $this->assertSame('15/03/2026 14:30', $rows->first()->reserved_at->format('d/m/Y H:i'));
     }
 }

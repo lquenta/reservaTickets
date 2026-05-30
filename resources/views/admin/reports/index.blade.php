@@ -330,7 +330,6 @@
                             <tr>
                                 <th class="text-left px-4 py-3 text-slate-700 dark:text-slate-300 font-semibold">Butaca</th>
                                 <th class="text-left px-4 py-3 text-slate-700 dark:text-slate-300 font-semibold">Nombre completo</th>
-                                <th class="text-left px-4 py-3 text-slate-700 dark:text-slate-300 font-semibold">Cliente</th>
                                 <th class="text-left px-4 py-3 text-slate-700 dark:text-slate-300 font-semibold">Fecha y hora</th>
                                 <th class="text-left px-4 py-3 text-slate-700 dark:text-slate-300 font-semibold">Reserva</th>
                             </tr>
@@ -340,7 +339,6 @@
                                 <tr class="border-t border-slate-200 dark:border-slate-700">
                                     <td class="px-4 py-3 font-mono text-slate-700 dark:text-slate-300">{{ $row->seat_label }}</td>
                                     <td class="px-4 py-3 font-medium text-slate-800 dark:text-white">{{ $row->holder_name }}</td>
-                                    <td class="px-4 py-3 text-slate-700 dark:text-slate-300">{{ $row->client_name }}</td>
                                     <td class="px-4 py-3 text-sm text-slate-700 dark:text-slate-300 whitespace-nowrap">{{ $row->reserved_at?->translatedFormat('d/m/Y H:i') ?? '—' }}</td>
                                     <td class="px-4 py-3 text-sm text-slate-700 dark:text-slate-300">{{ $row->reservation }}</td>
                                 </tr>

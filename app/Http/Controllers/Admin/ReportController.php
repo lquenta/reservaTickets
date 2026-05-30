@@ -285,10 +285,9 @@ class ReportController extends Controller
             ->where('event_id', $event->id)
             ->whereHas('activeReservationTickets')
             ->with([
-                'user:id,name',
                 'reservationTickets' => fn ($q) => $q->active()->with('seat')->orderBy('position'),
             ])
-            ->select(['id', 'event_id', 'user_id', 'status', 'payment_code', 'sale_type', 'created_at', 'confirmed_payment_at'])
+            ->select(['id', 'event_id', 'status', 'payment_code', 'sale_type', 'created_at', 'confirmed_payment_at'])
             ->get();
 
         $rows = NombresPorEventoReportRows::fromReservations($reservations);
