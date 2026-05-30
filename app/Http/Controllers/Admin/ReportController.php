@@ -218,15 +218,7 @@ class ReportController extends Controller
 
         $reservationsForSelectedEvent = collect();
         if ($selectedEvent) {
-            $reservationsForSelectedEvent = Reservation::query()
-                ->where('status', Reservation::STATUS_CONFIRMADO)
-                ->where('event_id', $selectedEvent->id)
-                ->with([
-                    'reservationTickets' => fn ($q) => $q->with('seat')->orderBy('position'),
-                ])
-                ->select(['id', 'event_id', 'status', 'payment_code', 'sale_type', 'created_at'])
-                ->orderBy('created_at', 'desc')
-                ->get();
+            [, $reservationsForSelectedEvent] = $this->getNombresPorEventoReportData($selectedEvent->id);
         }
 
         $refundsData = $this->getRefundsReportData($request);
@@ -290,8 +282,9 @@ class ReportController extends Controller
         $reservations = Reservation::query()
             ->where('status', Reservation::STATUS_CONFIRMADO)
             ->where('event_id', $event->id)
+            ->whereHas('activeReservationTickets')
             ->with([
-                'reservationTickets' => fn ($q) => $q->with('seat')->orderBy('position'),
+                'reservationTickets' => fn ($q) => $q->active()->with('seat')->orderBy('position'),
             ])
             ->select(['id', 'event_id', 'status', 'payment_code', 'sale_type', 'created_at'])
             ->orderBy('created_at', 'desc')
