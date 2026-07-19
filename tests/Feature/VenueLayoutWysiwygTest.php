@@ -293,6 +293,8 @@ class VenueLayoutWysiwygTest extends TestCase
         $this->assertStringContainsString('"seat_id":'.$seat->id, $html);
         $this->assertStringContainsString('data-add-type="table"', $html);
         $this->assertStringContainsString('>Mesa</button>', $html);
+        $this->assertStringContainsString('const CANVAS_H_MIN = 1600;', $html);
+        $this->assertStringContainsString('h-[1600px] min-h-[1600px]', $html);
     }
 
     public function test_client_checkout_uses_fallback_when_layout_missing(): void

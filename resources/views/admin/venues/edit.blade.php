@@ -471,7 +471,7 @@
             </div>
 
             <div class="min-w-0 max-w-full flex flex-col gap-2">
-                <div id="layout-canvas-shell" class="relative rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-950 shadow-inner overflow-auto touch-none" style="min-height: min(92vh, 1400px);">
+                <div id="layout-canvas-shell" class="relative rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-950 shadow-inner overflow-auto touch-none" style="height: min(92vh, 1400px); min-height: 760px;">
                     <div class="absolute right-2 top-2 z-30 flex flex-wrap items-center justify-end gap-1 rounded-lg border border-white/10 bg-slate-900/95 px-1.5 py-1 shadow-lg backdrop-blur-sm">
                         <button id="layout-pan-toggle" type="button" class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-white hover:bg-white/15 focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-400" title="Mano: arrastra el lienzo (vuelve a pulsar para editar elementos)" aria-label="Modo mano para desplazar el lienzo">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="h-5 w-5" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -492,7 +492,7 @@
                         <span id="layout-origin-pick-badge" class="hidden rounded-md bg-violet-600/90 px-1.5 py-0.5 text-[10px] font-semibold text-white">Elegir origen…</span>
                     </div>
                     <p class="pointer-events-none absolute left-2 bottom-2 z-20 max-w-[min(92%,32rem)] rounded-md bg-black/35 px-2 py-1 text-[10px] leading-snug text-slate-200 sm:text-xs">Icono de mano arriba a la derecha: desplazar el lienzo. Rueda del ratón para zoom. También <kbd class="rounded bg-white/10 px-0.5">Ctrl</kbd>+rueda o +/−.</p>
-                    <div id="layout-konva-host" class="h-[min(92vh,1400px)] min-h-[760px] w-full max-w-none min-w-[1600px]"></div>
+                    <div id="layout-konva-host" class="h-[1600px] min-h-[1600px] w-full max-w-none min-w-[1600px]"></div>
                 </div>
                 <p id="layout-status" class="min-h-[1.25rem] text-sm text-slate-600 dark:text-slate-400"></p>
             </div>
@@ -573,8 +573,8 @@
             const MIN_H = 20;
             const ZOOM_MIN = 0.5;
             const ZOOM_MAX = 2;
-            const CANVAS_H_MIN = 760;
-            const CANVAS_H_MAX = 1400;
+            const CANVAS_H_MIN = 1600;
+            const CANVAS_H_MAX = 1600;
 
             function setStatus(msg, kind) {
                 statusEl.textContent = msg || '';
