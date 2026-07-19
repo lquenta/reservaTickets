@@ -99,6 +99,37 @@ class VenueLayoutWysiwygTest extends TestCase
             ->assertStatus(422);
     }
 
+    public function test_re_adding_a_persisted_seat_as_new_element_does_not_violate_unique_constraint(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        [$venue, $seat] = $this->createVenueWithSeat();
+
+        $existing = $venue->layoutElements()->create([
+            'type' => 'seat',
+            'seat_id' => $seat->id,
+            'x' => 10,
+            'y' => 20,
+            'w' => 48,
+            'h' => 48,
+            'rotation' => 0,
+            'z_index' => 1,
+            'meta' => [],
+        ]);
+
+        // La butaca se reenvía como elemento nuevo (id local negativo) sin su id
+        // persistido; la fila antigua debe eliminarse antes de recrearla.
+        $this->actingAs($admin)
+            ->putJson(route('admin.venues.layout.save', $venue), [
+                'elements' => [
+                    ['id' => -1, 'type' => 'seat', 'seat_id' => $seat->id, 'x' => 120, 'y' => 180, 'w' => 48, 'h' => 48, 'z_index' => 1],
+                ],
+            ])
+            ->assertOk();
+
+        $this->assertDatabaseMissing('venue_layout_elements', ['id' => $existing->id]);
+        $this->assertSame(1, $venue->layoutElements()->where('seat_id', $seat->id)->count());
+    }
+
     public function test_client_seats_endpoint_includes_layout_elements(): void
     {
         $client = User::factory()->create(['role' => 'user']);

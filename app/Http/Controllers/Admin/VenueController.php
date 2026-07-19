@@ -221,9 +221,22 @@ class VenueController extends Controller
 
         DB::transaction(function () use ($venue, $elements, $seatSectionAssignments, $validated) {
             $existingIds = $venue->layoutElements()->pluck('id')->all();
-            $keepIds = [];
-            $order = 0;
 
+            // Borrar primero los elementos que ya no están en el payload para liberar el
+            // índice único (venue_id, seat_id) antes de insertar/actualizar. Sin esto,
+            // una butaca reenviada como elemento nuevo choca con su fila antigua aún
+            // presente y provoca "1062 Duplicate entry" al crearla.
+            $referencedIds = collect($elements)
+                ->pluck('id')
+                ->filter()
+                ->map(fn ($id) => (int) $id)
+                ->all();
+            $deleteIds = array_diff($existingIds, $referencedIds);
+            if (! empty($deleteIds)) {
+                $venue->layoutElements()->whereIn('id', $deleteIds)->delete();
+            }
+
+            $order = 0;
             foreach ($elements as $item) {
                 $payload = [
                     'type' => $item['type'],
@@ -241,19 +254,12 @@ class VenueController extends Controller
                     $element = $venue->layoutElements()->where('id', (int) $item['id'])->first();
                     if ($element) {
                         $element->update($payload);
-                        $keepIds[] = $element->id;
 
                         continue;
                     }
                 }
 
-                $newElement = $venue->layoutElements()->create($payload);
-                $keepIds[] = $newElement->id;
-            }
-
-            $deleteIds = array_diff($existingIds, $keepIds);
-            if (! empty($deleteIds)) {
-                $venue->layoutElements()->whereIn('id', $deleteIds)->delete();
+                $venue->layoutElements()->create($payload);
             }
 
             if (is_array($seatSectionAssignments)) {
