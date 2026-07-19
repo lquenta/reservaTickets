@@ -84,6 +84,30 @@ class VenueLayoutWysiwygTest extends TestCase
         $this->assertSame(720, $venue->layout_canvas_height);
     }
 
+    public function test_admin_can_save_wide_stage_element(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        [$venue, $seat] = $this->createVenueWithSeat();
+
+        $this->actingAs($admin)
+            ->putJson(route('admin.venues.layout.save', $venue), [
+                'elements' => [
+                    ['type' => 'stage', 'x' => 80, 'y' => 48, 'w' => 1008, 'h' => 64, 'rotation' => 0, 'z_index' => 1, 'meta' => []],
+                    ['type' => 'seat', 'seat_id' => $seat->id, 'x' => 16, 'y' => 192, 'w' => 48, 'h' => 48, 'z_index' => 2],
+                ],
+                'canvas_width' => 1600,
+                'canvas_height' => 760,
+            ])
+            ->assertOk()
+            ->assertJsonPath('elements.0.type', 'stage');
+
+        $this->assertDatabaseHas('venue_layout_elements', [
+            'venue_id' => $venue->id,
+            'type' => 'stage',
+            'w' => 1008,
+        ]);
+    }
+
     public function test_admin_cannot_save_duplicate_seat_in_layout(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);
