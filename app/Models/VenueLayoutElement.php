@@ -16,6 +16,8 @@ class VenueLayoutElement extends Model
 
     public const TYPE_SPEAKER = 'speaker';
 
+    public const TYPE_TABLE = 'table';
+
     protected $fillable = [
         'venue_id',
         'seat_id',

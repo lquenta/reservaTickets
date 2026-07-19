@@ -247,6 +247,7 @@
                         <div class="mt-1 grid grid-cols-2 gap-2 pb-1">
                             <button type="button" data-add-type="stage" class="layout-add rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 px-3 py-2.5 text-left text-sm font-medium text-slate-800 dark:text-slate-100 shadow-sm hover:bg-violet-50 dark:hover:bg-violet-950/30 hover:border-violet-300 dark:hover:border-violet-600 transition">Escenario</button>
                             <button type="button" data-add-type="speaker" class="layout-add rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 px-3 py-2.5 text-left text-sm font-medium text-slate-800 dark:text-slate-100 shadow-sm hover:bg-violet-50 dark:hover:bg-violet-950/30 hover:border-violet-300 dark:hover:border-violet-600 transition">Parlante</button>
+                            <button type="button" data-add-type="table" class="layout-add rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 px-3 py-2.5 text-left text-sm font-medium text-slate-800 dark:text-slate-100 shadow-sm hover:bg-violet-50 dark:hover:bg-violet-950/30 hover:border-violet-300 dark:hover:border-violet-600 transition">Mesa</button>
                         </div>
                     </details>
                     </div>
@@ -965,13 +966,15 @@
             function elementLabel(el) {
                 if (el.type === 'seat') return el.seat?.label || ('Butaca #' + (el.seat_id ?? ''));
                 if (el.type === 'stage') return (el.meta && el.meta.label) ? el.meta.label : 'ESCENARIO';
-                return (el.meta && el.meta.label) ? el.meta.label : 'PARLANTE';
+                if (el.type === 'speaker') return (el.meta && el.meta.label) ? el.meta.label : 'PARLANTE';
+                return (el.meta && el.meta.label) ? el.meta.label : 'MESA';
             }
 
             function colorsForType(type) {
                 if (type === 'seat') return { fill: '#059669', stroke: '#065f46', text: '#ffffff' };
                 if (type === 'stage') return { fill: '#b91c1c', stroke: '#7f1d1d', text: '#ffffff' };
-                return { fill: '#d97706', stroke: '#92400e', text: '#ffffff' };
+                if (type === 'speaker') return { fill: '#d97706', stroke: '#92400e', text: '#ffffff' };
+                return { fill: '#78350f', stroke: '#451a03', text: '#ffffff' };
             }
 
             function normalizeHexColor(hex) {
@@ -1752,8 +1755,8 @@
                         seat_id: null,
                         x: snapPos(32),
                         y: snapPos(32),
-                        w: type === 'stage' ? 220 : 96,
-                        h: 56,
+                        w: type === 'stage' ? 220 : (type === 'table' ? 120 : 96),
+                        h: type === 'table' ? 72 : 56,
                         rotation: 0,
                         z_index: (elements.reduce((m, x) => Math.max(m, x.z_index || 0), 0) + 1),
                         meta: {},

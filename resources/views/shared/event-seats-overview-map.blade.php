@@ -109,6 +109,12 @@
                                 <span class="max-h-full overflow-hidden text-center text-[8px] font-semibold uppercase leading-tight sm:text-[10px]" x-text="(el.meta && el.meta.label) ? el.meta.label : 'PARLANTE'"></span>
                             </div>
                         </template>
+                        <template x-if="layoutElType(el) === 'table'">
+                            <div class="absolute inset-0 z-0 flex items-center justify-center rounded-xl border-2 border-amber-950/70 bg-amber-900 px-0.5 text-white shadow-md pointer-events-none overflow-hidden"
+                                 :style="layoutStageSpeakerFaceStyle()">
+                                <span class="max-h-full overflow-hidden text-center text-[8px] font-semibold uppercase leading-tight sm:text-[10px]" x-text="(el.meta && el.meta.label) ? el.meta.label : 'MESA'"></span>
+                            </div>
+                        </template>
                     </div>
                 </template>
             </x-checkout-layout-map-frame>

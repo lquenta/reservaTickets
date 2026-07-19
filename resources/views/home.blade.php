@@ -255,6 +255,12 @@
                         class="w-full px-4 py-3 bg-black/60 border border-red-900/50 rounded text-white placeholder-white/40 focus:border-[#e50914] focus:ring-1 focus:ring-[#e50914] outline-none transition resize-none">{{ old('message') }}</textarea>
                     @error('message')<p class="mt-1 text-sm text-red-400">{{ $message }}</p>@enderror
                 </div>
+                @if(config('services.recaptcha.site_key'))
+                    <div class="g-recaptcha" data-sitekey="{{ config('services.recaptcha.site_key') }}"></div>
+                @endif
+                @error('g-recaptcha-response')
+                    <p class="text-sm text-red-400">{{ $message }}</p>
+                @enderror
                 <button type="submit" class="w-full py-3 bg-[#e50914] text-white font-bold tracking-widest rounded hover:bg-red-600 transition st-glow-btn">
                     ENVIAR
                 </button>

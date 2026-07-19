@@ -152,7 +152,7 @@ class VenueController extends Controller
         $validated = $request->validate([
             'elements' => ['required', 'array'],
             'elements.*.id' => ['nullable', 'integer'],
-            'elements.*.type' => ['required', 'in:seat,stage,speaker'],
+            'elements.*.type' => ['required', 'in:seat,stage,speaker,table'],
             'elements.*.seat_id' => ['nullable', 'integer'],
             'elements.*.x' => ['required', 'numeric', 'min:0', 'max:10000'],
             'elements.*.y' => ['required', 'numeric', 'min:0', 'max:10000'],

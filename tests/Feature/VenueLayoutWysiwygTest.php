@@ -33,6 +33,16 @@ class VenueLayoutWysiwygTest extends TestCase
                     'meta' => ['label' => 'ESCENARIO'],
                 ],
                 [
+                    'type' => 'table',
+                    'x' => 320,
+                    'y' => 120,
+                    'w' => 120,
+                    'h' => 72,
+                    'rotation' => 0,
+                    'z_index' => 2,
+                    'meta' => ['label' => 'MESA'],
+                ],
+                [
                     'type' => 'seat',
                     'seat_id' => $seat->id,
                     'x' => 120,
@@ -40,7 +50,7 @@ class VenueLayoutWysiwygTest extends TestCase
                     'w' => 48,
                     'h' => 48,
                     'rotation' => 0,
-                    'z_index' => 2,
+                    'z_index' => 3,
                     'meta' => [],
                 ],
             ],
@@ -53,6 +63,7 @@ class VenueLayoutWysiwygTest extends TestCase
             ])
             ->assertOk()
             ->assertJsonPath('elements.0.type', 'stage')
+            ->assertJsonPath('elements.1.type', 'table')
             ->assertJsonPath('canvas_width', 1100)
             ->assertJsonPath('canvas_height', 720);
 
@@ -60,6 +71,12 @@ class VenueLayoutWysiwygTest extends TestCase
             'venue_id' => $venue->id,
             'type' => 'seat',
             'seat_id' => $seat->id,
+        ]);
+
+        $this->assertDatabaseHas('venue_layout_elements', [
+            'venue_id' => $venue->id,
+            'type' => 'table',
+            'seat_id' => null,
         ]);
 
         $venue->refresh();
@@ -219,6 +236,8 @@ class VenueLayoutWysiwygTest extends TestCase
 
         $this->assertStringContainsString('"section_id":'.$section->id, $html);
         $this->assertStringContainsString('"seat_id":'.$seat->id, $html);
+        $this->assertStringContainsString('data-add-type="table"', $html);
+        $this->assertStringContainsString('>Mesa</button>', $html);
     }
 
     public function test_client_checkout_uses_fallback_when_layout_missing(): void
