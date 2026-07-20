@@ -585,6 +585,12 @@
                 else statusEl.classList.add('text-slate-500', 'dark:text-slate-400');
             }
 
+            function showFloatingAlert(message, type) {
+                window.dispatchEvent(new CustomEvent('toast', {
+                    detail: { message: message || '', type: type || 'success', duration: 4500 },
+                }));
+            }
+
             function konvaFindToArray(found) {
                 if (!found) return [];
                 if (Array.isArray(found)) return found;
@@ -1847,7 +1853,9 @@
                     });
                     const data = await res.json();
                     if (!res.ok) {
-                        setStatus(data.message || 'No se pudo guardar.', 'error');
+                        const errMsg = data.message || 'No se pudo guardar.';
+                        setStatus(errMsg, 'error');
+                        showFloatingAlert(errMsg, 'error');
                         return;
                     }
                     elements.splice(0, elements.length, ...(data.elements || []));
@@ -1874,9 +1882,12 @@
                     refreshSeatSelect();
                     refreshSeatSectionPickerFromSelection();
                     rebuildScene();
-                    setStatus(data.message || 'Layout guardado.', 'ok');
+                    const okMsg = data.message || 'Layout guardado.';
+                    setStatus(okMsg, 'ok');
+                    showFloatingAlert(okMsg, 'success');
                 } catch (err) {
                     setStatus('Error de red al guardar layout.', 'error');
+                    showFloatingAlert('Error de red al guardar layout.', 'error');
                 } finally {
                     saveBtn.disabled = false;
                 }

@@ -34,11 +34,42 @@
         @endfor
     </div>
 
-    <div id="app-toast" class="fixed top-4 right-4 z-50 space-y-2" x-data="{ toasts: [] }" x-on:toast.window="toasts.push($event.detail); setTimeout(() => toasts.shift(), 4000)">
-        <template x-for="(t, i) in toasts" :key="i">
-            <div class="px-4 py-3 rounded-lg shadow-lg text-white text-sm font-medium"
-                 :class="t.type === 'error' ? 'bg-red-600' : (t.type === 'success' ? 'bg-emerald-600' : 'bg-amber-600')"
-                 x-text="t.message" x-show="true" x-transition></div>
+    <div id="app-toast" class="fixed top-20 right-4 z-[100] w-[min(100vw-2rem,24rem)] space-y-2 pointer-events-none"
+         x-data="{
+            toasts: [],
+            push(detail) {
+                const id = Date.now() + Math.random();
+                this.toasts.push({ id, message: detail.message || '', type: detail.type || 'success' });
+                setTimeout(() => this.dismiss(id), detail.duration || 4500);
+            },
+            dismiss(id) {
+                this.toasts = this.toasts.filter(t => t.id !== id);
+            }
+         }"
+         x-on:toast.window="push($event.detail)">
+        <template x-for="t in toasts" :key="t.id">
+            <div class="pointer-events-auto flex items-start gap-3 rounded-lg border px-4 py-3 shadow-lg text-sm font-medium"
+                 role="alert"
+                 x-show="true"
+                 x-transition:enter="transition ease-out duration-200"
+                 x-transition:enter-start="opacity-0 translate-x-4"
+                 x-transition:enter-end="opacity-100 translate-x-0"
+                 x-transition:leave="transition ease-in duration-150"
+                 x-transition:leave-start="opacity-100 translate-x-0"
+                 x-transition:leave-end="opacity-0 translate-x-4"
+                 :class="{
+                    'bg-emerald-50 border-emerald-300 text-emerald-900 dark:bg-emerald-900/90 dark:border-emerald-600 dark:text-emerald-50': t.type === 'success',
+                    'bg-red-50 border-red-300 text-red-900 dark:bg-red-900/90 dark:border-red-600 dark:text-red-50': t.type === 'error',
+                    'bg-amber-50 border-amber-300 text-amber-900 dark:bg-amber-900/90 dark:border-amber-600 dark:text-amber-50': t.type === 'warning' || t.type === 'warn',
+                    'bg-sky-50 border-sky-300 text-sky-900 dark:bg-sky-900/90 dark:border-sky-600 dark:text-sky-50': t.type === 'info'
+                 }">
+                <span class="mt-0.5 shrink-0" aria-hidden="true"
+                      x-text="t.type === 'error' ? '⚠' : (t.type === 'warning' || t.type === 'warn' ? '!' : (t.type === 'info' ? 'ℹ' : '✓'))"></span>
+                <span class="flex-1 leading-snug" x-text="t.message"></span>
+                <button type="button" class="shrink-0 rounded p-0.5 opacity-70 hover:opacity-100" @click="dismiss(t.id)" aria-label="Cerrar">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
         </template>
     </div>
 
