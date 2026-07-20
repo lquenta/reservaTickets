@@ -13,6 +13,7 @@ use App\Models\ReservationAuditLog;
 use App\Models\User;
 use App\Services\ClientProvisioningService;
 use App\Services\ReservationAuditService;
+use App\Services\ReservationPricingService;
 use App\Services\ReservationService;
 use App\Support\EventSeatSelectionData;
 use App\Support\ReservationCheckoutMapData;
@@ -169,10 +170,14 @@ trait ManagesSurrogateSale
         }
 
         $reservation->load(['event.sections', 'event.ticketTemplate', 'user', 'reservationTickets.seat', 'reservationTickets.section']);
-        $totalPrice = $this->calculateSurrogateTotalPrice($reservation);
+        $pricing = app(ReservationPricingService::class);
+        $totalPrice = $pricing->totalForReservation($reservation);
+        $listTotalPrice = $pricing->listTotalForReservation($reservation);
+        $presaleActive = $reservation->event->isPresaleActive()
+            && $listTotalPrice > $totalPrice;
         $checkoutMap = ReservationCheckoutMapData::forReservation($reservation);
 
-        return view('admin.sales.surrogate.checkout', compact('reservation', 'totalPrice', 'flow', 'checkoutMap'));
+        return view('admin.sales.surrogate.checkout', compact('reservation', 'totalPrice', 'listTotalPrice', 'presaleActive', 'flow', 'checkoutMap'));
     }
 
     public function confirm(AdminSurrogateCheckoutRequest $request, Reservation $reservation): RedirectResponse
@@ -243,50 +248,5 @@ trait ManagesSurrogateSale
     {
         return $reservation->sale_type === Reservation::SALE_TYPE_SURROGATE
             && $reservation->sold_by_user_id !== null;
-    }
-
-    private function calculateSurrogateTotalPrice(Reservation $reservation): float
-    {
-        $totalPrice = 0.0;
-        $event = $reservation->event;
-
-        if ($event->hasSections()) {
-            foreach ($reservation->reservationTickets as $ticket) {
-                $eventSection = null;
-                if ($ticket->seat) {
-                    $sectionId = $ticket->seat->section_id;
-                    if ($sectionId) {
-                        $eventSection = $event->sections->firstWhere('id', $sectionId);
-                    }
-                    if (! $eventSection && $ticket->seat) {
-                        foreach ($event->sections as $es) {
-                            if (! $es->has_seats) {
-                                continue;
-                            }
-                            if ($es->containsSeat((int) $ticket->seat->row, (int) $ticket->seat->number)) {
-                                $eventSection = $es;
-                                break;
-                            }
-                        }
-                    }
-                    if (! $eventSection) {
-                        $eventSection = $event->sections->where('has_seats', true)->first();
-                    }
-                } else {
-                    $eventSection = $ticket->section_id
-                        ? $event->sections->firstWhere('id', $ticket->section_id)
-                        : null;
-                }
-                if ($eventSection && $eventSection->pivot && $eventSection->pivot->price !== null) {
-                    $totalPrice += (float) $eventSection->pivot->price;
-                }
-            }
-        } else {
-            $template = $event->ticketTemplate;
-            $unitPrice = $template ? (float) $template->price : 0;
-            $totalPrice = $unitPrice * $reservation->reservationTickets->count();
-        }
-
-        return $totalPrice;
     }
 }

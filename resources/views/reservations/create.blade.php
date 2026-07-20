@@ -182,7 +182,12 @@
                                 @if($isHonoredGuest)
                                     <span class="text-emerald-300/90 text-sm">Invitación (Bs 0)</span>
                                 @elseif(isset($sec['price']) && $sec['price'] !== null && $sec['price'] > 0)
-                                    <span class="text-white/70 text-sm tabular-nums">{{ number_format((float) $sec['price'], 2) }} Bs</span>
+                                    <span class="text-white/70 text-sm tabular-nums">
+                                        @if(isset($sec['list_price']) && $sec['list_price'] !== null && (float) $sec['list_price'] > (float) $sec['price'])
+                                            <span class="text-white/40 line-through mr-1">{{ number_format((float) $sec['list_price'], 2) }}</span>
+                                        @endif
+                                        {{ number_format((float) $sec['price'], 2) }} Bs
+                                    </span>
                                 @else
                                     <span class="text-white/50 text-sm">—</span>
                                 @endif
@@ -201,7 +206,14 @@
                     @if($isHonoredGuest)
                         <p class="text-emerald-300/90 text-sm mb-4">Invitación (Bs 0)</p>
                     @elseif(isset($section['price']) && $section['price'] !== null && $section['price'] > 0)
-                        <p class="text-white/60 text-sm mb-4">Precio: {{ number_format($section['price'], 2) }} Bs</p>
+                        <p class="text-white/60 text-sm mb-4">
+                            Precio:
+                            @if(isset($section['list_price']) && $section['list_price'] !== null && (float) $section['list_price'] > (float) $section['price'])
+                                <span class="text-white/40 line-through mr-1">{{ number_format((float) $section['list_price'], 2) }}</span>
+                                <span class="inline-flex items-center rounded bg-[#22d3ee]/90 px-1.5 py-0.5 text-[10px] font-bold uppercase text-[#041016] mr-1">Preventa</span>
+                            @endif
+                            {{ number_format($section['price'], 2) }} Bs
+                        </p>
                     @endif
                     @if($section['has_seats'])
                         <p class="text-white/70 text-sm mb-3">

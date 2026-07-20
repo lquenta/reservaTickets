@@ -75,7 +75,14 @@
             <h2 class="font-semibold text-white/90 mb-2">Resumen</h2>
             <p class="text-white/70 mb-3">{{ $reservation->reservationTickets->count() }} ticket(s)</p>
             @if(isset($totalPrice) && $totalPrice > 0)
-            <p class="text-white/90 font-semibold mb-3">Costo total: <span class="block mt-1 tabular-nums">{{ number_format($totalPrice, 2, ',', '.') }} Bs</span></p>
+            <p class="text-white/90 font-semibold mb-3">
+                Costo total:
+                @if(!empty($presaleActive) && isset($listTotalPrice) && $listTotalPrice > $totalPrice)
+                    <span class="ml-2 inline-flex items-center rounded bg-[#22d3ee]/90 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#041016]">Preventa</span>
+                    <span class="block mt-1 text-white/50 line-through text-base">{{ number_format($listTotalPrice, 2, ',', '.') }} Bs</span>
+                @endif
+                <span class="block mt-1 tabular-nums">{{ number_format($totalPrice, 2, ',', '.') }} Bs</span>
+            </p>
             @endif
         </div>
 

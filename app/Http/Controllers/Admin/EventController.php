@@ -12,6 +12,7 @@ use App\Models\Venue;
 use App\Support\EventSeatOverviewMapData;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class EventController extends Controller
@@ -71,7 +72,7 @@ class EventController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        $validated = $request->validate([
+        $validated = $request->validate(array_merge([
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:5000'],
             'starts_at' => ['required', 'date'],
@@ -81,7 +82,7 @@ class EventController extends Controller
             'is_active' => ['boolean'],
             'qr_image' => ['nullable', 'image', 'max:2048'],
             'cover_image' => ['nullable', 'image', 'max:4096'],
-        ]);
+        ], $this->presaleValidationRules($request)));
 
         $event = new Event;
         $event->name = $validated['name'];
@@ -91,6 +92,7 @@ class EventController extends Controller
         $event->venue_id = $validated['venue_id'] ?? null;
         $event->payment_code_prefix = $validated['payment_code_prefix'] ?? null;
         $event->is_active = $request->boolean('is_active');
+        $this->applyPresaleAttributes($event, $request, $validated);
         $event->save();
 
         if ($request->hasFile('qr_image')) {
@@ -115,7 +117,7 @@ class EventController extends Controller
 
     public function update(Request $request, Event $event): RedirectResponse
     {
-        $validated = $request->validate([
+        $validated = $request->validate(array_merge([
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:5000'],
             'starts_at' => ['required', 'date'],
@@ -129,7 +131,9 @@ class EventController extends Controller
             'event_sections.*.section_id' => ['nullable', 'integer', 'exists:sections,id'],
             'event_sections.*.use' => ['nullable', 'boolean'],
             'event_sections.*.price' => ['nullable', 'numeric', 'min:0'],
-        ]);
+            'event_sections.*.presale_discount_type' => ['nullable', Rule::in([Event::PRESALE_TYPE_PERCENT, Event::PRESALE_TYPE_FIXED])],
+            'event_sections.*.presale_discount_value' => ['nullable', 'numeric', 'min:0'],
+        ], $this->presaleValidationRules($request)));
 
         $event->name = $validated['name'];
         $event->description = $validated['description'] ?? null;
@@ -138,6 +142,7 @@ class EventController extends Controller
         $event->venue_id = $validated['venue_id'] ?? null;
         $event->payment_code_prefix = $validated['payment_code_prefix'] ?? null;
         $event->is_active = $request->boolean('is_active');
+        $this->applyPresaleAttributes($event, $request, $validated);
 
         if ($request->hasFile('qr_image')) {
             $path = $request->file('qr_image')->store('event-qr', 'public');
@@ -152,6 +157,52 @@ class EventController extends Controller
         $this->syncEventSections($event, $request->input('event_sections', []));
 
         return redirect()->route('admin.events.show', $event)->with('message', 'Evento actualizado.');
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function presaleValidationRules(Request $request): array
+    {
+        $enabled = $request->boolean('presale_enabled');
+        // Tipo/valor a nivel evento solo obligatorios si no se están usando secciones del venue.
+        $hasSectionUse = collect($request->input('event_sections', []))
+            ->contains(fn ($row) => is_array($row) && ! empty($row['use']));
+
+        $requireEventDiscount = $enabled && ! $hasSectionUse;
+
+        return [
+            'presale_enabled' => ['sometimes', 'boolean'],
+            'presale_discount_type' => [
+                Rule::requiredIf($requireEventDiscount),
+                'nullable',
+                Rule::in([Event::PRESALE_TYPE_PERCENT, Event::PRESALE_TYPE_FIXED]),
+            ],
+            'presale_discount_value' => array_values(array_filter([
+                Rule::requiredIf($requireEventDiscount),
+                'nullable',
+                'numeric',
+                'min:0',
+                $request->input('presale_discount_type') === Event::PRESALE_TYPE_PERCENT ? 'max:100' : null,
+            ])),
+            'presale_starts_at' => [Rule::requiredIf($enabled), 'nullable', 'date'],
+            'presale_ends_at' => [Rule::requiredIf($enabled), 'nullable', 'date', 'after_or_equal:presale_starts_at'],
+        ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $validated
+     */
+    private function applyPresaleAttributes(Event $event, Request $request, array $validated): void
+    {
+        $enabled = $request->boolean('presale_enabled');
+        $event->presale_enabled = $enabled;
+        $event->presale_discount_type = $validated['presale_discount_type'] ?? null;
+        $event->presale_discount_value = array_key_exists('presale_discount_value', $validated) && $validated['presale_discount_value'] !== null && $validated['presale_discount_value'] !== ''
+            ? $validated['presale_discount_value']
+            : null;
+        $event->presale_starts_at = $validated['presale_starts_at'] ?? null;
+        $event->presale_ends_at = $validated['presale_ends_at'] ?? null;
     }
 
     private function syncEventSections(Event $event, array $eventSectionsInput): void
@@ -177,7 +228,22 @@ class EventController extends Controller
                 continue;
             }
             $price = isset($input['price']) && $input['price'] !== '' ? (float) $input['price'] : null;
-            $sync[$section->id] = ['price' => $price, 'sort_order' => $sortOrder++];
+            $presaleType = isset($input['presale_discount_type']) && $input['presale_discount_type'] !== ''
+                ? $input['presale_discount_type']
+                : null;
+            $presaleValue = isset($input['presale_discount_value']) && $input['presale_discount_value'] !== ''
+                ? (float) $input['presale_discount_value']
+                : null;
+            if (! in_array($presaleType, [Event::PRESALE_TYPE_PERCENT, Event::PRESALE_TYPE_FIXED], true)) {
+                $presaleType = null;
+                $presaleValue = null;
+            }
+            $sync[$section->id] = [
+                'price' => $price,
+                'sort_order' => $sortOrder++,
+                'presale_discount_type' => $presaleType,
+                'presale_discount_value' => $presaleValue,
+            ];
         }
         $event->sections()->sync($sync);
     }

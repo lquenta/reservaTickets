@@ -38,6 +38,30 @@ class ReservationPricingService
         return $this->totalForTickets($reservation, $tickets);
     }
 
+    /**
+     * Total a precios de lista (sin preventa), para mostrar tachado en UI.
+     * Ignora sale_amount; no aplica a invitados de honor.
+     */
+    public function listTotalForReservation(Reservation $reservation): float
+    {
+        if ($reservation->isHonoredGuest()) {
+            return 0.0;
+        }
+
+        $reservation->loadMissing([
+            'event.sections',
+            'event.ticketTemplate',
+            'reservationTickets.seat',
+        ]);
+
+        $tickets = $this->activeTickets($reservation);
+        if ($tickets->isEmpty() || ! $reservation->event) {
+            return 0.0;
+        }
+
+        return $this->totalForTickets($reservation, $tickets, applyPresale: false);
+    }
+
     public function totalForActiveTickets(Reservation $reservation): float
     {
         $reservation->loadMissing([
@@ -53,7 +77,7 @@ class ReservationPricingService
     /**
      * @param  Collection<int, ReservationTicket>  $tickets
      */
-    public function totalForTickets(Reservation $reservation, Collection $tickets): float
+    public function totalForTickets(Reservation $reservation, Collection $tickets, bool $applyPresale = true): float
     {
         if ($reservation->isHonoredGuest()) {
             return 0.0;
@@ -67,15 +91,18 @@ class ReservationPricingService
         }
 
         if ($event->hasSections()) {
-            return $this->totalForSectionedEvent($event, $tickets);
+            return $this->totalForSectionedEvent($event, $tickets, $applyPresale);
         }
 
         $unitPrice = $event->ticketTemplate ? (float) $event->ticketTemplate->price : 0.0;
+        if ($applyPresale) {
+            $unitPrice = $event->applyPresaleDiscount($unitPrice, null);
+        }
 
-        return $unitPrice * $tickets->count();
+        return round($unitPrice * $tickets->count(), 2);
     }
 
-    public function unitPriceForTicket(Reservation $reservation, ReservationTicket $ticket): float
+    public function unitPriceForTicket(Reservation $reservation, ReservationTicket $ticket, bool $applyPresale = true): float
     {
         if ($reservation->isHonoredGuest()) {
             return 0.0;
@@ -86,6 +113,29 @@ class ReservationPricingService
         if (! $event) {
             return 0.0;
         }
+
+        if ($event->hasSections()) {
+            $eventSection = $this->resolveEventSection($event, $ticket);
+            $base = 0.0;
+            if ($eventSection && $eventSection->pivot && $eventSection->pivot->price !== null) {
+                $base = (float) $eventSection->pivot->price;
+            }
+
+            return $applyPresale
+                ? $event->applyPresaleDiscount($base, $eventSection)
+                : round(max(0.0, $base), 2);
+        }
+
+        $base = $event->ticketTemplate ? (float) $event->ticketTemplate->price : 0.0;
+
+        return $applyPresale
+            ? $event->applyPresaleDiscount($base, null)
+            : round(max(0.0, $base), 2);
+    }
+
+    public function baseUnitPriceForTicket(Event $event, ReservationTicket $ticket): float
+    {
+        $event->loadMissing(['sections', 'ticketTemplate']);
 
         if ($event->hasSections()) {
             $eventSection = $this->resolveEventSection($event, $ticket);
@@ -114,18 +164,22 @@ class ReservationPricingService
     /**
      * @param  \Illuminate\Support\Collection<int, ReservationTicket>  $tickets
      */
-    private function totalForSectionedEvent(Event $event, $tickets): float
+    private function totalForSectionedEvent(Event $event, $tickets, bool $applyPresale = true): float
     {
         $total = 0.0;
 
         foreach ($tickets as $ticket) {
             $eventSection = $this->resolveEventSection($event, $ticket);
             if ($eventSection && $eventSection->pivot && $eventSection->pivot->price !== null) {
-                $total += (float) $eventSection->pivot->price;
+                $unit = (float) $eventSection->pivot->price;
+                if ($applyPresale) {
+                    $unit = $event->applyPresaleDiscount($unit, $eventSection);
+                }
+                $total += $unit;
             }
         }
 
-        return $total;
+        return round($total, 2);
     }
 
     private function resolveEventSection(Event $event, ReservationTicket $ticket): ?\App\Models\Section

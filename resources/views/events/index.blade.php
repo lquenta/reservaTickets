@@ -75,8 +75,11 @@
                 <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent"></div>
 
                 <div class="relative flex flex-col flex-1 p-6 justify-end">
-                    <div class="flex items-center gap-2 mb-1">
+                    <div class="flex items-center gap-2 mb-1 flex-wrap">
                         <h2 class="text-2xl font-bold text-white drop-shadow-lg">{{ $event->name }}</h2>
+                        @if($event->isPresaleActive())
+                            <span class="inline-flex rounded-full bg-[#22d3ee]/90 text-[#041016] px-2.5 py-1 text-xs font-bold tracking-wide uppercase">Preventa</span>
+                        @endif
                         @if($isSoldOut)
                             <span class="inline-flex rounded-full bg-red-600/90 text-white px-2.5 py-1 text-xs font-bold tracking-wide">SOLD OUT</span>
                         @elseif($isSalesPaused)

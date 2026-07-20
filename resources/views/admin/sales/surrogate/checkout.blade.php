@@ -5,7 +5,7 @@
 @section($flow->contentSection ?? 'admin')
 @php $isSellerLayout = ($flow->layout ?? '') === 'layouts.app'; @endphp
 @if($isSellerLayout)
-    @include('seller.surrogate.checkout', compact('reservation', 'totalPrice', 'flow', 'checkoutMap'))
+    @include('seller.surrogate.checkout', compact('reservation', 'totalPrice', 'listTotalPrice', 'presaleActive', 'flow', 'checkoutMap'))
 @else
 <div class="max-w-2xl mx-auto mb-6">
     <a href="{{ route($flow->checkoutSuccessRoute) }}" class="text-sm {{ $isSellerLayout ? 'text-[#e11d8a] hover:text-[#22d3ee]' : 'text-violet-600 dark:text-violet-400 hover:underline' }}">← Volver</a>
@@ -33,7 +33,14 @@
     <div class="rounded-xl border border-slate-200 dark:border-slate-600 p-4">
         <p class="font-semibold mb-2">Entradas ({{ $reservation->reservationTickets->count() }})</p>
         @if(isset($totalPrice) && $totalPrice > 0)
-            <p class="text-slate-700 dark:text-slate-300 mb-3">Total: <strong>{{ number_format($totalPrice, 2, ',', '.') }} Bs</strong></p>
+            <p class="text-slate-700 dark:text-slate-300 mb-3">
+                Total:
+                @if(!empty($presaleActive) && isset($listTotalPrice) && $listTotalPrice > $totalPrice)
+                    <span class="ml-1 inline-flex items-center rounded bg-cyan-500/90 px-1.5 py-0.5 text-[10px] font-bold uppercase text-slate-900">Preventa</span>
+                    <span class="ml-2 text-slate-400 line-through">{{ number_format($listTotalPrice, 2, ',', '.') }} Bs</span>
+                @endif
+                <strong>{{ number_format($totalPrice, 2, ',', '.') }} Bs</strong>
+            </p>
         @endif
         <ul class="text-sm space-y-1 text-slate-600 dark:text-slate-400">
             @foreach($reservation->reservationTickets as $t)

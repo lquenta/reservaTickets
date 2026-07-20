@@ -69,7 +69,8 @@ class EventSeatSelectionData
                 if ($event->hasSections()) {
                     foreach ($event->sections as $section) {
                         $pivot = $section->pivot;
-                        $price = $pivot->price;
+                        $listPrice = $pivot->price !== null ? (float) $pivot->price : null;
+                        $price = $listPrice !== null ? $event->applyPresaleDiscount($listPrice, $section) : null;
                         if ($section->has_seats) {
                             $sectionSeats = $section->seats()->orderBy('row')->orderBy('number')->get()->map(function ($seat) use ($blockedSeatIds) {
                                 $seat->blocked = (bool) $seat->blocked || $blockedSeatIds->has($seat->id);
@@ -105,6 +106,7 @@ class EventSeatSelectionData
                                 'id' => $section->id,
                                 'name' => $section->name,
                                 'price' => $price,
+                                'list_price' => $listPrice,
                                 'has_seats' => true,
                                 'seats' => $sectionSeats,
                                 'availableSeatIds' => array_values($sectionAvailableIds),
@@ -116,6 +118,7 @@ class EventSeatSelectionData
                                 'id' => $section->id,
                                 'name' => $section->name,
                                 'price' => $price,
+                                'list_price' => $listPrice,
                                 'has_seats' => false,
                                 'capacity' => $section->capacity,
                                 'availableCapacity' => $availableCapacity,
@@ -171,6 +174,7 @@ class EventSeatSelectionData
     {
         foreach ($data['sectionsData'] as $key => $section) {
             $section['price'] = 0;
+            $section['list_price'] = 0;
             $data['sectionsData'][$key] = $section;
         }
 

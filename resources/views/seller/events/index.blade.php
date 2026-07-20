@@ -11,7 +11,12 @@
 <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
     @forelse($events as $event)
         <div class="rounded-xl border border-fuchsia-900/50 bg-black/60 p-5 flex flex-col">
-            <h2 class="text-lg font-semibold text-white">{{ $event->name }}</h2>
+            <h2 class="text-lg font-semibold text-white flex items-center gap-2 flex-wrap">
+                {{ $event->name }}
+                @if($event->isPresaleActive())
+                    <span class="inline-flex rounded-full bg-[#22d3ee]/90 text-[#041016] px-2 py-0.5 text-[10px] font-bold uppercase">Preventa</span>
+                @endif
+            </h2>
             <p class="text-sm text-white/60 mt-1">{{ $event->starts_at->translatedFormat('d M Y, H:i') }}</p>
             @if($event->venue)
                 <p class="text-sm text-white/50 mt-1">{{ $event->venue }}</p>

@@ -180,6 +180,9 @@
                             <div class="p-5">
                                 <h3 class="text-xl font-bold text-white mb-2 flex items-center gap-2 flex-wrap">
                                     {{ $event->name }}
+                                    @if($event->isPresaleActive())
+                                        <span class="inline-flex rounded-full bg-[#22d3ee]/90 text-[#041016] px-2 py-0.5 text-xs font-bold uppercase tracking-wider">Preventa</span>
+                                    @endif
                                     @if($featuredSalesPaused)
                                         <span class="inline-flex rounded-full bg-amber-600/90 text-white px-2 py-0.5 text-xs font-bold">VENTAS PAUSADAS</span>
                                     @endif

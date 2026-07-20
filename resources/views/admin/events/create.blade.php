@@ -47,6 +47,8 @@
             @error('venue_id')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
         </div>
 
+        @include('admin.events._presale-fields')
+
         <div>
             <label for="payment_code_prefix" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Prefijo código de pago (opcional)</label>
             <input id="payment_code_prefix" type="text" name="payment_code_prefix" value="{{ old('payment_code_prefix') }}" maxlength="50"
