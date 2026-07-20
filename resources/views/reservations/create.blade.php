@@ -32,12 +32,12 @@
 <div class="max-w-2xl mx-auto mb-6 sm:mb-8 px-1">
     <div class="flex flex-wrap items-center justify-center gap-x-2 gap-y-2 sm:gap-x-4">
         <div class="flex items-center gap-2 min-w-0">
-            <span class="flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-full bg-[#e50914] text-xs sm:text-sm font-bold text-white">1</span>
-            <span class="text-xs sm:text-sm font-medium text-[#e50914]"><span class="sm:hidden">Butacas / datos</span><span class="hidden sm:inline">Elige butacas / datos</span></span>
+            <span class="flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-full bg-[#e11d8a] text-xs sm:text-sm font-bold text-white">1</span>
+            <span class="text-xs sm:text-sm font-medium text-[#e11d8a]"><span class="sm:hidden">Butacas / datos</span><span class="hidden sm:inline">Elige butacas / datos</span></span>
         </div>
-        <div class="h-px w-8 sm:w-12 bg-red-900/50 shrink-0" aria-hidden="true"></div>
+        <div class="h-px w-8 sm:w-12 bg-fuchsia-900/50 shrink-0" aria-hidden="true"></div>
         <div class="flex items-center gap-2 min-w-0">
-            <span class="flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-full border-2 border-red-900/60 bg-black/40 text-xs sm:text-sm font-medium text-white/60">2</span>
+            <span class="flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-full border-2 border-fuchsia-900/60 bg-black/40 text-xs sm:text-sm font-medium text-white/60">2</span>
             <span class="text-xs sm:text-sm text-white/50"><span class="sm:hidden">Comprobante</span><span class="hidden sm:inline">Comprobante de pago</span></span>
         </div>
     </div>
@@ -84,7 +84,7 @@
         oldSingleName: {{ old('single_name', true) ? 'true' : 'false' }},
         oldNames: {{ json_encode(array_merge([0 => ''], array_map(fn ($i) => old("holder_name_{$i}", ''), range(1, $maxSeats)))) }}
     })">
-        <h1 class="font-display text-2xl sm:text-3xl font-bold text-[#e50914] tracking-widest mb-2">CHECKOUT — PASO 1</h1>
+        <h1 class="font-display text-2xl sm:text-3xl font-bold text-[#e11d8a] tracking-widest mb-2">CHECKOUT — PASO 1</h1>
         <p class="text-lg sm:text-xl text-white/80 mb-2">{{ $event->name }}</p>
         <p class="text-white/60 text-sm mb-4 sm:mb-6">Elige butacas y/o entradas por sección. Máximo {{ $maxSeats }} entradas en total.</p>
 
@@ -105,21 +105,21 @@
             @error('event_id')<p class="text-sm text-red-400">{{ $message }}</p>@enderror
 
             <template x-if="hasCustomLayout()">
-                <div class="rounded-2xl border border-red-900/50 bg-black/60 backdrop-blur px-4 py-5 sm:p-6">
+                <div class="rounded-2xl border border-fuchsia-900/50 bg-black/60 backdrop-blur px-4 py-5 sm:p-6">
                     <p class="text-white/80 text-sm font-medium text-center">Elige tus butacas en el plano</p>
                     <p class="text-white/60 text-xs mt-1 text-center max-w-xl mx-auto">Cada color corresponde a una sección. Filtra con el selector para enfocar una zona (el resto se atenúa). Las entradas sin butaca se eligen más abajo.</p>
-                    <div class="mb-3 flex flex-wrap items-center justify-center gap-2 rounded-lg border border-red-900/50 bg-black/50 px-2 py-2 text-white shadow-inner">
+                    <div class="mb-3 flex flex-wrap items-center justify-center gap-2 rounded-lg border border-fuchsia-900/50 bg-black/50 px-2 py-2 text-white shadow-inner">
                         <span class="w-11 text-center font-mono text-xs tabular-nums text-white/90" x-text="layoutZoomPercent() + '%'"></span>
-                        <button type="button" class="inline-flex h-9 min-w-[2.25rem] items-center justify-center rounded-lg border border-red-800/60 bg-black/60 px-2 text-lg font-semibold text-white hover:bg-red-950/50 active:scale-95" @click.prevent="layoutZoomOut()" title="Alejar plano" aria-label="Alejar plano">−</button>
-                        <button type="button" class="inline-flex h-9 items-center justify-center rounded-lg border border-red-800/60 bg-black/60 px-3 text-xs font-semibold text-white hover:bg-red-950/50 active:scale-95" @click.prevent="layoutZoomResetFit()" title="Encajar al espacio" aria-label="Encajar plano al espacio">Encajar</button>
-                        <button type="button" class="inline-flex h-9 min-w-[2.25rem] items-center justify-center rounded-lg border border-red-800/60 bg-black/60 px-2 text-lg font-semibold text-white hover:bg-red-950/50 active:scale-95" @click.prevent="layoutZoomIn()" title="Acercar plano" aria-label="Acercar plano">+</button>
+                        <button type="button" class="inline-flex h-9 min-w-[2.25rem] items-center justify-center rounded-lg border border-fuchsia-800/60 bg-black/60 px-2 text-lg font-semibold text-white hover:bg-fuchsia-950/50 active:scale-95" @click.prevent="layoutZoomOut()" title="Alejar plano" aria-label="Alejar plano">−</button>
+                        <button type="button" class="inline-flex h-9 items-center justify-center rounded-lg border border-fuchsia-800/60 bg-black/60 px-3 text-xs font-semibold text-white hover:bg-fuchsia-950/50 active:scale-95" @click.prevent="layoutZoomResetFit()" title="Encajar al espacio" aria-label="Encajar plano al espacio">Encajar</button>
+                        <button type="button" class="inline-flex h-9 min-w-[2.25rem] items-center justify-center rounded-lg border border-fuchsia-800/60 bg-black/60 px-2 text-lg font-semibold text-white hover:bg-fuchsia-950/50 active:scale-95" @click.prevent="layoutZoomIn()" title="Acercar plano" aria-label="Acercar plano">+</button>
                         <span class="hidden text-[10px] text-white/45 sm:inline">Ctrl + rueda</span>
                     </div>
                     <div class="mt-5 mb-4 w-full max-w-xl mx-auto">
                         <label for="layout-section-view-select" class="sr-only">Sección en el plano</label>
                         <select id="layout-section-view-select"
                                 x-model.number="selectedSeatSectionId"
-                                class="w-full rounded-xl border-2 border-red-900/50 bg-black/70 px-4 py-3.5 sm:py-4 text-center text-base sm:text-lg font-semibold text-white shadow-inner focus:outline-none focus:ring-2 focus:ring-[#e50914] focus:border-[#e50914] cursor-pointer appearance-none bg-[length:1.25rem] bg-[right_0.75rem_center] bg-no-repeat pr-10"
+                                class="w-full rounded-xl border-2 border-fuchsia-900/50 bg-black/70 px-4 py-3.5 sm:py-4 text-center text-base sm:text-lg font-semibold text-white shadow-inner focus:outline-none focus:ring-2 focus:ring-[#22d3ee] focus:border-[#22d3ee] cursor-pointer appearance-none bg-[length:1.25rem] bg-[right_0.75rem_center] bg-no-repeat pr-10"
                                 style="background-image:url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 fill=%22none%22 viewBox=%220 0 24 24%22 stroke=%22%23fca5a5%22%3E%3Cpath stroke-linecap=%22round%22 stroke-linejoin=%22round%22 stroke-width=%222%22 d=%22M19 9l-7 7-7-7%22/%3E%3C/svg%3E');">
                             <option value="0">Todas las secciones</option>
                             <template x-for="s in sectionsWithSeats" :key="s.id">
@@ -129,7 +129,7 @@
                     </div>
                     <div x-ref="layoutViewport"
                          @resize.window="recalcLayoutViewportScale()"
-                         class="relative w-full min-h-[200px] max-h-[min(78dvh,900px)] touch-manipulation overflow-auto overscroll-contain rounded-xl border border-red-900/40 bg-[radial-gradient(circle,_rgba(255,255,255,0.12)_1px,_transparent_1px)] bg-[size:16px_16px] p-2 sm:max-h-[min(86vh,90dvh)]">
+                         class="relative w-full min-h-[200px] max-h-[min(78dvh,900px)] touch-manipulation overflow-auto overscroll-contain rounded-xl border border-fuchsia-900/40 bg-[radial-gradient(circle,_rgba(255,255,255,0.12)_1px,_transparent_1px)] bg-[size:16px_16px] p-2 sm:max-h-[min(86vh,90dvh)]">
                         <div class="relative mx-auto shrink-0" :style="layoutScaledHostStyle">
                             <div class="relative" :style="layoutScaledStageStyle">
                                 <template x-for="el in sortedLayoutElements" :key="el.id">
@@ -146,7 +146,7 @@
                                             </button>
                                         </template>
                                         <template x-if="layoutElType(el) === 'stage'">
-                                            <div class="absolute inset-0 z-0 flex items-center justify-center rounded-md border border-red-500/40 bg-red-700 px-0.5 text-white shadow-md pointer-events-none overflow-hidden"
+                                            <div class="absolute inset-0 z-0 flex items-center justify-center rounded-md border border-fuchsia-500/40 bg-fuchsia-700 px-0.5 text-white shadow-md pointer-events-none overflow-hidden"
                                                  :style="layoutStageSpeakerFaceStyle(el)">
                                                 <span class="max-h-full overflow-hidden text-center text-[8px] font-semibold uppercase leading-tight sm:text-[10px]" x-text="(el.meta && el.meta.label) ? el.meta.label : 'ESCENARIO'"></span>
                                             </div>
@@ -172,10 +172,10 @@
             </template>
 
             @if($hasCustomLayoutBlade && $seatSectionsForLegend->isNotEmpty())
-                <div class="rounded-2xl border border-red-900/50 bg-black/60 backdrop-blur px-4 py-5 sm:p-6">
-                    <h2 class="text-lg font-semibold text-[#e50914] mb-1">Precios por sector (plano)</h2>
+                <div class="rounded-2xl border border-fuchsia-900/50 bg-black/60 backdrop-blur px-4 py-5 sm:p-6">
+                    <h2 class="text-lg font-semibold text-[#e11d8a] mb-1">Precios por sector (plano)</h2>
                     <p class="text-white/60 text-sm mb-4">La selección es en el plano de arriba; aquí solo referencia de precio por zona.</p>
-                    <ul class="divide-y divide-red-900/30 rounded-xl border border-red-900/40 overflow-hidden">
+                    <ul class="divide-y divide-fuchsia-900/30 rounded-xl border border-fuchsia-900/40 overflow-hidden">
                         @foreach($seatSectionsForLegend as $sec)
                             <li class="flex flex-wrap items-center justify-between gap-2 px-4 py-3 bg-black/30 text-white/90">
                                 <span class="font-medium">{{ $sec['name'] }}</span>
@@ -196,8 +196,8 @@
                 @if(!empty($section['has_seats']) && $hasCustomLayoutBlade)
                     @continue
                 @endif
-                <div class="rounded-2xl border border-red-900/50 bg-black/60 backdrop-blur px-4 py-5 sm:p-6">
-                    <h2 class="text-lg font-semibold text-[#e50914] mb-1">{{ $section['name'] }}</h2>
+                <div class="rounded-2xl border border-fuchsia-900/50 bg-black/60 backdrop-blur px-4 py-5 sm:p-6">
+                    <h2 class="text-lg font-semibold text-[#e11d8a] mb-1">{{ $section['name'] }}</h2>
                     @if($isHonoredGuest)
                         <p class="text-emerald-300/90 text-sm mb-4">Invitación (Bs 0)</p>
                     @elseif(isset($section['price']) && $section['price'] !== null && $section['price'] > 0)
@@ -227,8 +227,8 @@
                                         <span class="text-[9px] sm:text-[10px] font-semibold text-amber-400/90 uppercase leading-tight"><span class="sm:hidden">P</span><span class="hidden sm:inline">PARLANTE</span></span>
                                     </div>
                                     <div class="flex-1 flex flex-col items-center justify-end gap-0.5 min-w-0 pb-0.5">
-                                        <div class="w-full rounded-sm bg-red-700 min-h-[3px]" style="height: 3px;" role="img" aria-label="Línea de escenario"></div>
-                                        <span class="text-[10px] font-medium text-red-400 uppercase tracking-wider">ESCENARIO</span>
+                                        <div class="w-full rounded-sm bg-fuchsia-700 min-h-[3px]" style="height: 3px;" role="img" aria-label="Línea de escenario"></div>
+                                        <span class="text-[10px] font-medium text-[#22d3ee] uppercase tracking-wider">ESCENARIO</span>
                                     </div>
                                     <div class="flex flex-col items-center justify-center rounded-lg border border-amber-600/50 bg-amber-900/20 shrink-0 py-1 px-1.5 gap-0.5" style="width: var(--section-seat-size); min-height: var(--section-seat-size);" role="img" aria-label="Parlante">
                                         <span class="text-[9px] sm:text-[10px] font-semibold text-amber-400/90 uppercase leading-tight"><span class="sm:hidden">P</span><span class="hidden sm:inline">PARLANTE</span></span>
@@ -238,7 +238,7 @@
                             @foreach($seatsByRow as $row => $rowSeats)
                                 @php $rowLetter = $rowSeats->first()->row_letter ?? chr(64 + (int)$row); @endphp
                                 <div class="flex gap-2 items-center justify-center">
-                                    <span class="shrink-0 flex items-center justify-center font-bold text-[#e50914]" style="width: var(--section-seat-size); height: var(--section-seat-size); font-size: min(0.875rem, var(--section-seat-size)); line-height: 1;">{{ $rowLetter }}</span>
+                                    <span class="shrink-0 flex items-center justify-center font-bold text-[#e11d8a]" style="width: var(--section-seat-size); height: var(--section-seat-size); font-size: min(0.875rem, var(--section-seat-size)); line-height: 1;">{{ $rowLetter }}</span>
                                     @foreach($rowSeats as $seat)
                                         <button type="button"
                                                 class="seat-btn rounded-lg flex items-center justify-center font-mono transition disabled:opacity-70 disabled:cursor-not-allowed shrink-0"
@@ -258,7 +258,7 @@
                         <p class="text-white/70 text-sm mb-3">Entrada general — {{ $section['availableCapacity'] }} disponibles</p>
                         <div class="flex items-center gap-4">
                             <label class="text-white/80">Cantidad</label>
-                            <select name="section_quantities[{{ $section['id'] }}]" x-model.number="sectionQuantities[{{ $section['id'] }}]" class="rounded-xl border border-red-900/50 bg-black/60 px-4 py-2 text-white">
+                            <select name="section_quantities[{{ $section['id'] }}]" x-model.number="sectionQuantities[{{ $section['id'] }}]" class="rounded-xl border border-fuchsia-900/50 bg-black/60 px-4 py-2 text-white">
                                 @for($q = 0; $q <= min($section['availableCapacity'] ?? 0, $maxSeats); $q++)
                                     <option value="{{ $q }}">{{ $q }}</option>
                                 @endfor
@@ -268,7 +268,7 @@
                 </div>
             @endforeach
 
-            <div class="rounded-2xl border border-red-900/50 bg-black/60 backdrop-blur px-4 py-5 sm:p-6">
+            <div class="rounded-2xl border border-fuchsia-900/50 bg-black/60 backdrop-blur px-4 py-5 sm:p-6">
                 <p class="text-white/80 mb-2" x-show="totalTickets > 0">Total: <strong x-text="totalTickets"></strong> entrada(s).</p>
                 @if($isHonoredGuest)
                     <p class="text-emerald-300/90 mb-2" x-show="totalTickets > 0">Invitación (Bs 0) — sin cargo</p>
@@ -280,32 +280,32 @@
                 </template>
             </div>
 
-            <div class="rounded-2xl border border-red-900/50 bg-black/60 backdrop-blur px-4 py-5 sm:p-6 space-y-4">
+            <div class="rounded-2xl border border-fuchsia-900/50 bg-black/60 backdrop-blur px-4 py-5 sm:p-6 space-y-4">
                 <p class="block text-sm font-medium text-white/80">Nombres en los tickets</p>
                 <div class="flex flex-col gap-3 sm:flex-row sm:gap-6">
                     <label class="inline-flex items-center gap-2 cursor-pointer">
-                        <input type="radio" name="single_name" value="1" x-model="singleName" class="text-[#e50914] focus:ring-[#e50914] bg-black/60">
+                        <input type="radio" name="single_name" value="1" x-model="singleName" class="text-[#e11d8a] focus:ring-[#22d3ee] bg-black/60">
                         <span class="text-white/70">Un nombre para todos</span>
                     </label>
                     <label class="inline-flex items-center gap-2 cursor-pointer">
-                        <input type="radio" name="single_name" value="0" x-model="singleName" class="text-[#e50914] focus:ring-[#e50914] bg-black/60">
+                        <input type="radio" name="single_name" value="0" x-model="singleName" class="text-[#e11d8a] focus:ring-[#22d3ee] bg-black/60">
                         <span class="text-white/70">Un nombre por ticket</span>
                     </label>
                 </div>
                 <div x-show="singleName === '1' || singleName === true">
                     <label for="holder_name" class="block text-sm font-medium text-white/80 mb-1">Nombre para todos</label>
                     <input id="holder_name" type="text" name="holder_name" x-model="holderName" maxlength="255"
-                           class="w-full rounded-xl border border-red-900/50 bg-black/60 px-4 py-3 text-white">
+                           class="w-full rounded-xl border border-fuchsia-900/50 bg-black/60 px-4 py-3 text-white">
                 </div>
                 <div x-show="singleName === '0' || singleName === false" x-cloak>
                     <p class="text-white/60 text-sm mb-3">Asigna el nombre a cada entrada (butaca o sección):</p>
                     <template x-for="(item, index) in ticketItems" :key="index">
-                        <div class="mb-4 p-4 rounded-xl border border-red-900/30 bg-black/40">
-                            <label :for="'holder_name_'+ (index+1)" class="block text-sm font-medium text-[#e50914] mb-1" x-text="'Ticket ' + (index+1) + ' — ' + item.label"></label>
+                        <div class="mb-4 p-4 rounded-xl border border-fuchsia-900/30 bg-black/40">
+                            <label :for="'holder_name_'+ (index+1)" class="block text-sm font-medium text-[#e11d8a] mb-1" x-text="'Ticket ' + (index+1) + ' — ' + item.label"></label>
                             <input :id="'holder_name_'+ (index+1)" type="text" :name="'holder_name_' + (index+1)" maxlength="255"
                                    :value="holderNames[index+1] || ''"
                                    @input="holderNames[index+1] = $event.target.value"
-                                   class="w-full rounded-xl border border-red-900/50 bg-black/60 px-4 py-3 text-white placeholder-white/40">
+                                   class="w-full rounded-xl border border-fuchsia-900/50 bg-black/60 px-4 py-3 text-white placeholder-white/40">
                         </div>
                     </template>
                 </div>
@@ -318,7 +318,7 @@
 
             <p class="text-amber-200/90 text-sm" x-show="totalTickets < 1">Elige al menos una entrada (butaca o cantidad en sección) para continuar.</p>
             <button type="submit"
-                    class="w-full rounded-xl bg-[#e50914] px-5 py-4 text-white font-bold hover:bg-red-600 transition disabled:opacity-50"
+                    class="w-full rounded-xl bg-[#e11d8a] px-5 py-4 text-white font-bold hover:bg-fuchsia-700 transition disabled:opacity-50"
                     :disabled="totalTickets < 1">
                 Continuar al paso 2 — Comprobante de pago
             </button>
@@ -582,10 +582,10 @@
                     const opacity = dimmed ? 0.4 : 1;
                     let shadow = '0 1px 2px rgba(0,0,0,0.35)';
                     if (selected) {
-                        shadow = '0 0 0 2px #fff, 0 0 0 5px rgba(229,9,20,0.95)';
+                        shadow = '0 0 0 2px #fff, 0 0 0 5px rgba(225,29,138,0.95)';
                     }
                     if (selected) {
-                        return `opacity:1;background-color:#e50914;border-color:#fecaca;color:#ffffff;box-shadow:${shadow};`;
+                        return `opacity:1;background-color:#e11d8a;border-color:#fecaca;color:#ffffff;box-shadow:${shadow};`;
                     }
                     if (!passFilter) {
                         const pal = seatSectionId ? this.sectionPaletteEntry(seatSectionId) : { bg: '#334155', border: '#475569', text: '#cbd5e1' };
@@ -680,7 +680,7 @@
                     const id = parseInt(seatId, 10);
                     const selected = this.selectedSeatIds.includes(id);
                     const available = (availableIds || []).includes(id);
-                    if (selected) return 'bg-[#e50914] text-white ring-2 ring-white';
+                    if (selected) return 'bg-[#e11d8a] text-white ring-2 ring-white';
                     if (available) return 'bg-emerald-600 hover:bg-emerald-500 text-white';
                     return 'bg-slate-700 text-slate-500 cursor-not-allowed';
                 },
@@ -706,12 +706,12 @@
 @elseif(empty($seats))
     {{-- Sin venue: reserva por cantidad (legacy) --}}
     <div class="max-w-2xl mx-auto px-1" x-data="{ quantity: {{ old('quantity', 1) }}, singleName: {{ old('single_name', true) ? 'true' : 'false' }} }">
-        <h1 class="font-display text-2xl sm:text-3xl font-bold text-[#e50914] tracking-widest mb-2">CHECKOUT — PASO 1</h1>
+        <h1 class="font-display text-2xl sm:text-3xl font-bold text-[#e11d8a] tracking-widest mb-2">CHECKOUT — PASO 1</h1>
         <p class="text-lg sm:text-xl text-white/80 mb-2">{{ $event->name }}</p>
         <p class="text-white/60 text-sm mb-2">Cantidad y nombres para los tickets.</p>
         <p class="text-amber-200/90 text-sm mb-6 sm:mb-8">Este evento no tiene selección de butacas; solo elige la cantidad. En el paso 2 verás el resumen y subirás el comprobante.</p>
 
-        <form method="POST" action="{{ $storeRoute }}" class="rounded-2xl border border-red-900/50 bg-black/60 backdrop-blur px-4 py-6 sm:p-8 md:p-10 space-y-6">
+        <form method="POST" action="{{ $storeRoute }}" class="rounded-2xl border border-fuchsia-900/50 bg-black/60 backdrop-blur px-4 py-6 sm:p-8 md:p-10 space-y-6">
             @csrf
             <input type="hidden" name="event_id" value="{{ $event->id }}">
             @error('event_id')<p class="text-sm text-red-400">{{ $message }}</p>@enderror
@@ -719,7 +719,7 @@
             <div>
                 <label class="block text-sm font-medium text-white/80 mb-2">Cantidad de tickets</label>
                 <select name="quantity" x-model.number="quantity" required
-                        class="w-full rounded-xl border border-red-900/50 bg-black/60 px-4 py-3 text-white focus:ring-2 focus:ring-[#e50914] focus:border-[#e50914]">
+                        class="w-full rounded-xl border border-fuchsia-900/50 bg-black/60 px-4 py-3 text-white focus:ring-2 focus:ring-[#22d3ee] focus:border-[#22d3ee]">
                     @for($i = 1; $i <= 4; $i++)
                         <option value="{{ $i }}">{{ $i }}</option>
                     @endfor
@@ -730,11 +730,11 @@
                 <p class="block text-sm font-medium text-white/80 mb-2">Nombres en los tickets</p>
                 <div class="flex flex-col gap-3 sm:flex-row sm:gap-6">
                     <label class="inline-flex items-center gap-2 cursor-pointer">
-                        <input type="radio" name="single_name" value="1" x-model="singleName" class="text-[#e50914] focus:ring-[#e50914] bg-black/60">
+                        <input type="radio" name="single_name" value="1" x-model="singleName" class="text-[#e11d8a] focus:ring-[#22d3ee] bg-black/60">
                         <span class="text-white/70">Un nombre para todos</span>
                     </label>
                     <label class="inline-flex items-center gap-2 cursor-pointer">
-                        <input type="radio" name="single_name" value="0" x-model="singleName" class="text-[#e50914] focus:ring-[#e50914] bg-black/60">
+                        <input type="radio" name="single_name" value="0" x-model="singleName" class="text-[#e11d8a] focus:ring-[#22d3ee] bg-black/60">
                         <span class="text-white/70">Un nombre por ticket</span>
                     </label>
                 </div>
@@ -743,7 +743,7 @@
             <div x-show="singleName === '1' || singleName === true">
                 <label for="holder_name" class="block text-sm font-medium text-white/80 mb-1">Nombre para todos los tickets</label>
                 <input id="holder_name" type="text" name="holder_name" value="{{ old('holder_name') }}" maxlength="255"
-                       class="w-full rounded-xl border border-red-900/50 bg-black/60 px-4 py-3 text-white placeholder-white/40 focus:ring-2 focus:ring-[#e50914] @error('holder_name') border-red-500 @enderror">
+                       class="w-full rounded-xl border border-fuchsia-900/50 bg-black/60 px-4 py-3 text-white placeholder-white/40 focus:ring-2 focus:ring-[#22d3ee] @error('holder_name') border-red-500 @enderror">
                 @error('holder_name')<p class="mt-1 text-sm text-red-400">{{ $message }}</p>@enderror
             </div>
 
@@ -752,7 +752,7 @@
                     <div class="mb-4" x-show="quantity >= {{ $i }}">
                         <label for="holder_name_{{ $i }}" class="block text-sm font-medium text-white/80 mb-1">Nombre ticket {{ $i }}</label>
                         <input id="holder_name_{{ $i }}" type="text" name="holder_name_{{ $i }}" value="{{ old("holder_name_{$i}") }}" maxlength="255"
-                               class="w-full rounded-xl border border-red-900/50 bg-black/60 px-4 py-3 text-white placeholder-white/40 focus:ring-2 focus:ring-[#e50914]">
+                               class="w-full rounded-xl border border-fuchsia-900/50 bg-black/60 px-4 py-3 text-white placeholder-white/40 focus:ring-2 focus:ring-[#22d3ee]">
                         @error("holder_name_{$i}")<p class="mt-1 text-sm text-red-400">{{ $message }}</p>@enderror
                     </div>
                 @endfor
@@ -765,7 +765,7 @@
                 <p class="text-sm text-red-400">{{ $message }}</p>
             @enderror
 
-            <button type="submit" class="w-full rounded-xl bg-[#e50914] px-5 py-4 text-white font-bold hover:bg-red-600 transition">
+            <button type="submit" class="w-full rounded-xl bg-[#e11d8a] px-5 py-4 text-white font-bold hover:bg-fuchsia-700 transition">
                 Continuar al paso 2 — Comprobante de pago
             </button>
         </form>
@@ -1016,9 +1016,9 @@
                 const selected = this.isSelected(sid);
                 const can = this.canSelect({ id: sid, blocked: !!el.seat.blocked });
                 let shadow = '0 1px 2px rgba(0,0,0,0.35)';
-                if (selected) shadow = '0 0 0 2px #fff, 0 0 0 5px rgba(229,9,20,0.95)';
+                if (selected) shadow = '0 0 0 2px #fff, 0 0 0 5px rgba(225,29,138,0.95)';
                 if (selected) {
-                    return `background-color:#e50914;border-color:#fecaca;color:#fff;box-shadow:${shadow};`;
+                    return `background-color:#e11d8a;border-color:#fecaca;color:#fff;box-shadow:${shadow};`;
                 }
                 if (!can) {
                     return `background-color:#1e293b;border-color:#334155;color:#64748b;box-shadow:none;`;
@@ -1042,7 +1042,7 @@
                 this.toggle({ id: parseInt(el.seat.id, 10), blocked: !!el.seat.blocked });
             }
          }">
-        <h1 class="font-display text-2xl sm:text-3xl font-bold text-[#e50914] tracking-widest mb-2">CHECKOUT — PASO 1</h1>
+        <h1 class="font-display text-2xl sm:text-3xl font-bold text-[#e11d8a] tracking-widest mb-2">CHECKOUT — PASO 1</h1>
         <p class="text-lg sm:text-xl text-white/80 mb-2">{{ $event->name }}</p>
         <p class="text-white/60 text-sm mb-4 sm:mb-6">Elige tus butacas haciendo clic (máximo {{ $maxSeats }}). Luego los nombres. Al continuar pasarás al paso 2 para subir el comprobante.</p>
 
@@ -1063,18 +1063,18 @@
             @endif
 
             <template x-if="hasCustomLayout()">
-                <div class="rounded-2xl border border-red-900/50 bg-black/60 backdrop-blur px-4 py-5 sm:p-6">
+                <div class="rounded-2xl border border-fuchsia-900/50 bg-black/60 backdrop-blur px-4 py-5 sm:p-6">
                     <p class="text-white/70 text-sm mb-3 text-center">Plano del venue</p>
-                    <div class="mb-3 flex flex-wrap items-center justify-center gap-2 rounded-lg border border-red-900/50 bg-black/50 px-2 py-2 text-white shadow-inner">
+                    <div class="mb-3 flex flex-wrap items-center justify-center gap-2 rounded-lg border border-fuchsia-900/50 bg-black/50 px-2 py-2 text-white shadow-inner">
                         <span class="w-11 text-center font-mono text-xs tabular-nums text-white/90" x-text="layoutZoomPercentSimple() + '%'"></span>
-                        <button type="button" class="inline-flex h-9 min-w-[2.25rem] items-center justify-center rounded-lg border border-red-800/60 bg-black/60 px-2 text-lg font-semibold text-white hover:bg-red-950/50 active:scale-95" @click.prevent="layoutZoomOutSimple()" title="Alejar plano" aria-label="Alejar plano">−</button>
-                        <button type="button" class="inline-flex h-9 items-center justify-center rounded-lg border border-red-800/60 bg-black/60 px-3 text-xs font-semibold text-white hover:bg-red-950/50 active:scale-95" @click.prevent="layoutZoomResetFitSimple()" title="Encajar al espacio" aria-label="Encajar plano">Encajar</button>
-                        <button type="button" class="inline-flex h-9 min-w-[2.25rem] items-center justify-center rounded-lg border border-red-800/60 bg-black/60 px-2 text-lg font-semibold text-white hover:bg-red-950/50 active:scale-95" @click.prevent="layoutZoomInSimple()" title="Acercar plano" aria-label="Acercar plano">+</button>
+                        <button type="button" class="inline-flex h-9 min-w-[2.25rem] items-center justify-center rounded-lg border border-fuchsia-800/60 bg-black/60 px-2 text-lg font-semibold text-white hover:bg-fuchsia-950/50 active:scale-95" @click.prevent="layoutZoomOutSimple()" title="Alejar plano" aria-label="Alejar plano">−</button>
+                        <button type="button" class="inline-flex h-9 items-center justify-center rounded-lg border border-fuchsia-800/60 bg-black/60 px-3 text-xs font-semibold text-white hover:bg-fuchsia-950/50 active:scale-95" @click.prevent="layoutZoomResetFitSimple()" title="Encajar al espacio" aria-label="Encajar plano">Encajar</button>
+                        <button type="button" class="inline-flex h-9 min-w-[2.25rem] items-center justify-center rounded-lg border border-fuchsia-800/60 bg-black/60 px-2 text-lg font-semibold text-white hover:bg-fuchsia-950/50 active:scale-95" @click.prevent="layoutZoomInSimple()" title="Acercar plano" aria-label="Acercar plano">+</button>
                         <span class="hidden text-[10px] text-white/45 sm:inline">Ctrl + rueda</span>
                     </div>
                     <div x-ref="layoutViewport"
                          @resize.window="recalcLayoutViewportScaleSimple()"
-                         class="relative w-full min-h-[200px] max-h-[min(78dvh,900px)] touch-manipulation overflow-auto overscroll-contain rounded-xl border border-red-900/40 bg-[radial-gradient(circle,_rgba(255,255,255,0.12)_1px,_transparent_1px)] bg-[size:16px_16px] p-2 sm:max-h-[min(86vh,90dvh)]">
+                         class="relative w-full min-h-[200px] max-h-[min(78dvh,900px)] touch-manipulation overflow-auto overscroll-contain rounded-xl border border-fuchsia-900/40 bg-[radial-gradient(circle,_rgba(255,255,255,0.12)_1px,_transparent_1px)] bg-[size:16px_16px] p-2 sm:max-h-[min(86vh,90dvh)]">
                         <div class="relative mx-auto shrink-0" :style="layoutScaledHostStyleSimple">
                             <div class="relative" :style="layoutScaledStageStyleSimple">
                                 <template x-for="el in sortedLayoutElements" :key="el.id">
@@ -1091,7 +1091,7 @@
                                             </button>
                                         </template>
                                         <template x-if="layoutElType(el) === 'stage'">
-                                            <div class="absolute inset-0 z-0 flex items-center justify-center rounded-md border border-red-500/40 bg-red-700 px-0.5 text-white shadow-md pointer-events-none overflow-hidden">
+                                            <div class="absolute inset-0 z-0 flex items-center justify-center rounded-md border border-fuchsia-500/40 bg-fuchsia-700 px-0.5 text-white shadow-md pointer-events-none overflow-hidden">
                                                 <span class="max-h-full overflow-hidden text-center text-[8px] font-semibold uppercase leading-tight sm:text-[10px]" x-text="(el.meta && el.meta.label) ? el.meta.label : 'ESCENARIO'"></span>
                                             </div>
                                         </template>
@@ -1113,7 +1113,7 @@
                 </div>
             </template>
 
-            <div class="rounded-2xl border border-red-900/50 bg-black/60 backdrop-blur px-4 py-5 sm:p-6" x-show="!hasCustomLayout()">
+            <div class="rounded-2xl border border-fuchsia-900/50 bg-black/60 backdrop-blur px-4 py-5 sm:p-6" x-show="!hasCustomLayout()">
                 {{-- Plano escalado al viewport: todas las butacas visibles, proporción correcta --}}
                 @php
                     $labelW = 2.5;
@@ -1132,8 +1132,8 @@
                                 <span class="text-[9px] sm:text-[10px] font-semibold text-amber-400/90 uppercase leading-tight"><span class="sm:hidden">P</span><span class="hidden sm:inline">PARLANTE</span></span>
                             </div>
                             <div class="flex-1 flex flex-col items-center justify-end gap-0.5 min-w-0 pb-0.5">
-                                <div class="w-full rounded-sm bg-red-700 min-h-[3px]" style="height: 3px;" role="img" aria-label="Línea de escenario"></div>
-                                <span class="text-[10px] sm:text-xs font-medium text-red-400 uppercase tracking-wider">ESCENARIO</span>
+                                <div class="w-full rounded-sm bg-fuchsia-700 min-h-[3px]" style="height: 3px;" role="img" aria-label="Línea de escenario"></div>
+                                <span class="text-[10px] sm:text-xs font-medium text-[#22d3ee] uppercase tracking-wider">ESCENARIO</span>
                             </div>
                             <div class="flex flex-col items-center justify-center rounded-lg border border-amber-600/50 bg-amber-900/20 shrink-0 py-1 px-1.5 gap-0.5" style="width: var(--seat-size); min-height: var(--seat-size);" role="img" aria-label="Parlante">
                                 <span class="text-[9px] sm:text-[10px] font-semibold text-amber-400/90 uppercase leading-tight"><span class="sm:hidden">P</span><span class="hidden sm:inline">PARLANTE</span></span>
@@ -1143,7 +1143,7 @@
                     @foreach($seatsByRow as $row => $rowSeats)
                         @php $rowLetter = $rowSeats->first()->row_letter ?? chr(64 + (int)$row); @endphp
                         <div class="flex gap-3 items-center justify-center flex-nowrap">
-                            <span class="seat-plan-label flex shrink-0 items-center justify-center rounded-lg border border-red-900/50 bg-black/40 font-bold text-[#e50914]" style="width: var(--seat-size); height: var(--seat-size); font-size: min(0.875rem, var(--seat-size)); line-height: 1;" aria-label="Fila {{ $rowLetter }}">{{ $rowLetter }}</span>
+                            <span class="seat-plan-label flex shrink-0 items-center justify-center rounded-lg border border-fuchsia-900/50 bg-black/40 font-bold text-[#e11d8a]" style="width: var(--seat-size); height: var(--seat-size); font-size: min(0.875rem, var(--seat-size)); line-height: 1;" aria-label="Fila {{ $rowLetter }}">{{ $rowLetter }}</span>
                             <div class="flex gap-2 justify-center flex-nowrap shrink-0">
                                 @foreach($rowSeats as $seat)
                                     <button type="button"
@@ -1151,7 +1151,7 @@
                                             :disabled="!canSelect({{ json_encode($seat) }})"
                                             :class="{
                                                 'bg-emerald-600 hover:bg-emerald-500 text-white': isAvailable({{ $seat->id }}) && !isBlocked({{ json_encode($seat) }}) && !isSelected({{ $seat->id }}),
-                                                'bg-[#e50914] text-white ring-2 ring-white': isSelected({{ $seat->id }}),
+                                                'bg-[#e11d8a] text-white ring-2 ring-white': isSelected({{ $seat->id }}),
                                                 'bg-slate-700 text-slate-500 cursor-not-allowed': isBlocked({{ json_encode($seat) }}) || (!isAvailable({{ $seat->id }}) && !isSelected({{ $seat->id }}))
                                             }"
                                             class="seat-plan-cell rounded-lg font-mono font-bold transition shrink-0 disabled:opacity-70 flex items-center justify-center"
@@ -1178,15 +1178,15 @@
             </p>
             @error('seat_ids')<p class="text-sm text-red-400">{{ $message }}</p>@enderror
 
-            <div class="rounded-2xl border border-red-900/50 bg-black/60 backdrop-blur px-4 py-5 sm:p-6 space-y-4">
+            <div class="rounded-2xl border border-fuchsia-900/50 bg-black/60 backdrop-blur px-4 py-5 sm:p-6 space-y-4">
                 <p class="block text-sm font-medium text-white/80">Nombres en los tickets</p>
                 <div class="flex flex-col gap-3 sm:flex-row sm:gap-6">
                     <label class="inline-flex items-center gap-2 cursor-pointer">
-                        <input type="radio" name="single_name" value="1" x-model="singleName" class="text-[#e50914] focus:ring-[#e50914] bg-black/60">
+                        <input type="radio" name="single_name" value="1" x-model="singleName" class="text-[#e11d8a] focus:ring-[#22d3ee] bg-black/60">
                         <span class="text-white/70">Un nombre para todos</span>
                     </label>
                     <label class="inline-flex items-center gap-2 cursor-pointer">
-                        <input type="radio" name="single_name" value="0" x-model="singleName" class="text-[#e50914] focus:ring-[#e50914] bg-black/60">
+                        <input type="radio" name="single_name" value="0" x-model="singleName" class="text-[#e11d8a] focus:ring-[#22d3ee] bg-black/60">
                         <span class="text-white/70">Un nombre por ticket</span>
                     </label>
                 </div>
@@ -1194,20 +1194,20 @@
                 <div x-show="singleName === '1' || singleName === true">
                     <label for="holder_name" class="block text-sm font-medium text-white/80 mb-1">Nombre para todos los tickets</label>
                     <input id="holder_name" type="text" name="holder_name" value="{{ old('holder_name') }}" maxlength="255"
-                           class="w-full rounded-xl border border-red-900/50 bg-black/60 px-4 py-3 text-white placeholder-white/40 focus:ring-2 focus:ring-[#e50914] @error('holder_name') border-red-500 @enderror">
+                           class="w-full rounded-xl border border-fuchsia-900/50 bg-black/60 px-4 py-3 text-white placeholder-white/40 focus:ring-2 focus:ring-[#22d3ee] @error('holder_name') border-red-500 @enderror">
                     @error('holder_name')<p class="mt-1 text-sm text-red-400">{{ $message }}</p>@enderror
                 </div>
 
                 <div x-show="singleName === '0' || singleName === false" x-cloak>
                     <p class="text-white/60 text-xs mb-3">Asigna un nombre y una butaca a cada ticket.</p>
                     <template x-for="(id, i) in selectedIds" :key="id">
-                        <div class="mb-4 p-4 rounded-xl border border-red-900/30 bg-black/40 space-y-3">
-                            <p class="text-sm font-medium text-[#e50914]" x-text="'Ticket ' + (i+1)"></p>
+                        <div class="mb-4 p-4 rounded-xl border border-fuchsia-900/30 bg-black/40 space-y-3">
+                            <p class="text-sm font-medium text-[#e11d8a]" x-text="'Ticket ' + (i+1)"></p>
                             <div>
                                 <label :for="'holder_name_'+ (i+1)" class="block text-sm font-medium text-white/80 mb-1">Nombre</label>
                                 <input :id="'holder_name_'+ (i+1)" type="text" :name="'holder_name_' + (i+1)" maxlength="255"
                                        :value="oldNames[i+1] || ''"
-                                       class="w-full rounded-xl border border-red-900/50 bg-black/60 px-4 py-3 text-white placeholder-white/40 focus:ring-2 focus:ring-[#e50914]"
+                                       class="w-full rounded-xl border border-fuchsia-900/50 bg-black/60 px-4 py-3 text-white placeholder-white/40 focus:ring-2 focus:ring-[#22d3ee]"
                                        placeholder="Ej. Juan Pérez">
                             </div>
                             <div>
@@ -1215,7 +1215,7 @@
                                 <select :id="'seat_for_'+ (i+1)" :name="'seat_for_' + (i+1)" required
                                         :value="seatFor[i+1]"
                                         @input="onSeatAssign(i+1, $event.target.value)"
-                                        class="w-full rounded-xl border border-red-900/50 bg-black/60 px-4 py-3 text-white focus:ring-2 focus:ring-[#e50914]">
+                                        class="w-full rounded-xl border border-fuchsia-900/50 bg-black/60 px-4 py-3 text-white focus:ring-2 focus:ring-[#22d3ee]">
                                     <template x-for="sid in selectedIds" :key="sid">
                                         <option :value="sid" x-text="seatsMap[sid] ? seatsMap[sid].label : sid"></option>
                                     </template>
@@ -1233,7 +1233,7 @@
                 <p class="text-sm text-red-400">{{ $message }}</p>
             @enderror
 
-            <button type="submit" class="w-full rounded-xl bg-[#e50914] px-5 py-4 text-white font-bold hover:bg-red-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            <button type="submit" class="w-full rounded-xl bg-[#e11d8a] px-5 py-4 text-white font-bold hover:bg-fuchsia-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
                     :disabled="!Array.isArray(selectedIds) || selectedIds.length === 0">
                 @if(!empty($isHonoredGuest))
                     Registrar invitación (pendiente autorización)

@@ -5,8 +5,8 @@
     <style>
         body { font-family: sans-serif; line-height: 1.6; color: #1f2937; }
         .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        h1 { color: #6d28d9; }
-        .btn { display: inline-block; padding: 12px 24px; background: #6d28d9; color: #fff !important; text-decoration: none; border-radius: 6px; margin: 16px 0; }
+        h1 { color: #e11d8a; }
+        .btn { display: inline-block; padding: 12px 24px; background: #e11d8a; color: #fff !important; text-decoration: none; border-radius: 6px; margin: 16px 0; }
         .muted { font-size: 14px; color: #6b7280; }
     </style>
 </head>

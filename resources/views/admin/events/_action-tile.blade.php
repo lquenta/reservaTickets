@@ -9,7 +9,7 @@
     'danger' => false,
 ])
 
-<div class="rounded-2xl border-2 {{ $danger ? 'border-red-300/60 dark:border-red-800/50' : 'border-violet-200/60 dark:border-violet-700/50' }} bg-white dark:bg-slate-800/80 p-5 flex flex-col gap-3">
+<div class="rounded-2xl border-2 {{ $danger ? 'border-red-300/60 dark:border-fuchsia-800/50' : 'border-violet-200/60 dark:border-violet-700/50' }} bg-white dark:bg-slate-800/80 p-5 flex flex-col gap-3">
     <div class="flex items-start gap-3">
         <span class="text-2xl shrink-0" aria-hidden="true">{{ $icon }}</span>
         <div>

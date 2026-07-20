@@ -113,7 +113,7 @@
                                     @endif
                                     <form method="POST" action="{{ route('admin.reservations.cancel', $r) }}" class="inline" onsubmit="return confirm('¿Cancelar esta reserva en proceso? Las butacas quedarán liberadas.');">
                                         @csrf
-                                        <button type="submit" class="rounded-xl bg-red-600 px-4 py-2 text-white font-semibold hover:bg-red-700 transition">Cancelar</button>
+                                        <button type="submit" class="rounded-xl bg-red-600 px-4 py-2 text-white font-semibold hover:bg-fuchsia-700 transition">Cancelar</button>
                                     </form>
                                 </div>
                             @elseif($r->status === 'PENDIENTE_PAGO')
@@ -124,7 +124,7 @@
                                     </form>
                                     <form method="POST" action="{{ route('admin.reservations.reject', $r) }}" class="inline" onsubmit="return confirm('¿Rechazar esta reserva? El comprobante no será aceptado y las butacas quedarán liberadas.');">
                                         @csrf
-                                        <button type="submit" class="rounded-xl bg-red-600 px-4 py-2 text-white font-semibold hover:bg-red-700 transition">Rechazar</button>
+                                        <button type="submit" class="rounded-xl bg-red-600 px-4 py-2 text-white font-semibold hover:bg-fuchsia-700 transition">Rechazar</button>
                                     </form>
                                 </div>
                             @elseif($r->status === 'CONFIRMADO')

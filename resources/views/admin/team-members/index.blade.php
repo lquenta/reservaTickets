@@ -9,7 +9,7 @@
         <p class="text-slate-600 dark:text-slate-400 mt-1">Fotos que se muestran en el carrusel de la sección «Quiénes somos» de la portada.</p>
     </div>
     <div class="flex flex-wrap gap-2">
-        <a href="{{ route('admin.team-members.create') }}" class="rounded-xl bg-[#e50914] hover:bg-red-600 px-5 py-2.5 text-white font-semibold transition">
+        <a href="{{ route('admin.team-members.create') }}" class="rounded-xl bg-[#e11d8a] hover:bg-fuchsia-700 px-5 py-2.5 text-white font-semibold transition">
             + Añadir uno
         </a>
         <a href="{{ route('admin.team-members.bulk-create') }}" class="rounded-xl border border-violet-500/60 text-violet-600 dark:text-violet-400 hover:bg-violet-50 dark:hover:bg-violet-900/20 px-5 py-2.5 font-medium transition">
@@ -49,7 +49,7 @@
                 </div>
             </div>
         @empty
-            <p class="py-12 text-center text-slate-500 dark:text-slate-400">No hay integrantes. <a href="{{ route('admin.team-members.create') }}" class="text-[#e50914] hover:underline">Añade el primero</a> para que aparezcan en la sección Quiénes somos.</p>
+            <p class="py-12 text-center text-slate-500 dark:text-slate-400">No hay integrantes. <a href="{{ route('admin.team-members.create') }}" class="text-[#e11d8a] hover:underline">Añade el primero</a> para que aparezcan en la sección Quiénes somos.</p>
         @endforelse
     </div>
 </div>

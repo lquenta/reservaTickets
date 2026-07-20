@@ -8,88 +8,88 @@
         <div class="sticky top-24 z-20 max-lg:max-h-[min(70vh,calc(100dvh-7rem))] max-lg:overflow-y-auto lg:max-h-none"
              @click.outside="adminMenuOpen = false">
             <button type="button"
-                    class="lg:hidden w-full flex items-center justify-between gap-3 rounded-2xl border border-red-900/50 bg-black/60 backdrop-blur px-4 py-3 text-left text-sm font-semibold text-white/90 hover:bg-red-900/20 transition mb-3"
+                    class="lg:hidden w-full flex items-center justify-between gap-3 rounded-2xl border border-fuchsia-900/50 bg-black/60 backdrop-blur px-4 py-3 text-left text-sm font-semibold text-white/90 hover:bg-fuchsia-900/20 transition mb-3"
                     @click="adminMenuOpen = !adminMenuOpen"
                     :aria-expanded="adminMenuOpen"
                     aria-controls="admin-sidebar-nav">
                 <span class="truncate">Menú de administración</span>
-                <svg class="w-5 h-5 shrink-0 text-[#e50914] transition-transform duration-200" :class="adminMenuOpen && 'rotate-180'" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <svg class="w-5 h-5 shrink-0 text-[#e11d8a] transition-transform duration-200" :class="adminMenuOpen && 'rotate-180'" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                 </svg>
             </button>
             <nav id="admin-sidebar-nav"
-                 class="rounded-2xl border border-red-900/50 bg-black/60 backdrop-blur p-4 hidden lg:block"
+                 class="rounded-2xl border border-fuchsia-900/50 bg-black/60 backdrop-blur p-4 hidden lg:block"
                  :class="{ '!block': adminMenuOpen }">
-                <p class="hidden lg:block text-xs font-semibold uppercase tracking-wider text-white/50 px-2 pb-3 mb-3 border-b border-red-900/50">Administración</p>
+                <p class="hidden lg:block text-xs font-semibold uppercase tracking-wider text-white/50 px-2 pb-3 mb-3 border-b border-fuchsia-900/50">Administración</p>
                 <ul class="space-y-1">
                     <li>
-                        <a href="{{ route('admin.dashboard') }}" @click="adminMenuOpen = false" class="flex items-center gap-2 px-3 py-2 rounded-xl text-white/80 hover:bg-red-900/30 hover:text-[#e50914] font-medium transition {{ request()->routeIs('admin.dashboard') ? 'bg-red-900/30 text-[#e50914]' : '' }}">
+                        <a href="{{ route('admin.dashboard') }}" @click="adminMenuOpen = false" class="flex items-center gap-2 px-3 py-2 rounded-xl text-white/80 hover:bg-fuchsia-900/30 hover:text-[#e11d8a] font-medium transition {{ request()->routeIs('admin.dashboard') ? 'bg-fuchsia-900/30 text-[#e11d8a]' : '' }}">
                             <span aria-hidden="true">📊</span> Dashboard
                         </a>
                     </li>
                     <li>
-                        <a href="{{ route('admin.venues.index') }}" @click="adminMenuOpen = false" class="flex items-center gap-2 px-3 py-2 rounded-xl text-white/80 hover:bg-red-900/30 hover:text-[#e50914] font-medium transition {{ request()->routeIs('admin.venues.*') ? 'bg-red-900/30 text-[#e50914]' : '' }}">
+                        <a href="{{ route('admin.venues.index') }}" @click="adminMenuOpen = false" class="flex items-center gap-2 px-3 py-2 rounded-xl text-white/80 hover:bg-fuchsia-900/30 hover:text-[#e11d8a] font-medium transition {{ request()->routeIs('admin.venues.*') ? 'bg-fuchsia-900/30 text-[#e11d8a]' : '' }}">
                             <span aria-hidden="true">🏟️</span> Lugares
                         </a>
                     </li>
                     <li>
-                        <a href="{{ route('admin.events.index') }}" @click="adminMenuOpen = false" class="flex items-center gap-2 px-3 py-2 rounded-xl text-white/80 hover:bg-red-900/30 hover:text-[#e50914] font-medium transition {{ request()->routeIs('admin.events.*') ? 'bg-red-900/30 text-[#e50914]' : '' }}">
+                        <a href="{{ route('admin.events.index') }}" @click="adminMenuOpen = false" class="flex items-center gap-2 px-3 py-2 rounded-xl text-white/80 hover:bg-fuchsia-900/30 hover:text-[#e11d8a] font-medium transition {{ request()->routeIs('admin.events.*') ? 'bg-fuchsia-900/30 text-[#e11d8a]' : '' }}">
                             <span aria-hidden="true">🎫</span> Eventos
                         </a>
                     </li>
                     <li>
-                        <a href="{{ route('admin.reservations.index') }}" @click="adminMenuOpen = false" class="flex items-center gap-2 px-3 py-2 rounded-xl text-white/80 hover:bg-red-900/30 hover:text-[#e50914] font-medium transition {{ request()->routeIs('admin.reservations.*') ? 'bg-red-900/30 text-[#e50914]' : '' }}">
+                        <a href="{{ route('admin.reservations.index') }}" @click="adminMenuOpen = false" class="flex items-center gap-2 px-3 py-2 rounded-xl text-white/80 hover:bg-fuchsia-900/30 hover:text-[#e11d8a] font-medium transition {{ request()->routeIs('admin.reservations.*') ? 'bg-fuchsia-900/30 text-[#e11d8a]' : '' }}">
                             <span aria-hidden="true">📋</span> Reservas
                         </a>
                     </li>
                     <li>
-                        <a href="{{ route('admin.refunds.index') }}" @click="adminMenuOpen = false" class="flex items-center gap-2 px-3 py-2 rounded-xl text-white/80 hover:bg-red-900/30 hover:text-[#e50914] font-medium transition {{ request()->routeIs('admin.refunds.*') ? 'bg-red-900/30 text-[#e50914]' : '' }}">
+                        <a href="{{ route('admin.refunds.index') }}" @click="adminMenuOpen = false" class="flex items-center gap-2 px-3 py-2 rounded-xl text-white/80 hover:bg-fuchsia-900/30 hover:text-[#e11d8a] font-medium transition {{ request()->routeIs('admin.refunds.*') ? 'bg-fuchsia-900/30 text-[#e11d8a]' : '' }}">
                             <span aria-hidden="true">↩️</span> Reembolsos
                         </a>
                     </li>
                     <li>
-                        <a href="{{ route('admin.users.index') }}" @click="adminMenuOpen = false" class="flex items-center gap-2 px-3 py-2 rounded-xl text-white/80 hover:bg-red-900/30 hover:text-[#e50914] font-medium transition {{ request()->routeIs('admin.users.*') ? 'bg-red-900/30 text-[#e50914]' : '' }}">
+                        <a href="{{ route('admin.users.index') }}" @click="adminMenuOpen = false" class="flex items-center gap-2 px-3 py-2 rounded-xl text-white/80 hover:bg-fuchsia-900/30 hover:text-[#e11d8a] font-medium transition {{ request()->routeIs('admin.users.*') ? 'bg-fuchsia-900/30 text-[#e11d8a]' : '' }}">
                             <span aria-hidden="true">👥</span> Usuarios
                         </a>
                     </li>
                     <li>
-                        <a href="{{ route('admin.reports.index') }}" @click="adminMenuOpen = false" class="flex items-center gap-2 px-3 py-2 rounded-xl text-white/80 hover:bg-red-900/30 hover:text-[#e50914] font-medium transition {{ request()->routeIs('admin.reports.*') ? 'bg-red-900/30 text-[#e50914]' : '' }}">
+                        <a href="{{ route('admin.reports.index') }}" @click="adminMenuOpen = false" class="flex items-center gap-2 px-3 py-2 rounded-xl text-white/80 hover:bg-fuchsia-900/30 hover:text-[#e11d8a] font-medium transition {{ request()->routeIs('admin.reports.*') ? 'bg-fuchsia-900/30 text-[#e11d8a]' : '' }}">
                             <span aria-hidden="true">📈</span> Reportes
                         </a>
                     </li>
                     <li>
-                        <a href="{{ route('admin.hero-slides.index') }}" @click="adminMenuOpen = false" class="flex items-center gap-2 px-3 py-2 rounded-xl text-white/80 hover:bg-red-900/30 hover:text-[#e50914] font-medium transition {{ request()->routeIs('admin.hero-slides.*') ? 'bg-red-900/30 text-[#e50914]' : '' }}">
+                        <a href="{{ route('admin.hero-slides.index') }}" @click="adminMenuOpen = false" class="flex items-center gap-2 px-3 py-2 rounded-xl text-white/80 hover:bg-fuchsia-900/30 hover:text-[#e11d8a] font-medium transition {{ request()->routeIs('admin.hero-slides.*') ? 'bg-fuchsia-900/30 text-[#e11d8a]' : '' }}">
                             <span aria-hidden="true">🖼️</span> Slider inicio
                         </a>
                     </li>
                     <li>
-                        <a href="{{ route('admin.site-content.quienes-somos') }}" @click="adminMenuOpen = false" class="flex items-center gap-2 px-3 py-2 rounded-xl text-white/80 hover:bg-red-900/30 hover:text-[#e50914] font-medium transition {{ request()->routeIs('admin.site-content.quienes-somos') ? 'bg-red-900/30 text-[#e50914]' : '' }}">
+                        <a href="{{ route('admin.site-content.quienes-somos') }}" @click="adminMenuOpen = false" class="flex items-center gap-2 px-3 py-2 rounded-xl text-white/80 hover:bg-fuchsia-900/30 hover:text-[#e11d8a] font-medium transition {{ request()->routeIs('admin.site-content.quienes-somos') ? 'bg-fuchsia-900/30 text-[#e11d8a]' : '' }}">
                             <span aria-hidden="true">📝</span> Quiénes somos
                         </a>
                     </li>
                     <li>
-                        <a href="{{ route('admin.team-members.index') }}" @click="adminMenuOpen = false" class="flex items-center gap-2 px-3 py-2 rounded-xl text-white/80 hover:bg-red-900/30 hover:text-[#e50914] font-medium transition {{ request()->routeIs('admin.team-members.*') ? 'bg-red-900/30 text-[#e50914]' : '' }}">
+                        <a href="{{ route('admin.team-members.index') }}" @click="adminMenuOpen = false" class="flex items-center gap-2 px-3 py-2 rounded-xl text-white/80 hover:bg-fuchsia-900/30 hover:text-[#e11d8a] font-medium transition {{ request()->routeIs('admin.team-members.*') ? 'bg-fuchsia-900/30 text-[#e11d8a]' : '' }}">
                             <span aria-hidden="true">👤</span> Integrantes
                         </a>
                     </li>
                     <li>
-                        <a href="{{ route('admin.site-content.hero') }}" @click="adminMenuOpen = false" class="flex items-center gap-2 px-3 py-2 rounded-xl text-white/80 hover:bg-red-900/30 hover:text-[#e50914] font-medium transition {{ request()->routeIs('admin.site-content.hero') ? 'bg-red-900/30 text-[#e50914]' : '' }}">
+                        <a href="{{ route('admin.site-content.hero') }}" @click="adminMenuOpen = false" class="flex items-center gap-2 px-3 py-2 rounded-xl text-white/80 hover:bg-fuchsia-900/30 hover:text-[#e11d8a] font-medium transition {{ request()->routeIs('admin.site-content.hero') ? 'bg-fuchsia-900/30 text-[#e11d8a]' : '' }}">
                             <span aria-hidden="true">🏠</span> Texto Hero
                         </a>
                     </li>
                     <li>
-                        <a href="{{ route('admin.mail-settings.index') }}" @click="adminMenuOpen = false" class="flex items-center gap-2 px-3 py-2 rounded-xl text-white/80 hover:bg-red-900/30 hover:text-[#e50914] font-medium transition {{ request()->routeIs('admin.mail-settings.*') ? 'bg-red-900/30 text-[#e50914]' : '' }}">
+                        <a href="{{ route('admin.mail-settings.index') }}" @click="adminMenuOpen = false" class="flex items-center gap-2 px-3 py-2 rounded-xl text-white/80 hover:bg-fuchsia-900/30 hover:text-[#e11d8a] font-medium transition {{ request()->routeIs('admin.mail-settings.*') ? 'bg-fuchsia-900/30 text-[#e11d8a]' : '' }}">
                             <span aria-hidden="true">✉️</span> Correo / SMTP
                         </a>
                     </li>
                     <li>
-                        <a href="{{ route('admin.notification-settings.index') }}" @click="adminMenuOpen = false" class="flex items-center gap-2 px-3 py-2 rounded-xl text-white/80 hover:bg-red-900/30 hover:text-[#e50914] font-medium transition {{ request()->routeIs('admin.notification-settings.*') ? 'bg-red-900/30 text-[#e50914]' : '' }}">
+                        <a href="{{ route('admin.notification-settings.index') }}" @click="adminMenuOpen = false" class="flex items-center gap-2 px-3 py-2 rounded-xl text-white/80 hover:bg-fuchsia-900/30 hover:text-[#e11d8a] font-medium transition {{ request()->routeIs('admin.notification-settings.*') ? 'bg-fuchsia-900/30 text-[#e11d8a]' : '' }}">
                             <span aria-hidden="true">🔔</span> Notificaciones
                         </a>
                     </li>
                 </ul>
-                <div class="mt-4 pt-3 border-t border-red-900/50">
-                    <a href="{{ route('home') }}" @click="adminMenuOpen = false" class="flex items-center gap-2 px-3 py-2 rounded-xl text-white/50 hover:bg-red-900/20 hover:text-[#e50914] text-sm transition">← Volver al sitio</a>
+                <div class="mt-4 pt-3 border-t border-fuchsia-900/50">
+                    <a href="{{ route('home') }}" @click="adminMenuOpen = false" class="flex items-center gap-2 px-3 py-2 rounded-xl text-white/50 hover:bg-fuchsia-900/20 hover:text-[#e11d8a] text-sm transition">← Volver al sitio</a>
                 </div>
             </nav>
         </div>

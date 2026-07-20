@@ -38,7 +38,8 @@ final class SectionLayoutColors
     }
 
     /**
-     * Colores permitidos para sectores: excluye negro/casi negro y rojos (reservados visualmente para no disponible).
+     * Colores permitidos para sectores: excluye negro/casi negro, rojos y magenta de marca
+     * (reservados visualmente para selección / estados UI).
      */
     public static function isAllowed(string $normalizedHex): bool
     {
@@ -54,7 +55,13 @@ final class SectionLayoutColors
             return false;
         }
 
+        // Rojos (UI / no disponible)
         if ($r >= 130 && $g <= 100 && $b <= 100) {
+            return false;
+        }
+
+        // Magenta / fuchsia de marca (#E11D8A y cercanos)
+        if ($r >= 180 && $g <= 80 && $b >= 100 && $b <= 230) {
             return false;
         }
 

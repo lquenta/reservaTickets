@@ -7,13 +7,13 @@
 <div class="max-w-2xl mx-auto mb-6 sm:mb-8 px-1">
     <div class="flex flex-wrap items-center justify-center gap-x-2 gap-y-2 sm:gap-x-4">
         <div class="flex items-center gap-2 min-w-0">
-            <span class="flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-full border-2 border-[#e50914]/60 bg-[#e50914]/20 text-xs sm:text-sm font-medium text-[#e50914]">1</span>
+            <span class="flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-full border-2 border-[#e11d8a]/60 bg-[#e11d8a]/20 text-xs sm:text-sm font-medium text-[#e11d8a]">1</span>
             <span class="text-xs sm:text-sm text-white/50"><span class="sm:hidden">Butacas / datos</span><span class="hidden sm:inline">Elige butacas / datos</span></span>
         </div>
-        <div class="h-px w-8 sm:w-12 bg-red-900/50 shrink-0" aria-hidden="true"></div>
+        <div class="h-px w-8 sm:w-12 bg-fuchsia-900/50 shrink-0" aria-hidden="true"></div>
         <div class="flex items-center gap-2 min-w-0">
-            <span class="flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-full bg-[#e50914] text-xs sm:text-sm font-bold text-white">2</span>
-            <span class="text-xs sm:text-sm font-medium text-[#e50914]"><span class="sm:hidden">Comprobante</span><span class="hidden sm:inline">Comprobante de pago</span></span>
+            <span class="flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-full bg-[#e11d8a] text-xs sm:text-sm font-bold text-white">2</span>
+            <span class="text-xs sm:text-sm font-medium text-[#e11d8a]"><span class="sm:hidden">Comprobante</span><span class="hidden sm:inline">Comprobante de pago</span></span>
         </div>
     </div>
 </div>
@@ -24,8 +24,8 @@
         <p class="text-3xl sm:text-4xl md:text-5xl font-mono font-bold text-amber-100 tabular-nums" x-text="display" x-transition></p>
     </div>
 
-    <div class="rounded-2xl border border-red-900/50 bg-black/60 backdrop-blur px-4 py-6 sm:p-8 md:p-10 space-y-8">
-        <h1 class="font-display text-2xl md:text-3xl font-bold text-[#e50914] tracking-widest">CHECKOUT — PASO 2</h1>
+    <div class="rounded-2xl border border-fuchsia-900/50 bg-black/60 backdrop-blur px-4 py-6 sm:p-8 md:p-10 space-y-8">
+        <h1 class="font-display text-2xl md:text-3xl font-bold text-[#e11d8a] tracking-widest">CHECKOUT — PASO 2</h1>
         <p class="text-xl text-white/80 mb-2">{{ $reservation->event->name }}</p>
         <p class="text-white/60 text-sm mb-6">Resumen de tu reserva y comprobante de pago.</p>
 
@@ -33,17 +33,17 @@
             $ticketsWithSection = $reservation->reservationTickets->filter(fn ($t) => $t->seat || $t->section);
         @endphp
         @if($ticketsWithSection->isNotEmpty())
-        <div class="rounded-2xl border-2 border-[#e50914]/60 bg-[#e50914]/10 p-6 mb-8">
-            <h2 class="font-display text-xl font-bold text-[#e50914] tracking-wider mb-4">TUS ENTRADAS</h2>
+        <div class="rounded-2xl border-2 border-[#e11d8a]/60 bg-[#e11d8a]/10 p-6 mb-8">
+            <h2 class="font-display text-xl font-bold text-[#e11d8a] tracking-wider mb-4">TUS ENTRADAS</h2>
             <p class="text-white/80 text-sm mb-4">Resumen de butacas y secciones elegidas:</p>
             <ul class="space-y-3">
                 @foreach($reservation->reservationTickets as $t)
                     <li class="flex flex-wrap items-center gap-3 text-white">
                         <span class="font-medium">{{ $t->holder_name }}</span>
                         @if($t->seat)
-                            <span class="inline-flex items-center rounded-lg bg-[#e50914] px-3 py-1.5 text-sm font-mono font-bold text-white">Butaca {{ $t->seat->display_label }}</span>
+                            <span class="inline-flex items-center rounded-lg bg-[#e11d8a] px-3 py-1.5 text-sm font-mono font-bold text-white">Butaca {{ $t->seat->display_label }}</span>
                         @elseif($t->section)
-                            <span class="inline-flex items-center rounded-lg bg-[#e50914]/80 px-3 py-1.5 text-sm font-medium text-white">Sección {{ $t->section->name }}</span>
+                            <span class="inline-flex items-center rounded-lg bg-[#e11d8a]/80 px-3 py-1.5 text-sm font-medium text-white">Sección {{ $t->section->name }}</span>
                         @endif
                     </li>
                 @endforeach
@@ -51,7 +51,7 @@
         </div>
         @endif
 
-        <div class="rounded-xl bg-black/40 border border-red-900/30 p-4">
+        <div class="rounded-xl bg-black/40 border border-fuchsia-900/30 p-4">
             <h2 class="font-semibold text-white/90 mb-2">Resumen</h2>
             <p class="text-white/70 mb-3">{{ $reservation->reservationTickets->count() }} ticket(s)</p>
             @if(isset($totalPrice) && $totalPrice > 0)
@@ -62,9 +62,9 @@
                     <li class="flex flex-wrap items-baseline gap-x-2 text-white/90">
                         <span class="font-medium">{{ $t->holder_name }}</span>
                         @if($t->seat)
-                            <span class="inline-flex items-center rounded-md bg-[#e50914]/20 px-2 py-0.5 text-sm font-mono text-[#e50914]">Butaca {{ $t->seat->display_label }}</span>
+                            <span class="inline-flex items-center rounded-md bg-[#e11d8a]/20 px-2 py-0.5 text-sm font-mono text-[#e11d8a]">Butaca {{ $t->seat->display_label }}</span>
                         @elseif($t->section)
-                            <span class="inline-flex items-center rounded-md bg-[#e50914]/20 px-2 py-0.5 text-sm text-[#e50914]">Sección {{ $t->section->name }}</span>
+                            <span class="inline-flex items-center rounded-md bg-[#e11d8a]/20 px-2 py-0.5 text-sm text-[#e11d8a]">Sección {{ $t->section->name }}</span>
                         @else
                             <span class="text-white/50 text-sm">Sin butaca asignada</span>
                         @endif
@@ -74,12 +74,12 @@
         </div>
 
         @if($reservation->event->qr_image_path)
-            <div class="rounded-2xl bg-black/40 border border-red-900/30 p-6 text-center">
+            <div class="rounded-2xl bg-black/40 border border-fuchsia-900/30 p-6 text-center">
                 <p class="text-sm font-semibold text-white/80 mb-4">Realice el pago escaneando el código QR</p>
-                <img src="{{ asset('storage/'.$reservation->event->qr_image_path) }}" alt="QR de pago" class="mx-auto max-w-[220px] h-auto rounded-xl border border-red-900/50">
+                <img src="{{ asset('storage/'.$reservation->event->qr_image_path) }}" alt="QR de pago" class="mx-auto max-w-[220px] h-auto rounded-xl border border-fuchsia-900/50">
             </div>
         @else
-            <div class="rounded-2xl border border-red-900/50 bg-red-900/10 p-6">
+            <div class="rounded-2xl border border-fuchsia-900/50 bg-fuchsia-900/10 p-6">
                 <p class="text-white/80 font-medium">Realice el pago por el medio indicado por el organizador (transferencia, efectivo, etc.). Luego suba la captura o foto del comprobante abajo.</p>
             </div>
         @endif
@@ -91,21 +91,21 @@
         <form method="POST" action="{{ route('checkout.confirm', $reservation) }}" enctype="multipart/form-data" class="space-y-5 pt-2">
             @csrf
 
-            <div class="p-4 rounded-xl border border-red-900/50">
-                <label for="payment_receipt" class="block font-semibold text-white/80 mb-2">Comprobante de pago (captura o foto) <span class="text-red-400">*</span></label>
+            <div class="p-4 rounded-xl border border-fuchsia-900/50">
+                <label for="payment_receipt" class="block font-semibold text-white/80 mb-2">Comprobante de pago (captura o foto) <span class="text-fuchsia-300">*</span></label>
                 <input id="payment_receipt" type="file" name="payment_receipt" accept="image/*" required
-                       class="w-full rounded-xl border border-red-900/50 bg-black/60 px-4 py-3 text-white file:mr-4 file:rounded-lg file:border-0 file:bg-[#e50914] file:px-4 file:py-2 file:text-white file:font-medium @error('payment_receipt') border-red-500 @enderror">
+                       class="w-full rounded-xl border border-fuchsia-900/50 bg-black/60 px-4 py-3 text-white file:mr-4 file:rounded-lg file:border-0 file:bg-[#e11d8a] file:px-4 file:py-2 file:text-white file:font-medium @error('payment_receipt') border-red-500 @enderror">
                 <p class="mt-1 text-xs text-white/50">Formatos: JPG, PNG, etc. Máximo 5 MB.</p>
                 @error('payment_receipt')<p class="mt-1 text-sm text-red-400">{{ $message }}</p>@enderror
             </div>
 
-            <label class="flex items-start gap-3 p-4 rounded-xl border border-red-900/50 hover:border-[#e50914]/50 transition cursor-pointer">
-                <input type="checkbox" name="accept_terms" value="1" required class="mt-1 rounded border-red-900/50 text-[#e50914] focus:ring-[#e50914] bg-black/60 size-5">
-                <span class="text-white/80">Acepto los <a href="{{ route('terms') }}" target="_blank" rel="noopener noreferrer" class="text-[#e50914] hover:text-red-400 underline underline-offset-2">términos y condiciones</a>.</span>
+            <label class="flex items-start gap-3 p-4 rounded-xl border border-fuchsia-900/50 hover:border-[#e11d8a]/50 transition cursor-pointer">
+                <input type="checkbox" name="accept_terms" value="1" required class="mt-1 rounded border-fuchsia-900/50 text-[#e11d8a] focus:ring-[#22d3ee] bg-black/60 size-5">
+                <span class="text-white/80">Acepto los <a href="{{ route('terms') }}" target="_blank" rel="noopener noreferrer" class="text-[#e11d8a] hover:text-[#22d3ee] underline underline-offset-2">términos y condiciones</a>.</span>
             </label>
             @error('accept_terms')<p class="text-sm text-red-400">{{ $message }}</p>@enderror
 
-            <button type="submit" class="w-full rounded-2xl bg-[#e50914] px-6 py-4 text-white font-bold text-lg hover:bg-red-600 transition">
+            <button type="submit" class="w-full rounded-2xl bg-[#e11d8a] px-6 py-4 text-white font-bold text-lg hover:bg-fuchsia-700 transition">
                 Enviar comprobante y finalizar reserva
             </button>
         </form>

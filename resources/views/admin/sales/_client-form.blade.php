@@ -18,7 +18,7 @@
     ];
 @endphp
 <div class="mb-8">
-    <a href="{{ $backUrl }}" class="text-sm {{ $isSellerLayout ? 'text-[#e50914] hover:text-red-400' : 'text-violet-600 dark:text-violet-400 hover:underline' }}">← Eventos</a>
+    <a href="{{ $backUrl }}" class="text-sm {{ $isSellerLayout ? 'text-[#e11d8a] hover:text-[#22d3ee]' : 'text-violet-600 dark:text-violet-400 hover:underline' }}">← Eventos</a>
     <h1 class="text-3xl font-bold text-slate-800 dark:text-white mt-2">{{ $title }}</h1>
     <p class="text-slate-600 dark:text-slate-400 mt-1">{{ $event->name }} · {{ $event->starts_at->translatedFormat('d/m/Y H:i') }}</p>
 </div>

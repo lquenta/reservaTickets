@@ -4,12 +4,12 @@
 
 @section('content')
 <div class="mb-10">
-    <h1 class="font-display text-4xl md:text-5xl font-bold text-[#e50914] tracking-widest mb-2">EVENTOS DISPONIBLES</h1>
+    <h1 class="font-display text-4xl md:text-5xl font-bold text-[#e11d8a] tracking-widest mb-2">EVENTOS DISPONIBLES</h1>
     <p class="text-white/80 text-lg">Encuentra tu próximo evento y reserva tus tickets.</p>
 </div>
 
 @if($events->isEmpty())
-    <div class="rounded-2xl border border-red-900/50 bg-black/60 backdrop-blur p-16 text-center">
+    <div class="rounded-2xl border border-fuchsia-900/50 bg-black/60 backdrop-blur p-16 text-center">
         <div class="text-6xl mb-4 opacity-50">🎫</div>
         <p class="text-white/80 text-lg">No hay eventos disponibles en este momento.</p>
         <p class="text-white/50 text-sm mt-2">Vuelve pronto para ver nuevas fechas.</p>
@@ -54,7 +54,7 @@
                 $canReserve = $event->acceptsReservations();
                 $contactMessage = 'Favor comunicarse al '.\App\Models\Event::SALES_CONTACT_PHONE.' para más información';
             @endphp
-            <article class="group relative overflow-hidden rounded-2xl border border-red-900/50 hover:border-[#e50914]/50 transition-all duration-300 hover:-translate-y-1 min-h-[320px] flex flex-col cursor-pointer"
+            <article class="group relative overflow-hidden rounded-2xl border border-fuchsia-900/50 hover:border-[#22d3ee]/50 transition-all duration-300 hover:-translate-y-1 min-h-[320px] flex flex-col cursor-pointer"
                      data-event-name="{{ e($event->name) }}"
                      data-event-id="{{ $event->id }}"
                      data-event-description="{{ e($event->description ?? '') }}"
@@ -69,7 +69,7 @@
                      data-event-admin-url="{{ auth()->check() && auth()->user()->isAdmin() ? route('admin.dashboard') : '' }}"
                      @click="open($event.currentTarget)">
                 <div class="absolute inset-0 bg-cover bg-center bg-no-repeat transition-transform duration-500 group-hover:scale-105
-                     @if(!$event->cover_image_path) bg-gradient-to-br from-[#1a0505] to-[#e50914]/20 @endif"
+                     @if(!$event->cover_image_path) bg-gradient-to-br from-[#14081f] to-[#e11d8a]/20 @endif"
                      @if($event->cover_image_path) style="background-image: url('{{ asset('storage/'.$event->cover_image_path) }}');" @endif>
                 </div>
                 <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent"></div>
@@ -115,7 +115,7 @@
                                     Más info
                                 </span>
                             @else
-                                <a href="{{ route('reservations.create', $event) }}" @click.stop class="inline-flex items-center justify-center rounded-xl bg-[#e50914] text-white font-semibold px-5 py-3 hover:bg-red-600 transition w-fit mt-1">
+                                <a href="{{ route('reservations.create', $event) }}" @click.stop class="inline-flex items-center justify-center rounded-xl bg-[#e11d8a] text-white font-semibold px-5 py-3 hover:bg-fuchsia-700 transition w-fit mt-1">
                                     Reservar tickets
                                 </a>
                             @endif
@@ -152,7 +152,7 @@
              @keydown.escape.window="close()"
              role="dialog" aria-modal="true" aria-labelledby="event-modal-title">
             <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" @click="close()"></div>
-            <div class="relative w-full max-w-2xl max-h-[90vh] overflow-hidden rounded-2xl border-2 border-red-900/50 bg-black/90 shadow-2xl flex flex-col"
+            <div class="relative w-full max-w-2xl max-h-[90vh] overflow-hidden rounded-2xl border-2 border-fuchsia-900/50 bg-black/90 shadow-2xl flex flex-col"
                  @click.stop
                  x-show="isOpen"
                  x-transition:enter="transition ease-out duration-200"
@@ -163,7 +163,7 @@
                  x-transition:leave-end="opacity-0 scale-95">
                 {{-- Flyer de fondo --}}
                 <div class="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-30"
-                     :style="selected.cover ? { backgroundImage: 'url(' + selected.cover + ')' } : { background: 'linear-gradient(135deg, #1a0505 0%, rgba(229,9,20,0.2) 100%)' }"></div>
+                     :style="selected.cover ? { backgroundImage: 'url(' + selected.cover + ')' } : { background: 'linear-gradient(135deg, #14081f 0%, rgba(225,29,138,0.2) 100%)' }"></div>
                 <div class="absolute inset-0 bg-gradient-to-t from-black via-black/80 to-black/60"></div>
 
                 <div class="relative flex flex-col flex-1 overflow-y-auto p-6 md:p-8">
@@ -172,7 +172,7 @@
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                         </button>
                     </div>
-                    <h2 id="event-modal-title" class="font-display text-3xl md:text-4xl font-bold text-[#e50914] tracking-wider mb-4" x-text="selected.name"></h2>
+                    <h2 id="event-modal-title" class="font-display text-3xl md:text-4xl font-bold text-[#e11d8a] tracking-wider mb-4" x-text="selected.name"></h2>
                     <p class="text-white/90 flex items-center gap-2 mb-2">
                         <span aria-hidden="true">📅</span>
                         <span x-text="selected.date"></span>
@@ -191,7 +191,7 @@
                         </div>
                         <div class="flex flex-wrap gap-3" x-show="!selected.sales_paused">
                         <template x-if="selected.reserve_url">
-                            <a :href="selected.reserve_url" class="inline-flex items-center justify-center rounded-xl bg-[#e50914] text-white font-semibold px-6 py-3 hover:bg-red-600 transition">
+                            <a :href="selected.reserve_url" class="inline-flex items-center justify-center rounded-xl bg-[#e11d8a] text-white font-semibold px-6 py-3 hover:bg-fuchsia-700 transition">
                                 Reservar tickets
                             </a>
                         </template>
@@ -211,7 +211,7 @@
         </div>
     </div>
     @if($events->hasPages())
-        <div class="mt-10 flex justify-center [&_.bg-white]:bg-black/60 [&_.text-slate-700]:text-white [&_a]:text-[#e50914] [&_a:hover]:text-red-400">{{ $events->links() }}</div>
+        <div class="mt-10 flex justify-center [&_.bg-white]:bg-black/60 [&_.text-slate-700]:text-white [&_a]:text-[#e11d8a] [&_a:hover]:text-fuchsia-300">{{ $events->links() }}</div>
     @endif
 @endif
 @endsection

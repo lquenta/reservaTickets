@@ -11,8 +11,8 @@
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     @stack('styles')
 </head>
-<body class="min-h-screen bg-black text-white font-sans antialiased overflow-x-hidden homepage-effects homepage-scanlines-global">
-    {{-- Stranger Things: vignette, static, ash, gate glow --}}
+<body class="min-h-screen bg-[#07040f] text-white font-sans antialiased overflow-x-hidden homepage-effects homepage-scanlines-global">
+    {{-- Nebula: vignette, static, ash, gate glow --}}
     <div class="homepage-vignette" aria-hidden="true"></div>
     <div class="homepage-gate-glow" aria-hidden="true"></div>
     <div class="homepage-static" aria-hidden="true"></div>
@@ -39,31 +39,31 @@
     </div>
 
     <header class="fixed top-0 left-0 right-0 z-40 transition-all duration-300" x-data="{ scrolled: false }" x-init="window.addEventListener('scroll', () => scrolled = window.scrollY > 60)">
-        <nav class="px-4 sm:px-6 lg:px-8 py-4" :class="scrolled ? 'bg-black/95 backdrop-blur border-b border-red-900/50' : 'bg-transparent'">
+        <nav class="px-4 sm:px-6 lg:px-8 py-4" :class="scrolled ? 'bg-black/95 backdrop-blur border-b border-fuchsia-900/50' : 'bg-transparent'">
             <div class="max-w-7xl mx-auto flex justify-between items-center">
-                <a href="{{ route('home') }}" class="text-xl font-bold tracking-widest text-[#e50914] hover:text-red-400 transition font-display">
+                <a href="{{ route('home') }}" class="text-xl font-bold tracking-widest text-[#e11d8a] hover:text-[#22d3ee] transition font-display">
                     NOVA
                 </a>
                 <div class="flex items-center gap-4 sm:gap-6">
-                    <a href="#quienes-somos" class="text-sm text-white/80 hover:text-[#e50914] transition tracking-wide">Quiénes somos</a>
-                    <a href="#nuestros-eventos" class="text-sm text-white/80 hover:text-[#e50914] transition tracking-wide">Eventos</a>
-                    <a href="#contacto" class="text-sm text-white/80 hover:text-[#e50914] transition tracking-wide">Contacto</a>
-                    <a href="#boletin" class="text-sm text-white/80 hover:text-[#e50914] transition tracking-wide">Boletín</a>
-                    <a href="{{ route('events.index') }}" class="text-sm font-semibold text-[#e50914] border border-[#e50914] px-4 py-2 rounded hover:bg-[#e50914] hover:text-black transition">Eventos</a>
+                    <a href="#quienes-somos" class="text-sm text-white/80 hover:text-[#22d3ee] transition tracking-wide">Quiénes somos</a>
+                    <a href="#nuestros-eventos" class="text-sm text-white/80 hover:text-[#22d3ee] transition tracking-wide">Eventos</a>
+                    <a href="#contacto" class="text-sm text-white/80 hover:text-[#22d3ee] transition tracking-wide">Contacto</a>
+                    <a href="#boletin" class="text-sm text-white/80 hover:text-[#22d3ee] transition tracking-wide">Boletín</a>
+                    <a href="{{ route('events.index') }}" class="text-sm font-semibold text-[#e11d8a] border border-[#e11d8a] px-4 py-2 rounded hover:bg-[#e11d8a] hover:text-black transition">Eventos</a>
                     @auth
                         @if(!auth()->user()->isAdmin())
-                            <a href="{{ route('reservations.index') }}" class="text-sm text-white/80 hover:text-[#e50914] transition">Mis reservas</a>
+                            <a href="{{ route('reservations.index') }}" class="text-sm text-white/80 hover:text-[#22d3ee] transition">Mis reservas</a>
                         @endif
                         @if(auth()->user()->isAdmin())
-                            <a href="{{ route('admin.dashboard') }}" class="text-sm text-[#e50914] font-semibold">Admin</a>
+                            <a href="{{ route('admin.dashboard') }}" class="text-sm text-[#e11d8a] font-semibold">Admin</a>
                         @endif
                         <form method="POST" action="{{ route('logout') }}" class="inline">
                             @csrf
-                            <button type="submit" class="text-sm text-white/60 hover:text-red-400 transition">Cerrar sesión</button>
+                            <button type="submit" class="text-sm text-white/60 hover:text-[#22d3ee] transition">Cerrar sesión</button>
                         </form>
                     @else
-                        <a href="{{ route('login') }}" class="text-sm text-white/80 hover:text-[#e50914] transition">Iniciar sesión</a>
-                        <a href="{{ route('register') }}" class="text-sm font-semibold bg-[#e50914] text-white px-4 py-2 rounded hover:bg-red-600 transition">Registrarse</a>
+                        <a href="{{ route('login') }}" class="text-sm text-white/80 hover:text-[#22d3ee] transition">Iniciar sesión</a>
+                        <a href="{{ route('register') }}" class="text-sm font-semibold bg-[#e11d8a] text-white px-4 py-2 rounded hover:bg-fuchsia-700 transition">Registrarse</a>
                     @endauth
                 </div>
             </div>
@@ -73,7 +73,7 @@
     <main>
         @if(session('message'))
             <div class="fixed top-20 right-4 z-50" x-data="{ open: true }" x-show="open" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100 translate-x-0" x-transition:leave-end="opacity-0 translate-x-4" role="alert">
-                <div class="flex items-center gap-3 px-5 py-4 rounded-lg shadow-2xl bg-[#e50914] text-white font-medium text-sm border border-red-400/50">
+                <div class="flex items-center gap-3 px-5 py-4 rounded-lg shadow-2xl bg-[#e11d8a] text-white font-medium text-sm border border-fuchsia-400/50">
                     <span class="flex-1">{{ session('message') }}</span>
                     <button type="button" @click="open = false" class="shrink-0 p-1 rounded hover:bg-white/20 transition" aria-label="Cerrar">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>

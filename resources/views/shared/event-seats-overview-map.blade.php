@@ -16,7 +16,7 @@
 <div class="mx-auto w-full min-w-0 max-w-full px-2 sm:max-w-4xl sm:px-0 relative z-0"
      x-data="adminEventSeatsMap({{ $alpineConfigJson }})"
      @class(['pointer-events-none' => $readonly])>
-    <div class="rounded-2xl border border-red-900/50 bg-black/60 backdrop-blur px-4 py-5 sm:p-6">
+    <div class="rounded-2xl border border-fuchsia-900/50 bg-black/60 backdrop-blur px-4 py-5 sm:p-6">
         <p class="text-white/70 text-sm mb-4 text-center">
             Mismo plano que en el checkout del cliente. El <strong class="text-white/90">color</strong> indica el sector;
             las butacas <strong class="text-white/90">grises</strong> están ocupadas o no disponibles para el público.
@@ -98,7 +98,7 @@
                             </div>
                         </template>
                         <template x-if="layoutElType(el) === 'stage'">
-                            <div class="absolute inset-0 z-0 flex items-center justify-center rounded-md border border-red-500/40 bg-red-700 px-0.5 text-white shadow-md pointer-events-none overflow-hidden"
+                            <div class="absolute inset-0 z-0 flex items-center justify-center rounded-md border border-fuchsia-500/40 bg-fuchsia-700 px-0.5 text-white shadow-md pointer-events-none overflow-hidden"
                                  :style="layoutStageSpeakerFaceStyle()">
                                 <span class="max-h-full overflow-hidden text-center text-[8px] font-semibold uppercase leading-tight sm:text-[10px]" x-text="(el.meta && el.meta.label) ? el.meta.label : 'ESCENARIO'"></span>
                             </div>
@@ -128,8 +128,8 @@
                                 <span class="text-[9px] sm:text-[10px] font-semibold text-amber-400/90 uppercase leading-tight"><span class="sm:hidden">P</span><span class="hidden sm:inline">PARLANTE</span></span>
                             </div>
                             <div class="flex-1 flex flex-col items-center justify-end gap-0.5 min-w-0 pb-0.5">
-                                <div class="w-full rounded-sm bg-red-700 min-h-[3px]" style="height: 3px;" role="img" aria-label="Línea de escenario"></div>
-                                <span class="text-[10px] sm:text-xs font-medium text-red-400 uppercase tracking-wider">ESCENARIO</span>
+                                <div class="w-full rounded-sm bg-fuchsia-700 min-h-[3px]" style="height: 3px;" role="img" aria-label="Línea de escenario"></div>
+                                <span class="text-[10px] sm:text-xs font-medium text-[#22d3ee] uppercase tracking-wider">ESCENARIO</span>
                             </div>
                             <div class="flex flex-col items-center justify-center rounded-lg border border-amber-600/50 bg-amber-900/20 shrink-0 py-1 px-1.5 gap-0.5" style="width: var(--seat-size); min-height: var(--seat-size);" role="img" aria-label="Parlante">
                                 <span class="text-[9px] sm:text-[10px] font-semibold text-amber-400/90 uppercase leading-tight"><span class="sm:hidden">P</span><span class="hidden sm:inline">PARLANTE</span></span>
@@ -139,7 +139,7 @@
                     @foreach($seatsByRow as $row => $rowSeats)
                         @php $rowLetter = $rowSeats->first()->row_letter ?? chr(64 + (int)$row); @endphp
                         <div class="flex gap-3 items-center justify-center flex-nowrap">
-                            <span class="seat-plan-label flex shrink-0 items-center justify-center rounded-lg border border-red-900/50 bg-black/40 font-bold text-[#e50914]" style="width: var(--seat-size); height: var(--seat-size); font-size: min(0.875rem, var(--seat-size)); line-height: 1;" aria-label="Fila {{ $rowLetter }}">{{ $rowLetter }}</span>
+                            <span class="seat-plan-label flex shrink-0 items-center justify-center rounded-lg border border-fuchsia-900/50 bg-black/40 font-bold text-[#e11d8a]" style="width: var(--seat-size); height: var(--seat-size); font-size: min(0.875rem, var(--seat-size)); line-height: 1;" aria-label="Fila {{ $rowLetter }}">{{ $rowLetter }}</span>
                             <div class="flex gap-2 justify-center flex-nowrap shrink-0">
                                 @foreach($rowSeats as $seat)
                                     @php
@@ -168,7 +168,7 @@
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit"
-                                                        class="seat-plan-cell rounded-lg font-mono font-bold flex items-center justify-center shrink-0 transition box-border border-2 hover:brightness-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#e50914]"
+                                                        class="seat-plan-cell rounded-lg font-mono font-bold flex items-center justify-center shrink-0 transition box-border border-2 hover:brightness-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#e11d8a]"
                                                         style="{{ $seatSize }}background-color:#1e293b;border-color:#475569;color:#94a3b8;box-shadow:0 0 0 2px rgba(251,191,36,0.85);"
                                                         title="Fila {{ $seat->row_letter ?? $rowLetter }} Butaca {{ $seat->number }} (bloqueada para evento, clic para desbloquear)">
                                                     {{ $seat->number }}
@@ -190,7 +190,7 @@
                                             <form method="POST" action="{{ route('admin.events.seats.block', [$event, $seat]) }}">
                                                 @csrf
                                                 <button type="submit"
-                                                        class="seat-plan-cell rounded-lg font-mono font-bold flex items-center justify-center shrink-0 transition box-border border-2 hover:brightness-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#e50914]"
+                                                        class="seat-plan-cell rounded-lg font-mono font-bold flex items-center justify-center shrink-0 transition box-border border-2 hover:brightness-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#e11d8a]"
                                                         style="{{ $seatSize }}{{ $seatFill }}"
                                                         title="Fila {{ $seat->row_letter ?? $rowLetter }} Butaca {{ $seat->number }} (disponible, clic para bloquear)">
                                                     {{ $seat->number }}

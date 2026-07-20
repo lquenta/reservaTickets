@@ -9,12 +9,17 @@
     --font-sans: 'Outfit', 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
     --font-display: 'Bebas Neue', 'Outfit', ui-sans-serif, system-ui, sans-serif;
+    /* Propuesta A — Magenta Nebula */
     --color-brand: #7c3aed;
-    --color-brand-fuchsia: #c026d3;
-    --color-neon-red: #e50914;
+    --color-brand-fuchsia: #e11d8a;
+    --color-neon-red: #e11d8a;
+    --color-neon-magenta: #e11d8a;
+    --color-accent-cyan: #22d3ee;
+    --color-nova-bg: #07040f;
+    --color-nova-bg-soft: #14081f;
 }
 
-/* Homepage Stranger Things – keyframes */
+/* Homepage Nebula – keyframes */
 @keyframes scanlines {
     0% { transform: translateY(-100%); }
     100% { transform: translateY(100%); }
@@ -26,69 +31,89 @@
 }
 
 @keyframes glow-pulse {
-    0%, 100% { filter: drop-shadow(0 0 4px var(--color-neon-red)) drop-shadow(0 0 12px var(--color-neon-red)); }
-    50% { filter: drop-shadow(0 0 8px var(--color-neon-red)) drop-shadow(0 0 24px var(--color-neon-red)); }
+    0%, 100% { filter: drop-shadow(0 0 4px var(--color-neon-magenta)) drop-shadow(0 0 12px var(--color-neon-magenta)); }
+    50% { filter: drop-shadow(0 0 8px var(--color-neon-magenta)) drop-shadow(0 0 24px var(--color-neon-magenta)); }
 }
 
-/* Glow ochentero Stranger Things – títulos de sección */
+/* Glow – títulos de sección */
 @keyframes title-glow {
     0%, 100% {
         text-shadow:
-            0 0 4px rgba(229, 9, 20, 0.9),
-            0 0 12px rgba(229, 9, 20, 0.6),
-            0 0 24px rgba(229, 9, 20, 0.4),
-            0 0 40px rgba(229, 9, 20, 0.25);
+            0 0 4px rgba(225, 29, 138, 0.9),
+            0 0 12px rgba(225, 29, 138, 0.6),
+            0 0 24px rgba(225, 29, 138, 0.4),
+            0 0 40px rgba(225, 29, 138, 0.25);
     }
     50% {
         text-shadow:
-            0 0 8px rgba(229, 9, 20, 1),
-            0 0 20px rgba(229, 9, 20, 0.8),
-            0 0 40px rgba(229, 9, 20, 0.5),
-            0 0 60px rgba(229, 9, 20, 0.3);
+            0 0 8px rgba(225, 29, 138, 1),
+            0 0 20px rgba(225, 29, 138, 0.8),
+            0 0 40px rgba(225, 29, 138, 0.5),
+            0 0 60px rgba(225, 29, 138, 0.3);
     }
 }
 
-/* Glow ochentero – botones CTA */
+/* Glow – botones CTA */
 @keyframes btn-glow {
     0%, 100% {
         box-shadow:
-            0 0 8px rgba(229, 9, 20, 0.6),
-            0 0 20px rgba(229, 9, 20, 0.35),
-            inset 0 0 12px rgba(229, 9, 20, 0.15);
-        text-shadow: 0 0 8px rgba(255, 255, 255, 0.4), 0 0 16px rgba(229, 9, 20, 0.5);
+            0 0 8px rgba(225, 29, 138, 0.6),
+            0 0 20px rgba(225, 29, 138, 0.35),
+            0 0 0 1px rgba(34, 211, 238, 0.35),
+            inset 0 0 12px rgba(225, 29, 138, 0.15);
+        text-shadow: 0 0 8px rgba(255, 255, 255, 0.4), 0 0 16px rgba(225, 29, 138, 0.5);
     }
     50% {
         box-shadow:
-            0 0 16px rgba(229, 9, 20, 0.8),
-            0 0 32px rgba(229, 9, 20, 0.45),
-            inset 0 0 16px rgba(229, 9, 20, 0.2);
-        text-shadow: 0 0 12px rgba(255, 255, 255, 0.5), 0 0 24px rgba(229, 9, 20, 0.7);
+            0 0 16px rgba(225, 29, 138, 0.8),
+            0 0 32px rgba(225, 29, 138, 0.45),
+            0 0 0 1px rgba(34, 211, 238, 0.55),
+            0 0 18px rgba(34, 211, 238, 0.2),
+            inset 0 0 16px rgba(225, 29, 138, 0.2);
+        text-shadow: 0 0 12px rgba(255, 255, 255, 0.5), 0 0 24px rgba(225, 29, 138, 0.7);
     }
 }
 
 .st-glow-title {
     text-shadow:
-        0 0 4px rgba(229, 9, 20, 0.9),
-        0 0 12px rgba(229, 9, 20, 0.6),
-        0 0 24px rgba(229, 9, 20, 0.4),
-        0 0 40px rgba(229, 9, 20, 0.25);
+        0 0 4px rgba(225, 29, 138, 0.9),
+        0 0 12px rgba(225, 29, 138, 0.6),
+        0 0 24px rgba(225, 29, 138, 0.4),
+        0 0 40px rgba(225, 29, 138, 0.25);
     animation: title-glow 3s ease-in-out infinite;
 }
 
 .st-glow-btn {
     box-shadow:
-        0 0 8px rgba(229, 9, 20, 0.6),
-        0 0 20px rgba(229, 9, 20, 0.35),
-        inset 0 0 12px rgba(229, 9, 20, 0.15);
-    text-shadow: 0 0 8px rgba(255, 255, 255, 0.4), 0 0 16px rgba(229, 9, 20, 0.5);
+        0 0 8px rgba(225, 29, 138, 0.6),
+        0 0 20px rgba(225, 29, 138, 0.35),
+        0 0 0 1px rgba(34, 211, 238, 0.35),
+        inset 0 0 12px rgba(225, 29, 138, 0.15);
+    text-shadow: 0 0 8px rgba(255, 255, 255, 0.4), 0 0 16px rgba(225, 29, 138, 0.5);
     animation: btn-glow 2.5s ease-in-out infinite;
 }
 .st-glow-btn:hover {
     box-shadow:
-        0 0 20px rgba(229, 9, 20, 0.9),
-        0 0 40px rgba(229, 9, 20, 0.5),
-        inset 0 0 20px rgba(229, 9, 20, 0.25);
-    text-shadow: 0 0 12px rgba(255, 255, 255, 0.6), 0 0 28px rgba(229, 9, 20, 0.8);
+        0 0 20px rgba(225, 29, 138, 0.9),
+        0 0 40px rgba(225, 29, 138, 0.5),
+        0 0 0 1px rgba(34, 211, 238, 0.55),
+        0 0 24px rgba(34, 211, 238, 0.25),
+        inset 0 0 20px rgba(225, 29, 138, 0.25);
+    text-shadow: 0 0 12px rgba(255, 255, 255, 0.6), 0 0 28px rgba(225, 29, 138, 0.8);
+}
+
+/* Acento cyan — chips / highlights */
+.nova-accent-chip {
+    background: rgba(34, 211, 238, 0.9);
+    color: #041016;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+}
+.nova-focus-cyan:focus,
+.nova-focus-cyan:focus-visible {
+    outline: none;
+    border-color: #22d3ee;
+    box-shadow: 0 0 0 2px rgba(34, 211, 238, 0.45);
 }
 
 @keyframes fade-in-up {
@@ -102,7 +127,7 @@
     }
 }
 
-/* Stranger Things – ash / snow fall (vertical in vh, diagonal drift in vmin) */
+/* Ash / snow fall (vertical in vh, diagonal drift in vmin) */
 @keyframes ash-fall {
     0% {
         transform: translate(0, -15vh);
@@ -162,10 +187,10 @@
 }
 
 .text-glow {
-    text-shadow: 0 0 10px var(--color-neon-red), 0 0 20px var(--color-neon-red);
+    text-shadow: 0 0 10px var(--color-neon-magenta), 0 0 20px var(--color-neon-magenta);
 }
 
-/* Costo total – Stranger Things style glow, paso 1 y 2 */
+/* Costo total – glow marca */
 .cost-total-block {
     font-size: 1.125rem;
 }
@@ -173,12 +198,12 @@
     font-size: 1.75rem;
     font-weight: 800;
     letter-spacing: 0.05em;
-    color: #e50914;
+    color: #e11d8a;
     text-shadow:
-        0 0 6px rgba(229, 9, 20, 0.95),
-        0 0 16px rgba(229, 9, 20, 0.7),
-        0 0 28px rgba(229, 9, 20, 0.5),
-        0 0 42px rgba(229, 9, 20, 0.3);
+        0 0 6px rgba(225, 29, 138, 0.95),
+        0 0 16px rgba(225, 29, 138, 0.7),
+        0 0 28px rgba(225, 29, 138, 0.5),
+        0 0 42px rgba(225, 29, 138, 0.3);
     animation: title-glow 3s ease-in-out infinite;
 }
 @media (min-width: 768px) {
@@ -199,7 +224,7 @@
     animation: fade-in-up 0.8s ease-out forwards;
 }
 
-/* ========== Stranger Things global effects (homepage) ========== */
+/* ========== Nebula global effects (homepage) ========== */
 .homepage-effects {
     position: relative;
 }
@@ -282,7 +307,7 @@
     z-index: 2;
 }
 
-/* Stranger Things – subtle “gate” red glow line at bottom */
+/* Subtle magenta glow line at bottom */
 .homepage-gate-glow {
     position: fixed;
     bottom: 0;
@@ -291,11 +316,11 @@
     height: 3px;
     pointer-events: none;
     z-index: 4;
-    background: linear-gradient(to top, rgba(229, 9, 20, 0.4), transparent);
-    box-shadow: 0 -2px 20px rgba(229, 9, 20, 0.25);
+    background: linear-gradient(to top, rgba(225, 29, 138, 0.4), transparent);
+    box-shadow: 0 -2px 20px rgba(225, 29, 138, 0.25);
 }
 
-/* ========== Section dynamic background (Quiénes somos, Eventos, etc.) – Stranger Things ========== */
+/* ========== Section dynamic background ========== */
 .section-stranger-bg {
     position: relative;
     overflow: hidden;
@@ -305,7 +330,7 @@
     position: absolute;
     inset: 0;
     z-index: 0;
-    background: linear-gradient(180deg, #0a0202 0%, #0d0202 25%, #120303 50%, #0d0202 75%, #050101 100%);
+    background: linear-gradient(180deg, #07040f 0%, #0c0618 25%, #14081f 50%, #0c0618 75%, #05020c 100%);
     background-size: 100% 400%;
     animation: section-bg-drift 25s ease-in-out infinite;
 }
@@ -315,8 +340,8 @@
     position: absolute;
     inset: 0;
     background-image:
-        linear-gradient(rgba(229, 9, 20, 0.03) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(229, 9, 20, 0.03) 1px, transparent 1px);
+        linear-gradient(rgba(225, 29, 138, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(225, 29, 138, 0.03) 1px, transparent 1px);
     background-size: 48px 48px;
     animation: section-grid-move 40s linear infinite;
     pointer-events: none;
@@ -326,7 +351,9 @@
     content: '';
     position: absolute;
     inset: 0;
-    background: radial-gradient(ellipse 100% 80% at 50% 120%, rgba(229, 9, 20, 0.12) 0%, transparent 50%);
+    background:
+        radial-gradient(ellipse 100% 80% at 50% 120%, rgba(225, 29, 138, 0.12) 0%, transparent 50%),
+        radial-gradient(ellipse 60% 50% at 85% 15%, rgba(34, 211, 238, 0.08) 0%, transparent 55%);
     animation: section-glow-pulse 8s ease-in-out infinite;
     pointer-events: none;
 }

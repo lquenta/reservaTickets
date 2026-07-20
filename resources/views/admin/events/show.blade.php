@@ -173,7 +173,7 @@
     </div>
 </section>
 
-<section x-data="{ open: false }" class="rounded-2xl border-2 border-red-300/60 dark:border-red-800/50 bg-red-50/30 dark:bg-red-900/10 p-6">
+<section x-data="{ open: false }" class="rounded-2xl border-2 border-red-300/60 dark:border-fuchsia-800/50 bg-red-50/30 dark:bg-red-900/10 p-6">
     <button type="button" @click="open = !open" class="flex w-full items-center justify-between text-left font-semibold text-red-700 dark:text-red-300">
         Zona peligro
         <span x-text="open ? '−' : '+'"></span>

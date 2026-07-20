@@ -39,20 +39,20 @@
         })();
     }
 </script>
-<div class="rounded-2xl border border-red-900/50 bg-black/60 backdrop-blur px-4 py-5 sm:p-6 mb-8"
+<div class="rounded-2xl border border-fuchsia-900/50 bg-black/60 backdrop-blur px-4 py-5 sm:p-6 mb-8"
      x-data="checkoutLayoutMapReadonly(@js($map))">
-    <h2 class="font-display text-lg font-bold text-[#e50914] tracking-wider mb-1 text-center">Plano — butacas elegidas</h2>
+    <h2 class="font-display text-lg font-bold text-[#e11d8a] tracking-wider mb-1 text-center">Plano — butacas elegidas</h2>
     <p class="text-white/60 text-xs text-center mb-4">Resaltadas en rojo las butacas de esta reserva.</p>
-    <div class="mb-3 flex flex-wrap items-center justify-center gap-2 rounded-lg border border-red-900/50 bg-black/50 px-2 py-2 text-white shadow-inner">
+    <div class="mb-3 flex flex-wrap items-center justify-center gap-2 rounded-lg border border-fuchsia-900/50 bg-black/50 px-2 py-2 text-white shadow-inner">
         <span class="w-11 text-center font-mono text-xs tabular-nums text-white/90" x-text="layoutZoomPercent() + '%'"></span>
-        <button type="button" class="inline-flex h-9 min-w-[2.25rem] items-center justify-center rounded-lg border border-red-800/60 bg-black/60 px-2 text-lg font-semibold text-white hover:bg-red-950/50 active:scale-95" @click.prevent="layoutZoomOut()" title="Alejar plano" aria-label="Alejar plano">−</button>
-        <button type="button" class="inline-flex h-9 items-center justify-center rounded-lg border border-red-800/60 bg-black/60 px-3 text-xs font-semibold text-white hover:bg-red-950/50 active:scale-95" @click.prevent="layoutZoomResetFit()" title="Encajar al espacio" aria-label="Encajar plano">Encajar</button>
-        <button type="button" class="inline-flex h-9 min-w-[2.25rem] items-center justify-center rounded-lg border border-red-800/60 bg-black/60 px-2 text-lg font-semibold text-white hover:bg-red-950/50 active:scale-95" @click.prevent="layoutZoomIn()" title="Acercar plano" aria-label="Acercar plano">+</button>
+        <button type="button" class="inline-flex h-9 min-w-[2.25rem] items-center justify-center rounded-lg border border-fuchsia-800/60 bg-black/60 px-2 text-lg font-semibold text-white hover:bg-fuchsia-950/50 active:scale-95" @click.prevent="layoutZoomOut()" title="Alejar plano" aria-label="Alejar plano">−</button>
+        <button type="button" class="inline-flex h-9 items-center justify-center rounded-lg border border-fuchsia-800/60 bg-black/60 px-3 text-xs font-semibold text-white hover:bg-fuchsia-950/50 active:scale-95" @click.prevent="layoutZoomResetFit()" title="Encajar al espacio" aria-label="Encajar plano">Encajar</button>
+        <button type="button" class="inline-flex h-9 min-w-[2.25rem] items-center justify-center rounded-lg border border-fuchsia-800/60 bg-black/60 px-2 text-lg font-semibold text-white hover:bg-fuchsia-950/50 active:scale-95" @click.prevent="layoutZoomIn()" title="Acercar plano" aria-label="Acercar plano">+</button>
         <span class="hidden text-[10px] text-white/45 sm:inline">Ctrl + rueda</span>
     </div>
     <div x-ref="layoutViewport"
          @resize.window="recalcLayoutViewportScale()"
-         class="relative w-full min-h-[180px] max-h-[min(60dvh,520px)] touch-manipulation overflow-auto overscroll-contain rounded-xl border border-red-900/40 bg-[radial-gradient(circle,_rgba(255,255,255,0.12)_1px,_transparent_1px)] bg-[size:16px_16px] p-2">
+         class="relative w-full min-h-[180px] max-h-[min(60dvh,520px)] touch-manipulation overflow-auto overscroll-contain rounded-xl border border-fuchsia-900/40 bg-[radial-gradient(circle,_rgba(255,255,255,0.12)_1px,_transparent_1px)] bg-[size:16px_16px] p-2">
         <div class="relative mx-auto shrink-0" :style="layoutScaledHostStyle">
             <div class="relative" :style="layoutScaledStageStyle">
                 <template x-for="el in sortedLayoutElements" :key="el.id">
@@ -64,7 +64,7 @@
                             </div>
                         </template>
                         <template x-if="layoutElType(el) === 'stage'">
-                            <div class="absolute inset-0 z-0 flex items-center justify-center rounded-md border border-red-500/40 bg-red-700 px-0.5 text-white shadow-md pointer-events-none overflow-hidden">
+                            <div class="absolute inset-0 z-0 flex items-center justify-center rounded-md border border-fuchsia-500/40 bg-fuchsia-700 px-0.5 text-white shadow-md pointer-events-none overflow-hidden">
                                 <span class="max-h-full overflow-hidden text-center text-[8px] font-semibold uppercase leading-tight sm:text-[10px]" x-text="(el.meta && el.meta.label) ? el.meta.label : 'ESCENARIO'"></span>
                             </div>
                         </template>
@@ -194,7 +194,7 @@ function checkoutLayoutMapReadonly(config) {
         layoutSeatFaceStyle(el) {
             if (!el || !el.seat) return 'background-color:#1e293b;border-color:#334155;color:#64748b;opacity:0.45;';
             if (this.isSelectedSeat(el)) {
-                return 'background-color:#e50914;border-color:#fecaca;color:#fff;box-shadow:0 0 0 2px #fff, 0 0 0 5px rgba(229,9,20,0.95);opacity:1;';
+                return 'background-color:#e11d8a;border-color:#fecaca;color:#fff;box-shadow:0 0 0 2px #fff, 0 0 0 5px rgba(225,29,138,0.95);opacity:1;';
             }
             const sec = el.seat.section_id != null ? parseInt(el.seat.section_id, 10) : 0;
             const pal = this.sectionPalettesById[sec];

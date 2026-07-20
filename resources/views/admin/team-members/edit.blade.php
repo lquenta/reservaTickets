@@ -4,7 +4,7 @@
 
 @section('admin')
 <div class="mb-8">
-    <a href="{{ route('admin.team-members.index') }}" class="text-white/70 hover:text-[#e50914] text-sm transition">← Integrantes</a>
+    <a href="{{ route('admin.team-members.index') }}" class="text-white/70 hover:text-[#e11d8a] text-sm transition">← Integrantes</a>
     <h1 class="text-3xl font-bold text-slate-800 dark:text-white mt-2">Editar integrante</h1>
     <p class="text-slate-600 dark:text-slate-400 mt-1">{{ $team_member->name ?: 'Sin nombre' }}</p>
 </div>
@@ -36,7 +36,7 @@
             @error('photo')<p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
         </div>
         <div class="flex gap-3">
-            <button type="submit" class="rounded-xl bg-[#e50914] hover:bg-red-600 px-5 py-2.5 text-white font-semibold transition">
+            <button type="submit" class="rounded-xl bg-[#e11d8a] hover:bg-fuchsia-700 px-5 py-2.5 text-white font-semibold transition">
                 Guardar cambios
             </button>
             <a href="{{ route('admin.team-members.index') }}" class="rounded-xl border border-slate-300 dark:border-slate-600 px-5 py-2.5 text-slate-700 dark:text-slate-300 font-medium hover:bg-slate-100 dark:hover:bg-slate-700 transition">

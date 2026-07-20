@@ -26,11 +26,11 @@
             </template>
             <div class="absolute inset-0 bg-black/50 z-[1]" aria-hidden="true"></div>
         @else
-            <div class="absolute inset-0 bg-gradient-to-b from-black via-[#1a0505] to-black z-0"></div>
+            <div class="absolute inset-0 bg-gradient-to-b from-black via-[#14081f] to-black z-0"></div>
         @endif
-        <div class="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_0%,rgba(229,9,20,0.15),transparent)] z-[1]" aria-hidden="true"></div>
+        <div class="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_0%,rgba(225,29,138,0.15),transparent),radial-gradient(ellipse_50%_40%_at_80%_20%,rgba(34,211,238,0.08),transparent)] z-[1]" aria-hidden="true"></div>
         <div class="relative z-10 text-center px-4 max-w-4xl mx-auto" x-data="{ visible: false }" x-init="const o = new IntersectionObserver(([e]) => { if (e.isIntersecting) { visible = true; o.disconnect() } }, { threshold: 0.1 }); o.observe($el)">
-            <h1 class="font-display text-5xl sm:text-7xl md:text-8xl lg:text-9xl tracking-widest text-[#e50914] animate-flicker text-glow st-glow-title mb-6"
+            <h1 class="font-display text-5xl sm:text-7xl md:text-8xl lg:text-9xl tracking-widest text-[#e11d8a] animate-flicker text-glow st-glow-title mb-6"
                 x-show="visible"
                 x-transition:enter="transition ease-out duration-1000"
                 x-transition:enter-start="opacity-0 scale-95"
@@ -45,7 +45,7 @@
                 {{ $hero_content?->title ?? 'Tus entradas. Tu experiencia.' }}
             </p>
             <a href="{{ route('events.index') }}"
-                class="inline-block mt-8 px-10 py-4 bg-[#e50914] text-white font-bold tracking-widest text-lg rounded border-2 border-[#e50914] hover:bg-transparent hover:text-[#e50914] transition-all duration-300 st-glow-btn"
+                class="inline-block mt-8 px-10 py-4 bg-[#e11d8a] text-white font-bold tracking-widest text-lg rounded border-2 border-[#e11d8a] hover:bg-transparent hover:text-[#e11d8a] transition-all duration-300 st-glow-btn"
                 x-show="visible"
                 x-transition:enter="transition ease-out duration-700 delay-300"
                 x-transition:enter-start="opacity-0 translate-y-4"
@@ -63,7 +63,7 @@
             x-transition:enter="transition ease-out duration-700"
             x-transition:enter-start="opacity-0 translate-y-8"
             x-transition:enter-end="opacity-100 translate-y-0">
-            <h2 class="font-display text-4xl sm:text-5xl md:text-6xl tracking-widest text-[#e50914] mb-8 text-center st-glow-title">{{ $quienes_somos?->title ?? 'QUIÉNES SOMOS' }}</h2>
+            <h2 class="font-display text-4xl sm:text-5xl md:text-6xl tracking-widest text-[#e11d8a] mb-8 text-center st-glow-title">{{ $quienes_somos?->title ?? 'QUIÉNES SOMOS' }}</h2>
             <div class="max-w-3xl mx-auto text-center mb-8">
                 <div class="text-white/90 text-lg leading-relaxed space-y-4 text-left">
                     @if($quienes_somos && $quienes_somos->content)
@@ -88,7 +88,7 @@
                     <div class="flex flex-nowrap h-full min-w-full md:min-w-0 w-max md:w-full">
                     @foreach($team_members as $i => $member)
                         <button type="button"
-                                class="flex-none w-[78vw] min-w-[78vw] h-full relative overflow-hidden text-left focus:outline-none focus:ring-2 focus:ring-[#e50914]/50 focus:ring-inset cursor-pointer scroll-snap-center shrink-0 md:flex-1 md:min-w-0 md:w-auto"
+                                class="flex-none w-[78vw] min-w-[78vw] h-full relative overflow-hidden text-left focus:outline-none focus:ring-2 focus:ring-[#22d3ee]/50 focus:ring-inset cursor-pointer scroll-snap-center shrink-0 md:flex-1 md:min-w-0 md:w-auto"
                                 @click.prevent="activeIndex = {{ $i }}; modalOpen = true">
                             <img src="{{ asset('storage/'.$member->photo_path) }}"
                                  alt="{{ $member->name ?: 'Integrante' }}"
@@ -100,7 +100,7 @@
                                         <p class="font-semibold text-white text-xs sm:text-sm truncate">{{ $member->name }}</p>
                                     @endif
                                     @if($member->role)
-                                        <p class="text-[#e50914] text-xs mt-0.5 truncate">{{ $member->role }}</p>
+                                        <p class="text-[#e11d8a] text-xs mt-0.5 truncate">{{ $member->role }}</p>
                                     @endif
                                 </div>
                             @endif
@@ -144,7 +144,7 @@
                                         <p class="font-semibold text-white text-base sm:text-lg">{{ $member->name }}</p>
                                     @endif
                                     @if($member->role)
-                                        <p class="text-[#e50914] text-sm mt-0.5">{{ $member->role }}</p>
+                                        <p class="text-[#e11d8a] text-sm mt-0.5">{{ $member->role }}</p>
                                     @endif
                                 </div>
                             @endif
@@ -160,7 +160,7 @@
     <section id="nuestros-eventos" class="relative min-h-screen flex flex-col items-center justify-center py-20 px-4 section-stranger-bg" x-data="{ visible: false }" x-init="const o = new IntersectionObserver(([e]) => { if (e.isIntersecting) visible = true }, { threshold: 0.1 }); o.observe($el)">
         <div class="section-stranger-bg__inner"></div>
         <div class="relative z-10 w-full max-w-6xl mx-auto" x-show="visible" x-transition:enter="transition ease-out duration-700" x-transition:enter-start="opacity-0 translate-y-8" x-transition:enter-end="opacity-100 translate-y-0">
-            <h2 class="font-display text-4xl sm:text-5xl md:text-6xl tracking-widest text-[#e50914] text-center mb-12 st-glow-title">
+            <h2 class="font-display text-4xl sm:text-5xl md:text-6xl tracking-widest text-[#e11d8a] text-center mb-12 st-glow-title">
                 NUESTROS EVENTOS
             </h2>
 
@@ -171,10 +171,11 @@
                             $featuredCanReserve = $event->acceptsReservations();
                             $featuredSalesPaused = $event->sales_paused && $event->is_active;
                         @endphp
-                        <article class="group relative overflow-hidden rounded-lg border border-red-900/50 bg-black/80 backdrop-blur hover:border-[#e50914]/60 transition-all duration-300" @if($featuredSalesPaused) x-data="{ showContactInfo: false }" @endif>
-                            <div class="aspect-[4/3] bg-cover bg-center @if(!$event->cover_image_path) bg-gradient-to-br from-[#1a0505] to-[#e50914]/20 @endif"
+                        <article class="group relative overflow-hidden rounded-lg border border-fuchsia-900/50 bg-black/80 backdrop-blur hover:border-[#22d3ee]/50 transition-all duration-300" @if($featuredSalesPaused) x-data="{ showContactInfo: false }" @endif>
+                            <div class="aspect-[4/3] bg-cover bg-center relative @if(!$event->cover_image_path) bg-gradient-to-br from-[#14081f] to-[#e11d8a]/20 @endif"
                                 @if($event->cover_image_path) style="background-image: url('{{ asset('storage/'.$event->cover_image_path) }}');" @endif>
                                 <div class="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent"></div>
+                                <span class="nova-accent-chip absolute top-3 left-3 z-[1] rounded px-2 py-0.5 text-[10px] uppercase">Destacado</span>
                             </div>
                             <div class="p-5">
                                 <h3 class="text-xl font-bold text-white mb-2 flex items-center gap-2 flex-wrap">
@@ -187,19 +188,19 @@
                                 <p class="text-white/60 text-sm mb-4">{{ $event->venue }}</p>
                                 @auth
                                     @if(auth()->user()->isAdmin())
-                                        <a href="{{ route('admin.dashboard') }}" class="inline-block text-sm text-white/70 hover:text-[#e50914] transition">Panel admin</a>
+                                        <a href="{{ route('admin.dashboard') }}" class="inline-block text-sm text-white/70 hover:text-[#22d3ee] transition">Panel admin</a>
                                     @elseif($featuredSalesPaused)
                                         <button type="button" @click="showContactInfo = !showContactInfo" class="inline-block text-sm font-semibold text-amber-400 hover:text-amber-300 transition text-left">Más info</button>
                                         <p x-show="showContactInfo" x-cloak class="text-amber-200/90 text-sm mt-2">Favor comunicarse al {{ \App\Models\Event::SALES_CONTACT_PHONE }} para más información</p>
                                     @elseif($featuredCanReserve)
-                                        <a href="{{ route('reservations.create', $event) }}" class="inline-block text-sm font-semibold text-[#e50914] hover:text-red-400 transition">Reservar →</a>
+                                        <a href="{{ route('reservations.create', $event) }}" class="inline-block text-sm font-semibold text-[#e11d8a] hover:text-[#22d3ee] transition">Reservar →</a>
                                     @endif
                                 @else
                                     @if($featuredSalesPaused)
                                         <button type="button" @click="showContactInfo = !showContactInfo" class="inline-block text-sm font-semibold text-amber-400 hover:text-amber-300 transition text-left">Más info</button>
                                         <p x-show="showContactInfo" x-cloak class="text-amber-200/90 text-sm mt-2">Favor comunicarse al {{ \App\Models\Event::SALES_CONTACT_PHONE }} para más información</p>
                                     @else
-                                        <a href="{{ route('login') }}" class="inline-block text-sm text-white/70 hover:text-[#e50914] transition">Inicia sesión para reservar</a>
+                                        <a href="{{ route('login') }}" class="inline-block text-sm text-white/70 hover:text-[#22d3ee] transition">Inicia sesión para reservar</a>
                                     @endif
                                 @endauth
                             </div>
@@ -209,7 +210,7 @@
             @endif
 
             <div class="text-center">
-                <a href="{{ route('events.index') }}" class="inline-block px-8 py-3 bg-[#e50914] text-white font-bold tracking-widest rounded hover:bg-red-600 transition st-glow-btn">
+                <a href="{{ route('events.index') }}" class="inline-block px-8 py-3 bg-[#e11d8a] text-white font-bold tracking-widest rounded hover:bg-fuchsia-700 transition st-glow-btn">
                     VER TODOS LOS EVENTOS
                 </a>
             </div>
@@ -220,14 +221,14 @@
     <section id="contacto" class="relative min-h-screen flex items-center justify-center py-20 px-4 section-stranger-bg" x-data="{ visible: false }" x-init="const o = new IntersectionObserver(([e]) => { if (e.isIntersecting) visible = true }, { threshold: 0.1 }); o.observe($el)">
         <div class="section-stranger-bg__inner"></div>
         <div class="relative z-10 w-full max-w-2xl mx-auto" x-show="visible" x-transition:enter="transition ease-out duration-700" x-transition:enter-start="opacity-0 translate-y-8" x-transition:enter-end="opacity-100 translate-y-0">
-            <h2 class="font-display text-4xl sm:text-5xl tracking-widest text-[#e50914] text-center mb-10 st-glow-title">
+            <h2 class="font-display text-4xl sm:text-5xl tracking-widest text-[#e11d8a] text-center mb-10 st-glow-title">
                 CONTÁCTENOS
             </h2>
 
             <div class="grid gap-8 md:grid-cols-2 mb-10">
                 <div class="text-center md:text-left">
                     <p class="text-white/80 mb-2">Email</p>
-                    <a href="mailto:{{ config('mail.from.address', 'contacto@nova.com') }}" class="text-[#e50914] hover:text-red-400 transition">{{ config('mail.from.address', 'contacto@nova.com') }}</a>
+                    <a href="mailto:{{ config('mail.from.address', 'contacto@nova.com') }}" class="text-[#e11d8a] hover:text-[#22d3ee] transition">{{ config('mail.from.address', 'contacto@nova.com') }}</a>
                 </div>
                 <div class="text-center md:text-left">
                     <p class="text-white/80 mb-2">¿Dudas?</p>
@@ -240,19 +241,19 @@
                 <div>
                     <label for="contact-name" class="block text-sm text-white/80 mb-1">Nombre</label>
                     <input type="text" name="name" id="contact-name" value="{{ old('name') }}" required
-                        class="w-full px-4 py-3 bg-black/60 border border-red-900/50 rounded text-white placeholder-white/40 focus:border-[#e50914] focus:ring-1 focus:ring-[#e50914] outline-none transition">
+                        class="w-full px-4 py-3 bg-black/60 border border-fuchsia-900/50 rounded text-white placeholder-white/40 focus:border-[#22d3ee] focus:ring-1 focus:ring-[#22d3ee] outline-none transition">
                     @error('name')<p class="mt-1 text-sm text-red-400">{{ $message }}</p>@enderror
                 </div>
                 <div>
                     <label for="contact-email" class="block text-sm text-white/80 mb-1">Correo</label>
                     <input type="email" name="email" id="contact-email" value="{{ old('email') }}" required
-                        class="w-full px-4 py-3 bg-black/60 border border-red-900/50 rounded text-white placeholder-white/40 focus:border-[#e50914] focus:ring-1 focus:ring-[#e50914] outline-none transition">
+                        class="w-full px-4 py-3 bg-black/60 border border-fuchsia-900/50 rounded text-white placeholder-white/40 focus:border-[#22d3ee] focus:ring-1 focus:ring-[#22d3ee] outline-none transition">
                     @error('email')<p class="mt-1 text-sm text-red-400">{{ $message }}</p>@enderror
                 </div>
                 <div>
                     <label for="contact-message" class="block text-sm text-white/80 mb-1">Mensaje</label>
                     <textarea name="message" id="contact-message" rows="4" required
-                        class="w-full px-4 py-3 bg-black/60 border border-red-900/50 rounded text-white placeholder-white/40 focus:border-[#e50914] focus:ring-1 focus:ring-[#e50914] outline-none transition resize-none">{{ old('message') }}</textarea>
+                        class="w-full px-4 py-3 bg-black/60 border border-fuchsia-900/50 rounded text-white placeholder-white/40 focus:border-[#22d3ee] focus:ring-1 focus:ring-[#22d3ee] outline-none transition resize-none">{{ old('message') }}</textarea>
                     @error('message')<p class="mt-1 text-sm text-red-400">{{ $message }}</p>@enderror
                 </div>
                 @if(config('services.recaptcha.site_key'))
@@ -261,7 +262,7 @@
                 @error('g-recaptcha-response')
                     <p class="text-sm text-red-400">{{ $message }}</p>
                 @enderror
-                <button type="submit" class="w-full py-3 bg-[#e50914] text-white font-bold tracking-widest rounded hover:bg-red-600 transition st-glow-btn">
+                <button type="submit" class="w-full py-3 bg-[#e11d8a] text-white font-bold tracking-widest rounded hover:bg-fuchsia-700 transition st-glow-btn">
                     ENVIAR
                 </button>
             </form>
@@ -272,7 +273,7 @@
     <section id="boletin" class="relative min-h-screen flex items-center justify-center py-20 px-4 section-stranger-bg" x-data="{ visible: false }" x-init="const o = new IntersectionObserver(([e]) => { if (e.isIntersecting) visible = true }, { threshold: 0.1 }); o.observe($el)">
         <div class="section-stranger-bg__inner"></div>
         <div class="relative z-10 w-full max-w-xl mx-auto text-center" x-show="visible" x-transition:enter="transition ease-out duration-700" x-transition:enter-start="opacity-0 translate-y-8" x-transition:enter-end="opacity-100 translate-y-0">
-            <h2 class="font-display text-4xl sm:text-5xl tracking-widest text-[#e50914] mb-4 st-glow-title">
+            <h2 class="font-display text-4xl sm:text-5xl tracking-widest text-[#e11d8a] mb-4 st-glow-title">
                 BOLETÍN
             </h2>
             <p class="text-white/80 mb-8">
@@ -282,8 +283,8 @@
             <form action="{{ route('newsletter.subscribe') }}" method="POST" class="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
                 @csrf
                 <input type="email" name="email" placeholder="tu@correo.com" required
-                    class="flex-1 px-4 py-3 bg-black/60 border border-red-900/50 rounded text-white placeholder-white/40 focus:border-[#e50914] focus:ring-1 focus:ring-[#e50914] outline-none transition">
-                <button type="submit" class="px-8 py-3 bg-[#e50914] text-white font-bold tracking-widest rounded hover:bg-red-600 transition whitespace-nowrap st-glow-btn">
+                    class="flex-1 px-4 py-3 bg-black/60 border border-fuchsia-900/50 rounded text-white placeholder-white/40 focus:border-[#22d3ee] focus:ring-1 focus:ring-[#22d3ee] outline-none transition">
+                <button type="submit" class="px-8 py-3 bg-[#e11d8a] text-white font-bold tracking-widest rounded hover:bg-fuchsia-700 transition whitespace-nowrap st-glow-btn">
                     SUSCRIBIRME
                 </button>
             </form>
@@ -298,7 +299,7 @@
         <div class="section-stranger-bg__inner"></div>
         <div class="relative z-10 text-center" x-show="visible" x-transition:enter="transition ease-out duration-700" x-transition:enter-start="opacity-0 translate-y-8" x-transition:enter-end="opacity-100 translate-y-0">
             <p class="text-white/80 text-lg mb-6">No te quedes fuera.</p>
-            <a href="{{ route('events.index') }}" class="inline-block px-10 py-4 bg-[#e50914] text-white font-bold tracking-widest rounded border-2 border-[#e50914] hover:bg-transparent hover:text-[#e50914] transition st-glow-btn">
+            <a href="{{ route('events.index') }}" class="inline-block px-10 py-4 bg-[#e11d8a] text-white font-bold tracking-widest rounded border-2 border-[#e11d8a] hover:bg-transparent hover:text-[#e11d8a] transition st-glow-btn">
                 RESERVAR ENTRADAS
             </a>
         </div>
