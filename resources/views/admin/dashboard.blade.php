@@ -18,18 +18,18 @@
         ])->values()->all(),
     ];
 @endphp
-<div class="space-y-6">
-    <div class="flex flex-wrap items-start justify-between gap-4">
-        <div>
-            <h1 class="text-3xl font-bold text-slate-800 dark:text-white">Dashboard de métricas</h1>
-            <p class="text-slate-600 dark:text-slate-400">Visitas, conversiones, ventas, reservas y asistencia del periodo seleccionado.</p>
+<div class="space-y-4 sm:space-y-6 min-w-0">
+    <div class="flex flex-col sm:flex-row sm:flex-wrap sm:items-start sm:justify-between gap-3 sm:gap-4">
+        <div class="min-w-0">
+            <h1 class="text-2xl sm:text-3xl font-bold text-slate-800 dark:text-white">Dashboard de métricas</h1>
+            <p class="text-sm sm:text-base text-slate-600 dark:text-slate-400 mt-1">Visitas, conversiones, ventas, reservas y asistencia del periodo seleccionado.</p>
         </div>
-        <a href="{{ route('admin.reports.metrics', request()->query()) }}" class="inline-flex items-center gap-2 rounded-xl border-2 border-violet-500 px-4 py-2.5 text-violet-700 dark:text-violet-200 font-semibold hover:bg-violet-50 dark:hover:bg-violet-900/30 transition">
+        <a href="{{ route('admin.reports.metrics', request()->query()) }}" class="inline-flex w-full sm:w-auto justify-center items-center gap-2 rounded-xl border-2 border-violet-500 px-4 py-2.5 text-violet-700 dark:text-violet-200 font-semibold hover:bg-violet-50 dark:hover:bg-violet-900/30 transition shrink-0">
             <span aria-hidden="true">📄</span> Ver reporte
         </a>
     </div>
 
-    <form method="GET" action="{{ route('admin.dashboard') }}" class="rounded-2xl border-2 border-violet-200/60 dark:border-violet-700/50 bg-white dark:bg-slate-800/80 p-4 md:p-6 grid md:grid-cols-4 gap-4">
+    <form method="GET" action="{{ route('admin.dashboard') }}" class="rounded-2xl border-2 border-violet-200/60 dark:border-violet-700/50 bg-white dark:bg-slate-800/80 p-4 sm:p-6 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4">
         <div>
             <label class="block text-sm font-semibold mb-1 text-slate-700 dark:text-slate-300">Desde</label>
             <input type="date" name="date_from" value="{{ $filters['date_from']->toDateString() }}" class="w-full rounded-xl border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white">
@@ -54,45 +54,45 @@
                 @endforeach
             </select>
         </div>
-        <div class="md:col-span-4 flex flex-wrap justify-end gap-2">
-            <a href="{{ route('admin.dashboard') }}" class="rounded-xl border border-slate-300 dark:border-slate-600 px-4 py-2.5 font-semibold text-slate-700 dark:text-slate-200">Limpiar</a>
+        <div class="sm:col-span-2 xl:col-span-4 flex flex-col-reverse sm:flex-row sm:flex-wrap sm:justify-end gap-2">
+            <a href="{{ route('admin.dashboard') }}" class="rounded-xl border border-slate-300 dark:border-slate-600 px-4 py-2.5 font-semibold text-center text-slate-700 dark:text-slate-200">Limpiar</a>
             <button type="submit" class="rounded-xl bg-violet-600 hover:bg-violet-700 px-4 py-2.5 font-semibold text-white">Aplicar filtros</button>
         </div>
     </form>
 
-    <div class="grid sm:grid-cols-2 xl:grid-cols-4 gap-4">
-        <div class="rounded-2xl bg-white dark:bg-slate-800/80 border-2 border-violet-200/60 dark:border-violet-700/50 p-5">
-            <p class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Visitas</p>
-            <p class="mt-2 text-3xl font-bold text-slate-800 dark:text-white">{{ number_format($metrics['kpis']['visits']) }}</p>
+    <div class="grid grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4">
+        <div class="rounded-2xl bg-white dark:bg-slate-800/80 border-2 border-violet-200/60 dark:border-violet-700/50 p-3 sm:p-5 min-w-0">
+            <p class="text-[10px] sm:text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400 truncate">Visitas</p>
+            <p class="mt-1 sm:mt-2 text-2xl sm:text-3xl font-bold text-slate-800 dark:text-white tabular-nums">{{ number_format($metrics['kpis']['visits']) }}</p>
         </div>
-        <div class="rounded-2xl bg-white dark:bg-slate-800/80 border-2 border-violet-200/60 dark:border-violet-700/50 p-5">
-            <p class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Conversiones</p>
-            <p class="mt-2 text-3xl font-bold text-slate-800 dark:text-white">{{ number_format($metrics['kpis']['conversions']) }}</p>
-            <p class="text-sm text-emerald-600 dark:text-emerald-300 mt-1">{{ number_format($metrics['kpis']['conversion_rate'], 2) }}%</p>
+        <div class="rounded-2xl bg-white dark:bg-slate-800/80 border-2 border-violet-200/60 dark:border-violet-700/50 p-3 sm:p-5 min-w-0">
+            <p class="text-[10px] sm:text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400 truncate">Conversiones</p>
+            <p class="mt-1 sm:mt-2 text-2xl sm:text-3xl font-bold text-slate-800 dark:text-white tabular-nums">{{ number_format($metrics['kpis']['conversions']) }}</p>
+            <p class="text-xs sm:text-sm text-emerald-600 dark:text-emerald-300 mt-0.5">{{ number_format($metrics['kpis']['conversion_rate'], 2) }}%</p>
         </div>
-        <div class="rounded-2xl bg-white dark:bg-slate-800/80 border-2 border-violet-200/60 dark:border-violet-700/50 p-5">
-            <p class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Ventas brutas</p>
-            <p class="mt-2 text-3xl font-bold text-slate-800 dark:text-white">{{ number_format($metrics['kpis']['sales_total'], 2) }}</p>
+        <div class="rounded-2xl bg-white dark:bg-slate-800/80 border-2 border-violet-200/60 dark:border-violet-700/50 p-3 sm:p-5 min-w-0">
+            <p class="text-[10px] sm:text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400 truncate">Ventas brutas</p>
+            <p class="mt-1 sm:mt-2 text-2xl sm:text-3xl font-bold text-slate-800 dark:text-white tabular-nums">{{ number_format($metrics['kpis']['sales_total'], 2) }}</p>
         </div>
-        <div class="rounded-2xl bg-white dark:bg-slate-800/80 border-2 border-orange-200/60 dark:border-orange-700/50 p-5">
-            <p class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Reembolsos</p>
-            <p class="mt-2 text-3xl font-bold text-slate-800 dark:text-white">{{ number_format($metrics['kpis']['refunds_total'], 2) }}</p>
+        <div class="rounded-2xl bg-white dark:bg-slate-800/80 border-2 border-orange-200/60 dark:border-orange-700/50 p-3 sm:p-5 min-w-0">
+            <p class="text-[10px] sm:text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400 truncate">Reembolsos</p>
+            <p class="mt-1 sm:mt-2 text-2xl sm:text-3xl font-bold text-slate-800 dark:text-white tabular-nums">{{ number_format($metrics['kpis']['refunds_total'], 2) }}</p>
         </div>
-        <div class="rounded-2xl bg-white dark:bg-slate-800/80 border-2 border-emerald-200/60 dark:border-emerald-700/50 p-5">
-            <p class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Ventas netas</p>
-            <p class="mt-2 text-3xl font-bold text-slate-800 dark:text-white">{{ number_format($metrics['kpis']['net_sales'], 2) }}</p>
+        <div class="rounded-2xl bg-white dark:bg-slate-800/80 border-2 border-emerald-200/60 dark:border-emerald-700/50 p-3 sm:p-5 min-w-0">
+            <p class="text-[10px] sm:text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400 truncate">Ventas netas</p>
+            <p class="mt-1 sm:mt-2 text-2xl sm:text-3xl font-bold text-slate-800 dark:text-white tabular-nums">{{ number_format($metrics['kpis']['net_sales'], 2) }}</p>
         </div>
-        <div class="rounded-2xl bg-white dark:bg-slate-800/80 border-2 border-violet-200/60 dark:border-violet-700/50 p-5">
-            <p class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Publico confirmado</p>
-            <p class="mt-2 text-3xl font-bold text-slate-800 dark:text-white">{{ number_format($metrics['kpis']['confirmed_audience']) }}</p>
+        <div class="rounded-2xl bg-white dark:bg-slate-800/80 border-2 border-violet-200/60 dark:border-violet-700/50 p-3 sm:p-5 min-w-0">
+            <p class="text-[10px] sm:text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400 truncate">Publico confirmado</p>
+            <p class="mt-1 sm:mt-2 text-2xl sm:text-3xl font-bold text-slate-800 dark:text-white tabular-nums">{{ number_format($metrics['kpis']['confirmed_audience']) }}</p>
         </div>
-        <div class="rounded-2xl bg-white dark:bg-slate-800/80 border-2 border-violet-200/60 dark:border-violet-700/50 p-5">
-            <p class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Reservado / pendiente</p>
-            <p class="mt-2 text-3xl font-bold text-slate-800 dark:text-white">{{ number_format($metrics['kpis']['reserved_pending']) }}</p>
+        <div class="rounded-2xl bg-white dark:bg-slate-800/80 border-2 border-violet-200/60 dark:border-violet-700/50 p-3 sm:p-5 min-w-0">
+            <p class="text-[10px] sm:text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400 truncate">Reservado / pendiente</p>
+            <p class="mt-1 sm:mt-2 text-2xl sm:text-3xl font-bold text-slate-800 dark:text-white tabular-nums">{{ number_format($metrics['kpis']['reserved_pending']) }}</p>
         </div>
-        <div class="rounded-2xl bg-white dark:bg-slate-800/80 border-2 border-violet-200/60 dark:border-violet-700/50 p-5">
-            <p class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Asistencia confirmada</p>
-            <p class="mt-2 text-3xl font-bold text-slate-800 dark:text-white">{{ number_format($metrics['kpis']['attendance_confirmed']) }}</p>
+        <div class="rounded-2xl bg-white dark:bg-slate-800/80 border-2 border-violet-200/60 dark:border-violet-700/50 p-3 sm:p-5 min-w-0">
+            <p class="text-[10px] sm:text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400 truncate">Asistencia confirmada</p>
+            <p class="mt-1 sm:mt-2 text-2xl sm:text-3xl font-bold text-slate-800 dark:text-white tabular-nums">{{ number_format($metrics['kpis']['attendance_confirmed']) }}</p>
         </div>
     </div>
 
@@ -108,57 +108,101 @@
         </div>
     @endif
 
-    <div class="grid lg:grid-cols-3 gap-4">
-        <div class="lg:col-span-2 rounded-2xl border-2 border-violet-200/60 dark:border-violet-700/50 bg-white dark:bg-slate-800/80 p-6">
-            <h2 class="text-lg font-bold text-slate-800 dark:text-white mb-4">Tendencia diaria</h2>
+    <div class="grid grid-cols-1 xl:grid-cols-3 gap-3 sm:gap-4 min-w-0">
+        <div class="xl:col-span-2 rounded-2xl border-2 border-violet-200/60 dark:border-violet-700/50 bg-white dark:bg-slate-800/80 p-4 sm:p-6 min-w-0 overflow-hidden">
+            <h2 class="text-base sm:text-lg font-bold text-slate-800 dark:text-white mb-3 sm:mb-4">Tendencia diaria</h2>
             @if($metrics['trend']->isNotEmpty())
-                <div class="h-[280px]">
+                <div class="relative h-52 sm:h-64 md:h-[280px] w-full min-w-0">
                     <canvas id="dashboard-trend-chart" aria-label="Grafica de tendencia diaria"></canvas>
                 </div>
             @else
                 <p class="text-slate-500 dark:text-slate-400">Sin datos de tendencia para el rango elegido.</p>
             @endif
         </div>
-        <div class="rounded-2xl border-2 border-violet-200/60 dark:border-violet-700/50 bg-white dark:bg-slate-800/80 p-6">
-            <h2 class="text-lg font-bold text-slate-800 dark:text-white mb-4">Ventas por evento</h2>
+        <div class="rounded-2xl border-2 border-violet-200/60 dark:border-violet-700/50 bg-white dark:bg-slate-800/80 p-4 sm:p-6 min-w-0 overflow-hidden">
+            <h2 class="text-base sm:text-lg font-bold text-slate-800 dark:text-white mb-3 sm:mb-4">Ventas por evento</h2>
             @if($metrics['sales_by_event']->isNotEmpty())
-                <div class="h-[280px]">
+                <div class="relative h-52 sm:h-64 md:h-[280px] w-full min-w-0">
                     <canvas id="dashboard-sales-chart" aria-label="Grafica de ventas por evento"></canvas>
                 </div>
             @else
-                <p class="text-slate-500 dark:text-slate-400">Sin ventas registradas en el periodo.</p>
+                <p class="text-sm sm:text-base text-slate-500 dark:text-slate-400">Sin ventas registradas en el periodo.</p>
             @endif
         </div>
     </div>
 
-    <div class="grid lg:grid-cols-3 gap-4">
-        <div class="lg:col-span-2 rounded-2xl border-2 border-violet-200/60 dark:border-violet-700/50 bg-white dark:bg-slate-800/80 overflow-hidden">
-            <div class="px-6 py-4 border-b border-slate-200 dark:border-slate-700">
-                <h2 class="text-lg font-bold text-slate-800 dark:text-white">Resumen por evento</h2>
+    <div class="grid grid-cols-1 xl:grid-cols-3 gap-3 sm:gap-4 min-w-0">
+        <div class="xl:col-span-2 rounded-2xl border-2 border-violet-200/60 dark:border-violet-700/50 bg-white dark:bg-slate-800/80 overflow-hidden min-w-0">
+            <div class="px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-200 dark:border-slate-700">
+                <h2 class="text-base sm:text-lg font-bold text-slate-800 dark:text-white">Resumen por evento</h2>
             </div>
-            <div class="overflow-x-auto">
-                <table class="w-full min-w-[720px]">
+
+            {{-- Mobile / tablet: stacked cards --}}
+            <div class="md:hidden divide-y divide-slate-200 dark:divide-slate-700">
+                @forelse($metrics['events_table'] as $row)
+                    <div class="p-4 space-y-2">
+                        <div class="flex items-start justify-between gap-2">
+                            <p class="font-semibold text-slate-800 dark:text-white text-sm leading-snug break-words min-w-0">{{ $row->event_name }}</p>
+                            @if($row->is_active)
+                                <span class="inline-flex shrink-0 rounded-full bg-emerald-600 text-white px-2.5 py-0.5 text-xs font-semibold">Activo</span>
+                            @else
+                                <span class="inline-flex shrink-0 rounded-full bg-slate-500 text-white px-2.5 py-0.5 text-xs font-semibold">Inactivo</span>
+                            @endif
+                        </div>
+                        <div class="grid grid-cols-2 gap-2 text-sm">
+                            <div class="rounded-lg bg-slate-100 dark:bg-slate-700/50 px-2.5 py-2">
+                                <p class="text-[10px] uppercase text-slate-500 dark:text-slate-400">Visitas</p>
+                                <p class="font-semibold text-slate-800 dark:text-white tabular-nums">{{ number_format($row->visits) }}</p>
+                            </div>
+                            <div class="rounded-lg bg-slate-100 dark:bg-slate-700/50 px-2.5 py-2">
+                                <p class="text-[10px] uppercase text-slate-500 dark:text-slate-400">Conversiones</p>
+                                <p class="font-semibold text-slate-800 dark:text-white tabular-nums">{{ number_format($row->conversions) }}</p>
+                            </div>
+                            <div class="rounded-lg bg-slate-100 dark:bg-slate-700/50 px-2.5 py-2">
+                                <p class="text-[10px] uppercase text-slate-500 dark:text-slate-400">Tasa</p>
+                                <p class="font-semibold text-slate-800 dark:text-white tabular-nums">{{ number_format($row->conversion_rate, 2) }}%</p>
+                            </div>
+                            <div class="rounded-lg bg-slate-100 dark:bg-slate-700/50 px-2.5 py-2">
+                                <p class="text-[10px] uppercase text-slate-500 dark:text-slate-400">Ventas</p>
+                                <p class="font-semibold text-slate-800 dark:text-white tabular-nums">{{ number_format($row->sales_total, 2) }}</p>
+                            </div>
+                            <div class="col-span-2 rounded-lg bg-slate-100 dark:bg-slate-700/50 px-2.5 py-2">
+                                <p class="text-[10px] uppercase text-slate-500 dark:text-slate-400">Confirmado</p>
+                                <p class="font-semibold text-slate-800 dark:text-white tabular-nums">{{ number_format($row->confirmed_audience) }}</p>
+                            </div>
+                        </div>
+                    </div>
+                @empty
+                    <p class="px-4 py-8 text-center text-slate-500 dark:text-slate-400 text-sm">Sin datos para los filtros seleccionados.</p>
+                @endforelse
+            </div>
+
+            {{-- Desktop table --}}
+            <div class="hidden md:block overflow-x-auto">
+                <table class="w-full min-w-[640px]">
                     <thead class="bg-slate-100 dark:bg-slate-700/50">
                         <tr>
-                            <th class="text-left px-4 py-3 font-semibold text-slate-700 dark:text-slate-300">Evento</th>
-                            <th class="text-right px-4 py-3 font-semibold text-slate-700 dark:text-slate-300">Visitas</th>
-                            <th class="text-right px-4 py-3 font-semibold text-slate-700 dark:text-slate-300">Conversiones</th>
-                            <th class="text-right px-4 py-3 font-semibold text-slate-700 dark:text-slate-300">Tasa</th>
-                            <th class="text-right px-4 py-3 font-semibold text-slate-700 dark:text-slate-300">Ventas</th>
-                            <th class="text-right px-4 py-3 font-semibold text-slate-700 dark:text-slate-300">Confirmado</th>
-                            <th class="text-center px-4 py-3 font-semibold text-slate-700 dark:text-slate-300">Estado</th>
+                            <th class="text-left px-3 lg:px-4 py-3 font-semibold text-slate-700 dark:text-slate-300">Evento</th>
+                            <th class="text-right px-3 lg:px-4 py-3 font-semibold text-slate-700 dark:text-slate-300 whitespace-nowrap">Visitas</th>
+                            <th class="text-right px-3 lg:px-4 py-3 font-semibold text-slate-700 dark:text-slate-300 whitespace-nowrap">Conversiones</th>
+                            <th class="text-right px-3 lg:px-4 py-3 font-semibold text-slate-700 dark:text-slate-300 whitespace-nowrap">Tasa</th>
+                            <th class="text-right px-3 lg:px-4 py-3 font-semibold text-slate-700 dark:text-slate-300 whitespace-nowrap">Ventas</th>
+                            <th class="text-right px-3 lg:px-4 py-3 font-semibold text-slate-700 dark:text-slate-300 whitespace-nowrap">Confirmado</th>
+                            <th class="text-center px-3 lg:px-4 py-3 font-semibold text-slate-700 dark:text-slate-300">Estado</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse($metrics['events_table'] as $row)
                             <tr class="border-t border-slate-200 dark:border-slate-700">
-                                <td class="px-4 py-3 text-slate-800 dark:text-white">{{ $row->event_name }}</td>
-                                <td class="px-4 py-3 text-right">{{ number_format($row->visits) }}</td>
-                                <td class="px-4 py-3 text-right">{{ number_format($row->conversions) }}</td>
-                                <td class="px-4 py-3 text-right">{{ number_format($row->conversion_rate, 2) }}%</td>
-                                <td class="px-4 py-3 text-right">{{ number_format($row->sales_total, 2) }}</td>
-                                <td class="px-4 py-3 text-right">{{ number_format($row->confirmed_audience) }}</td>
-                                <td class="px-4 py-3 text-center">
+                                <td class="px-3 lg:px-4 py-3 text-slate-800 dark:text-white max-w-[14rem] lg:max-w-xs">
+                                    <span class="block truncate" title="{{ $row->event_name }}">{{ $row->event_name }}</span>
+                                </td>
+                                <td class="px-3 lg:px-4 py-3 text-right tabular-nums whitespace-nowrap">{{ number_format($row->visits) }}</td>
+                                <td class="px-3 lg:px-4 py-3 text-right tabular-nums whitespace-nowrap">{{ number_format($row->conversions) }}</td>
+                                <td class="px-3 lg:px-4 py-3 text-right tabular-nums whitespace-nowrap">{{ number_format($row->conversion_rate, 2) }}%</td>
+                                <td class="px-3 lg:px-4 py-3 text-right tabular-nums whitespace-nowrap">{{ number_format($row->sales_total, 2) }}</td>
+                                <td class="px-3 lg:px-4 py-3 text-right tabular-nums whitespace-nowrap">{{ number_format($row->confirmed_audience) }}</td>
+                                <td class="px-3 lg:px-4 py-3 text-center">
                                     @if($row->is_active)
                                         <span class="inline-flex rounded-full bg-emerald-600 text-white px-2.5 py-0.5 text-xs font-semibold">Activo</span>
                                     @else
@@ -176,35 +220,35 @@
             </div>
         </div>
 
-        <div class="space-y-4">
-            <div class="rounded-2xl border-2 border-violet-200/60 dark:border-violet-700/50 bg-white dark:bg-slate-800/80 p-5">
-                <h2 class="text-lg font-bold text-slate-800 dark:text-white mb-4">Operacion</h2>
-                <div class="space-y-3">
+        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-1 gap-3 sm:gap-4 min-w-0">
+            <div class="rounded-2xl border-2 border-violet-200/60 dark:border-violet-700/50 bg-white dark:bg-slate-800/80 p-4 sm:p-5">
+                <h2 class="text-base sm:text-lg font-bold text-slate-800 dark:text-white mb-3 sm:mb-4">Operacion</h2>
+                <div class="space-y-2 sm:space-y-3">
                     <div class="flex items-center justify-between gap-3 rounded-xl bg-slate-100 dark:bg-slate-700/50 px-3 py-2.5">
                         <span class="text-sm font-medium text-slate-600 dark:text-slate-300">Pendientes</span>
-                        <span class="text-lg font-bold text-slate-800 dark:text-white">{{ number_format($metrics['kpis']['reserved_pending']) }}</span>
+                        <span class="text-lg font-bold text-slate-800 dark:text-white tabular-nums">{{ number_format($metrics['kpis']['reserved_pending']) }}</span>
                     </div>
                     <div class="flex items-center justify-between gap-3 rounded-xl bg-slate-100 dark:bg-slate-700/50 px-3 py-2.5">
                         <span class="text-sm font-medium text-slate-600 dark:text-slate-300">Asistencia</span>
-                        <span class="text-lg font-bold text-slate-800 dark:text-white">{{ number_format($metrics['kpis']['attendance_confirmed']) }}</span>
+                        <span class="text-lg font-bold text-slate-800 dark:text-white tabular-nums">{{ number_format($metrics['kpis']['attendance_confirmed']) }}</span>
                     </div>
                     <div class="flex items-center justify-between gap-3 rounded-xl bg-slate-100 dark:bg-slate-700/50 px-3 py-2.5">
                         <span class="text-sm font-medium text-slate-600 dark:text-slate-300">Publico confirmado</span>
-                        <span class="text-lg font-bold text-slate-800 dark:text-white">{{ number_format($metrics['kpis']['confirmed_audience']) }}</span>
+                        <span class="text-lg font-bold text-slate-800 dark:text-white tabular-nums">{{ number_format($metrics['kpis']['confirmed_audience']) }}</span>
                     </div>
                 </div>
             </div>
 
-            <div class="rounded-2xl border-2 border-violet-200/60 dark:border-violet-700/50 bg-white dark:bg-slate-800/80 p-5">
-                <div class="flex items-start justify-between gap-2 mb-4">
-                    <h2 class="text-lg font-bold text-slate-800 dark:text-white">Top IPs (10 dias)</h2>
+            <div class="rounded-2xl border-2 border-violet-200/60 dark:border-violet-700/50 bg-white dark:bg-slate-800/80 p-4 sm:p-5 min-w-0">
+                <div class="flex items-start justify-between gap-2 mb-3 sm:mb-4">
+                    <h2 class="text-base sm:text-lg font-bold text-slate-800 dark:text-white">Top IPs (10 dias)</h2>
                     <a href="{{ route('admin.reports.metrics', request()->query()) }}" class="text-xs font-semibold text-violet-600 dark:text-violet-300 hover:underline shrink-0">Ver detalle</a>
                 </div>
                 @forelse($topIps as $ipRow)
-                    <div class="border-t border-slate-200 dark:border-slate-700 py-3 first:border-t-0 first:pt-0">
-                        <p class="font-mono text-sm text-slate-800 dark:text-white">{{ $ipRow->ip_address }}</p>
-                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{{ $ipRow->geo_label ?? '—' }}</p>
-                        <p class="text-sm font-semibold text-slate-700 dark:text-slate-200 mt-1">{{ number_format($ipRow->visits_total) }} visitas</p>
+                    <div class="border-t border-slate-200 dark:border-slate-700 py-3 first:border-t-0 first:pt-0 min-w-0">
+                        <p class="font-mono text-sm text-slate-800 dark:text-white break-all">{{ $ipRow->ip_address }}</p>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5 break-words">{{ $ipRow->geo_label ?? '—' }}</p>
+                        <p class="text-sm font-semibold text-slate-700 dark:text-slate-200 mt-1 tabular-nums">{{ number_format($ipRow->visits_total) }} visitas</p>
                     </div>
                 @empty
                     <p class="text-sm text-slate-500 dark:text-slate-400">Sin visitas por IP en los ultimos 10 dias.</p>
@@ -238,8 +282,11 @@ document.addEventListener('DOMContentLoaded', function () {
     var gridColor = isDark ? 'rgba(148, 163, 184, 0.15)' : 'rgba(148, 163, 184, 0.25)';
     var tooltipBg = isDark ? '#0f172a' : '#ffffff';
     var tooltipFg = isDark ? '#e2e8f0' : '#0f172a';
-
     var palette = ['#7c3aed', '#e11d8a', '#06b6d4', '#10b981', '#f59e0b', '#6366f1', '#f43f5e', '#14b8a6'];
+
+    function isCompact() {
+        return window.matchMedia('(max-width: 767px)').matches;
+    }
 
     function formatDayLabel(day) {
         var parts = String(day).split('-');
@@ -252,6 +299,7 @@ document.addEventListener('DOMContentLoaded', function () {
     var trendCanvas = document.getElementById('dashboard-trend-chart');
     if (trendCanvas && Array.isArray(payload.trend) && payload.trend.length) {
         var labels = payload.trend.map(function (row) { return formatDayLabel(row.day); });
+        var compact = isCompact();
         new Chart(trendCanvas, {
             type: 'line',
             data: {
@@ -264,6 +312,8 @@ document.addEventListener('DOMContentLoaded', function () {
                         backgroundColor: 'rgba(124, 58, 237, 0.15)',
                         tension: 0.35,
                         fill: true,
+                        pointRadius: compact ? 0 : 2,
+                        pointHoverRadius: 4,
                         yAxisID: 'y',
                     },
                     {
@@ -273,6 +323,8 @@ document.addEventListener('DOMContentLoaded', function () {
                         backgroundColor: 'rgba(225, 29, 138, 0.12)',
                         tension: 0.35,
                         fill: false,
+                        pointRadius: compact ? 0 : 2,
+                        pointHoverRadius: 4,
                         yAxisID: 'y',
                     },
                     {
@@ -282,6 +334,8 @@ document.addEventListener('DOMContentLoaded', function () {
                         backgroundColor: 'rgba(16, 185, 129, 0.12)',
                         tension: 0.35,
                         fill: false,
+                        pointRadius: compact ? 0 : 2,
+                        pointHoverRadius: 4,
                         yAxisID: 'y1',
                     },
                 ],
@@ -290,9 +344,19 @@ document.addEventListener('DOMContentLoaded', function () {
                 responsive: true,
                 maintainAspectRatio: false,
                 interaction: { mode: 'index', intersect: false },
+                layout: {
+                    padding: { top: 4, right: compact ? 4 : 8, bottom: 0, left: 0 },
+                },
                 plugins: {
                     legend: {
-                        labels: { color: tickColor },
+                        position: compact ? 'bottom' : 'top',
+                        labels: {
+                            color: tickColor,
+                            boxWidth: 10,
+                            boxHeight: 10,
+                            padding: compact ? 8 : 12,
+                            font: { size: compact ? 11 : 12 },
+                        },
                     },
                     tooltip: {
                         backgroundColor: tooltipBg,
@@ -304,24 +368,49 @@ document.addEventListener('DOMContentLoaded', function () {
                 },
                 scales: {
                     x: {
-                        ticks: { color: tickColor, maxRotation: 0 },
+                        ticks: {
+                            color: tickColor,
+                            maxRotation: 0,
+                            autoSkip: true,
+                            maxTicksLimit: compact ? 5 : 10,
+                            font: { size: compact ? 10 : 11 },
+                        },
                         grid: { color: gridColor },
                     },
                     y: {
                         type: 'linear',
                         position: 'left',
                         beginAtZero: true,
-                        ticks: { color: tickColor, precision: 0 },
+                        ticks: {
+                            color: tickColor,
+                            precision: 0,
+                            maxTicksLimit: compact ? 4 : 6,
+                            font: { size: compact ? 10 : 11 },
+                        },
                         grid: { color: gridColor },
-                        title: { display: true, text: 'Visitas / Conv', color: tickColor },
+                        title: {
+                            display: !compact,
+                            text: 'Visitas / Conv',
+                            color: tickColor,
+                            font: { size: 11 },
+                        },
                     },
                     y1: {
                         type: 'linear',
                         position: 'right',
                         beginAtZero: true,
-                        ticks: { color: tickColor },
+                        ticks: {
+                            color: tickColor,
+                            maxTicksLimit: compact ? 4 : 6,
+                            font: { size: compact ? 10 : 11 },
+                        },
                         grid: { drawOnChartArea: false },
-                        title: { display: true, text: 'Ventas Bs', color: tickColor },
+                        title: {
+                            display: !compact,
+                            text: 'Ventas Bs',
+                            color: tickColor,
+                            font: { size: 11 },
+                        },
                     },
                 },
             },
@@ -330,6 +419,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     var salesCanvas = document.getElementById('dashboard-sales-chart');
     if (salesCanvas && Array.isArray(payload.salesByEvent) && payload.salesByEvent.length) {
+        var salesCompact = isCompact();
         new Chart(salesCanvas, {
             type: 'doughnut',
             data: {
@@ -345,13 +435,15 @@ document.addEventListener('DOMContentLoaded', function () {
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                cutout: salesCompact ? '55%' : '60%',
                 plugins: {
                     legend: {
                         position: 'bottom',
                         labels: {
                             color: tickColor,
-                            boxWidth: 12,
-                            padding: 12,
+                            boxWidth: 10,
+                            padding: salesCompact ? 8 : 12,
+                            font: { size: salesCompact ? 10 : 12 },
                         },
                     },
                     tooltip: {
