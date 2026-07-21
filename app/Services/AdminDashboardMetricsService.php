@@ -12,6 +12,10 @@ use Illuminate\Support\Facades\DB;
 
 class AdminDashboardMetricsService
 {
+    public function __construct(
+        private readonly ?IpGeolocationService $ipGeolocation = null,
+    ) {}
+
     public function normalizeFilters(array $filters): array
     {
         $today = now();
@@ -310,7 +314,7 @@ class AdminDashboardMetricsService
             return collect();
         }
 
-        return $rows
+        $grouped = $rows
             ->groupBy('ip_address')
             ->map(function (Collection $ipRows, string $ip) {
                 $visitsTotal = (int) $ipRows->sum('total');
@@ -331,5 +335,28 @@ class AdminDashboardMetricsService
             })
             ->sortByDesc('visits_total')
             ->values();
+
+        $geoByIp = $this->ipGeo()->lookupMany($grouped->pluck('ip_address')->all());
+
+        return $grouped->map(function (object $row) use ($geoByIp) {
+            $geo = $geoByIp[$row->ip_address] ?? [
+                'isp' => null,
+                'city' => null,
+                'country' => null,
+                'label' => '—',
+            ];
+
+            $row->geo_isp = $geo['isp'];
+            $row->geo_city = $geo['city'];
+            $row->geo_country = $geo['country'];
+            $row->geo_label = $geo['label'];
+
+            return $row;
+        });
+    }
+
+    private function ipGeo(): IpGeolocationService
+    {
+        return $this->ipGeolocation ?? app(IpGeolocationService::class);
     }
 }

@@ -8,6 +8,7 @@ use App\Models\Reservation;
 use App\Models\ReservationTicket;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
 class AdminMetricsDashboardTest extends TestCase
@@ -70,6 +71,16 @@ class AdminMetricsDashboardTest extends TestCase
 
     public function test_metrics_report_displays_ip_activity_last_10_days(): void
     {
+        Http::fake([
+            'http://ip-api.com/json/*' => Http::response([
+                'status' => 'success',
+                'country' => 'Bolivia',
+                'city' => 'La Paz',
+                'isp' => 'Entel',
+                'query' => '200.10.10.1',
+            ]),
+        ]);
+
         $admin = User::factory()->create(['role' => 'admin']);
         $event = Event::create([
             'name' => 'Evento IP',
@@ -95,6 +106,8 @@ class AdminMetricsDashboardTest extends TestCase
             ->get(route('admin.reports.metrics'))
             ->assertOk()
             ->assertSee('Detalle de visitas por IP')
-            ->assertSee('200.10.10.1');
+            ->assertSee('200.10.10.1')
+            ->assertSee('ISP / Ciudad / Pais')
+            ->assertSee('Entel / La Paz / Bolivia');
     }
 }

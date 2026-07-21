@@ -61,10 +61,11 @@
             <p class="text-sm text-slate-600 dark:text-slate-400 mt-1">IPs de origen y detalle diario de visitas de tipo <code>view_event</code>.</p>
         </div>
         <div class="overflow-x-auto">
-            <table class="w-full min-w-[720px]">
+            <table class="w-full min-w-[900px]">
                 <thead class="bg-slate-100 dark:bg-slate-700/50">
                     <tr>
                         <th class="text-left px-4 py-3 font-semibold text-slate-700 dark:text-slate-300">IP</th>
+                        <th class="text-left px-4 py-3 font-semibold text-slate-700 dark:text-slate-300">ISP / Ciudad / Pais</th>
                         <th class="text-right px-4 py-3 font-semibold text-slate-700 dark:text-slate-300">Visitas (10d)</th>
                         <th class="text-left px-4 py-3 font-semibold text-slate-700 dark:text-slate-300">Ultima visita</th>
                         <th class="text-left px-4 py-3 font-semibold text-slate-700 dark:text-slate-300">Detalle diario</th>
@@ -74,6 +75,7 @@
                     @forelse($metrics['ip_activity_last_10_days'] as $row)
                         <tr class="border-t border-slate-200 dark:border-slate-700">
                             <td class="px-4 py-3 font-mono text-sm text-slate-800 dark:text-white">{{ $row->ip_address }}</td>
+                            <td class="px-4 py-3 text-sm text-slate-700 dark:text-slate-300">{{ $row->geo_label ?? '—' }}</td>
                             <td class="px-4 py-3 text-right">{{ number_format($row->visits_total) }}</td>
                             <td class="px-4 py-3 text-slate-700 dark:text-slate-300">{{ $row->last_day ? \Illuminate\Support\Carbon::parse($row->last_day)->format('d/m/Y') : '—' }}</td>
                             <td class="px-4 py-3 text-sm text-slate-700 dark:text-slate-300">
@@ -84,7 +86,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="4" class="px-4 py-8 text-center text-slate-500 dark:text-slate-400">No hay visitas por IP registradas en los ultimos 10 dias.</td>
+                            <td colspan="5" class="px-4 py-8 text-center text-slate-500 dark:text-slate-400">No hay visitas por IP registradas en los ultimos 10 dias.</td>
                         </tr>
                     @endforelse
                 </tbody>

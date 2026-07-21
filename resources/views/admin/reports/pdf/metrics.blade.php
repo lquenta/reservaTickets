@@ -80,6 +80,7 @@
         <thead>
             <tr>
                 <th>IP</th>
+                <th>ISP / Ciudad / Pais</th>
                 <th class="text-right">Visitas (10d)</th>
                 <th>Ultima visita</th>
                 <th>Detalle diario</th>
@@ -89,6 +90,7 @@
             @forelse($metrics['ip_activity_last_10_days'] as $row)
                 <tr>
                     <td>{{ $row->ip_address }}</td>
+                    <td>{{ $row->geo_label ?? '—' }}</td>
                     <td class="text-right">{{ number_format($row->visits_total) }}</td>
                     <td>{{ $row->last_day ? \Illuminate\Support\Carbon::parse($row->last_day)->format('d/m/Y') : '—' }}</td>
                     <td>
@@ -98,7 +100,7 @@
                     </td>
                 </tr>
             @empty
-                <tr><td colspan="4">No hay visitas por IP registradas en los ultimos 10 dias.</td></tr>
+                <tr><td colspan="5">No hay visitas por IP registradas en los ultimos 10 dias.</td></tr>
             @endforelse
         </tbody>
     </table>
