@@ -17,6 +17,16 @@ class AdminMetricsDashboardTest extends TestCase
 
     public function test_admin_dashboard_displays_metrics_kpis(): void
     {
+        Http::fake([
+            'http://ip-api.com/json/*' => Http::response([
+                'status' => 'success',
+                'country' => 'Bolivia',
+                'city' => 'La Paz',
+                'isp' => 'Entel',
+                'query' => '200.10.10.1',
+            ]),
+        ]);
+
         $admin = User::factory()->create(['role' => 'admin']);
         $buyer = User::factory()->create(['role' => 'user']);
         $event = Event::create([
@@ -46,6 +56,7 @@ class AdminMetricsDashboardTest extends TestCase
             'session_id' => 'session-a',
             'user_id' => $buyer->id,
             'event_id' => $event->id,
+            'ip_address' => '200.10.10.1',
             'path' => '/events',
             'referrer' => null,
             'device_type' => 'desktop',
@@ -57,7 +68,14 @@ class AdminMetricsDashboardTest extends TestCase
             ->assertOk()
             ->assertSee('Dashboard de métricas')
             ->assertSee('Visitas')
-            ->assertSee('Conversiones');
+            ->assertSee('Conversiones')
+            ->assertSee('Ventas netas')
+            ->assertSee('Tendencia diaria')
+            ->assertSee('Ventas por evento')
+            ->assertSee('Top IPs (10 dias)')
+            ->assertSee('200.10.10.1')
+            ->assertSee('dashboard-trend-chart', false)
+            ->assertSee('dashboard-sales-chart', false);
     }
 
     public function test_metrics_report_route_is_admin_only(): void
