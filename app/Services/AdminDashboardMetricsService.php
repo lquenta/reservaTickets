@@ -6,6 +6,7 @@ use App\Models\AnalyticsEvent;
 use App\Models\Event;
 use App\Models\Reservation;
 use App\Models\ReservationTicket;
+use App\Support\SalesByEventTotals;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -154,14 +155,12 @@ class AdminDashboardMetricsService
             ->groupBy('day')
             ->pluck('total', 'day');
 
-        $salesByDay = ReservationTicket::query()
-            ->join('reservations', 'reservations.id', '=', 'reservation_tickets.reservation_id')
-            ->leftJoin('events', 'events.id', '=', 'reservations.event_id')
-            ->leftJoin('ticket_templates', 'ticket_templates.event_id', '=', 'events.id')
-            ->where('reservations.status', Reservation::STATUS_CONFIRMADO)
-            ->whereBetween('reservations.created_at', [$filters['date_from'], $filters['date_to']])
-            ->when(! empty($eventIds), fn ($q) => $q->whereIn('reservations.event_id', $eventIds))
-            ->selectRaw('DATE(reservations.created_at) as day, SUM(COALESCE(ticket_templates.price,0)) as total')
+        $salesByDay = Reservation::query()
+            ->where('status', Reservation::STATUS_CONFIRMADO)
+            ->where('sale_type', '!=', Reservation::SALE_TYPE_HONORED_GUEST)
+            ->whereBetween('created_at', [$filters['date_from'], $filters['date_to']])
+            ->when(! empty($eventIds), fn ($q) => $q->whereIn('event_id', $eventIds))
+            ->selectRaw('DATE(created_at) as day, SUM(COALESCE(sale_amount, 0)) as total')
             ->groupBy('day')
             ->pluck('total', 'day');
 
@@ -230,59 +229,18 @@ class AdminDashboardMetricsService
             return collect();
         }
 
-        $ticketsByEvent = ReservationTicket::query()
-            ->join('reservations', 'reservation_tickets.reservation_id', '=', 'reservations.id')
-            ->where('reservations.status', Reservation::STATUS_CONFIRMADO)
-            ->whereBetween('reservations.created_at', [$filters['date_from'], $filters['date_to']])
-            ->whereIn('reservations.event_id', $eventIds)
-            ->select('reservations.event_id', DB::raw('COUNT(*) as tickets_sold'))
-            ->groupBy('reservations.event_id')
+        $reservations = Reservation::query()
+            ->where('status', Reservation::STATUS_CONFIRMADO)
+            ->where('sale_type', '!=', Reservation::SALE_TYPE_HONORED_GUEST)
+            ->whereBetween('created_at', [$filters['date_from'], $filters['date_to']])
+            ->whereIn('event_id', $eventIds)
+            ->with([
+                'event:id,name',
+                'reservationTickets',
+            ])
             ->get();
 
-        $eventsWithPrice = Event::with(['sections', 'ticketTemplate'])->whereIn('id', $ticketsByEvent->pluck('event_id'))->get()->keyBy('id');
-
-        $confirmedTickets = ReservationTicket::query()
-            ->whereHas('reservation', function ($q) use ($filters, $eventIds) {
-                $q->where('status', Reservation::STATUS_CONFIRMADO)
-                    ->whereBetween('created_at', [$filters['date_from'], $filters['date_to']])
-                    ->whereIn('event_id', $eventIds);
-            })
-            ->with(['seat', 'reservation' => fn ($q) => $q->select('id', 'event_id')->with(['event' => fn ($inner) => $inner->with('sections')])])
-            ->get();
-
-        return $ticketsByEvent->map(function ($row) use ($eventsWithPrice, $confirmedTickets) {
-            $event = $eventsWithPrice->get($row->event_id);
-            $ticketsSold = (int) $row->tickets_sold;
-            $total = 0.0;
-            $unitPrice = 0.0;
-
-            if ($event && $event->hasSections()) {
-                $eventTickets = $confirmedTickets->filter(fn ($t) => $t->reservation && (int) $t->reservation->event_id === (int) $row->event_id);
-                foreach ($eventTickets as $ticket) {
-                    $eventSection = null;
-                    if ($ticket->seat && $ticket->seat->section_id) {
-                        $eventSection = $event->sections->firstWhere('id', $ticket->seat->section_id);
-                    } elseif ($ticket->section_id) {
-                        $eventSection = $event->sections->firstWhere('id', $ticket->section_id);
-                    }
-                    if ($eventSection && $eventSection->pivot && $eventSection->pivot->price !== null) {
-                        $total += (float) $eventSection->pivot->price;
-                    }
-                }
-                $unitPrice = $ticketsSold > 0 ? $total / $ticketsSold : 0.0;
-            } else {
-                $unitPrice = $event && $event->ticketTemplate ? (float) $event->ticketTemplate->price : 0.0;
-                $total = $ticketsSold * $unitPrice;
-            }
-
-            return (object) [
-                'event_id' => (int) $row->event_id,
-                'event_name' => $event ? $event->name : 'Evento #'.$row->event_id,
-                'tickets_sold' => $ticketsSold,
-                'unit_price' => $unitPrice,
-                'total' => $total,
-            ];
-        })->values();
+        return SalesByEventTotals::fromReservations($reservations);
     }
 
     private function buildAlerts(int $conversions, int $pendingReservations, int $visits): array

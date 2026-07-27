@@ -10,6 +10,7 @@ use App\Models\ReservationTicket;
 use App\Models\User;
 use App\Services\AdminDashboardMetricsService;
 use App\Support\NombresPorEventoReportRows;
+use App\Support\SalesByEventTotals;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -52,80 +53,17 @@ class ReportController extends Controller
             ->orderBy('name')
             ->get();
 
-        $ticketsByEvent = ReservationTicket::query()
-            ->join('reservations', 'reservation_tickets.reservation_id', '=', 'reservations.id')
-            ->where('reservations.status', Reservation::STATUS_CONFIRMADO)
-            ->where('reservations.sale_type', '!=', Reservation::SALE_TYPE_HONORED_GUEST)
-            ->select('reservations.event_id', DB::raw('COUNT(*) as tickets_sold'))
-            ->groupBy('reservations.event_id')
+        $salesReservations = Reservation::query()
+            ->where('status', Reservation::STATUS_CONFIRMADO)
+            ->where('sale_type', '!=', Reservation::SALE_TYPE_HONORED_GUEST)
+            ->with([
+                'event:id,name',
+                'reservationTickets',
+            ])
             ->get();
 
-        $eventIds = $ticketsByEvent->pluck('event_id')->unique()->values()->all();
-        $eventsWithPrice = Event::with(['sections', 'ticketTemplate'])->whereIn('id', $eventIds)->get()->keyBy('id');
-
-        // Tickets confirmados con reserva y evento (para eventos con secciones: precio por sección)
-        $confirmedTickets = ReservationTicket::query()
-            ->whereHas('reservation', fn ($q) => $q
-                ->where('status', Reservation::STATUS_CONFIRMADO)
-                ->where('sale_type', '!=', Reservation::SALE_TYPE_HONORED_GUEST)
-                ->whereIn('event_id', $eventIds))
-            ->with(['seat', 'reservation' => fn ($q) => $q->select('id', 'event_id', 'sale_type')->with(['event' => fn ($q) => $q->with('sections')])])
-            ->get();
-
-        $salesByEvent = $ticketsByEvent->map(function ($row) use ($eventsWithPrice, $confirmedTickets) {
-            $event = $eventsWithPrice->get($row->event_id);
-            $ticketsSold = (int) $row->tickets_sold;
-            $total = 0.0;
-            $unitPrice = 0.0;
-
-            if ($event && $event->hasSections()) {
-                $eventTickets = $confirmedTickets->filter(fn ($t) => $t->reservation
-                    && (int) $t->reservation->event_id === (int) $row->event_id
-                    && $t->reservation->sale_type !== Reservation::SALE_TYPE_HONORED_GUEST);
-                foreach ($eventTickets as $ticket) {
-                    $eventSection = null;
-                    if ($ticket->seat) {
-                        $seat = $ticket->seat;
-                        if ($seat->section_id) {
-                            $eventSection = $event->sections->firstWhere('id', $seat->section_id);
-                        }
-                        if (! $eventSection && $event->sections) {
-                            foreach ($event->sections as $es) {
-                                if (! $es->has_seats) {
-                                    continue;
-                                }
-                                if ($es->containsSeat((int) $seat->row, (int) $seat->number)) {
-                                    $eventSection = $es;
-                                    break;
-                                }
-                            }
-                        }
-                        if (! $eventSection && $event->sections) {
-                            $eventSection = $event->sections->where('has_seats', true)->first();
-                        }
-                    } else {
-                        $eventSection = $ticket->section_id ? $event->sections->firstWhere('id', $ticket->section_id) : null;
-                    }
-                    if ($eventSection && $eventSection->pivot && $eventSection->pivot->price !== null) {
-                        $total += (float) $eventSection->pivot->price;
-                    }
-                }
-                $unitPrice = $ticketsSold > 0 ? $total / $ticketsSold : 0.0;
-            } else {
-                $unitPrice = $event && $event->ticketTemplate ? (float) $event->ticketTemplate->price : 0.0;
-                $total = $ticketsSold * $unitPrice;
-            }
-
-            return (object) [
-                'event_id' => $row->event_id,
-                'event_name' => $event ? $event->name : 'Evento #'.$row->event_id,
-                'tickets_sold' => $ticketsSold,
-                'unit_price' => $unitPrice,
-                'total' => $total,
-            ];
-        });
-
-        $salesTotal = $salesByEvent->sum('total');
+        $salesByEvent = SalesByEventTotals::fromReservations($salesReservations);
+        $salesTotal = (float) $salesByEvent->sum('total');
 
         // Clientes por evento: eventos con reservas CONFIRMADO y lista de clientes por evento
         $eventsWithClients = Event::query()
