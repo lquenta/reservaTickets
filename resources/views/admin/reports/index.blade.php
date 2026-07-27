@@ -357,7 +357,7 @@
         <div class="p-6 border-b border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 flex flex-wrap items-center justify-between gap-4">
             <div>
                 <h2 class="text-xl font-bold text-slate-800 dark:text-white">Reporte de ventas</h2>
-                <p class="text-slate-600 dark:text-slate-400 text-sm mt-1">Entradas vendidas por evento y monto (precio unitario del ticket × cantidad).</p>
+                <p class="text-slate-600 dark:text-slate-400 text-sm mt-1">Entradas vendidas por evento y monto cobrado (incluye descuentos de preventa).</p>
             </div>
             <a href="{{ route('admin.reports.pdf.ventas') }}" target="_blank" class="inline-flex items-center gap-2 rounded-xl bg-red-600 hover:bg-red-700 px-4 py-2.5 text-white font-semibold transition">
                 <span aria-hidden="true">📄</span> Descargar PDF

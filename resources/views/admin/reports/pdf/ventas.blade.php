@@ -20,7 +20,7 @@
 </head>
 <body>
     <h1>Reporte de ventas</h1>
-    <p class="subtitle">Generado el {{ now()->format('d/m/Y H:i') }} — Entradas vendidas por evento (reservas confirmadas).</p>
+    <p class="subtitle">Generado el {{ now()->format('d/m/Y H:i') }} — Montos cobrados por evento (incluye preventa).</p>
 
     @if($salesByEvent->isNotEmpty())
         <div class="total-box">
