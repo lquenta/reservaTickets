@@ -18,7 +18,7 @@
     <div class="rounded-xl bg-slate-100 dark:bg-slate-700/50 p-4">
         <p class="font-semibold text-slate-800 dark:text-white">Cliente: {{ $client->name }}</p>
         @if($client->isGuest())
-            <p class="text-sm text-amber-700 dark:text-amber-300 mt-1 font-medium">Invitado temporal — los tickets se enviarán a {{ $reservation->soldBy?->email }} cuando un administrador autorice el pago. Tú entregas los tickets al invitado.</p>
+            <p class="text-sm text-amber-700 dark:text-amber-300 mt-1 font-medium">Invitado temporal — {{ $client->phone }} · los tickets se enviarán a {{ $reservation->soldBy?->email }} cuando un administrador autorice el pago. Tú entregas los tickets al invitado.</p>
         @else
             <p class="text-sm text-slate-600 dark:text-slate-400">{{ $client->email }} · {{ $client->phone }}</p>
             @if($client->hasVerifiedEmail())

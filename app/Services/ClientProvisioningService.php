@@ -20,7 +20,7 @@ class ClientProvisioningService
         bool $guestMode = false
     ): ClientResolution {
         if ($guestMode) {
-            return $this->createGuestUser($name, $admin, $provisionedVia);
+            return $this->createGuestUser($name, $phone, $admin, $provisionedVia);
         }
 
         $email = strtolower(trim((string) $email));
@@ -39,6 +39,8 @@ class ClientProvisioningService
                     'name' => $name,
                     'phone' => $phone,
                 ]);
+            } elseif (blank($existing->phone) && filled($phone)) {
+                $existing->update(['phone' => $phone]);
             }
 
             $action = $provisionedVia === User::PROVISIONED_VIA_SURROGATE
@@ -85,14 +87,15 @@ class ClientProvisioningService
         return new ClientResolution($user, true);
     }
 
-    private function createGuestUser(string $name, User $admin, string $provisionedVia): ClientResolution
+    private function createGuestUser(string $name, ?string $phone, User $admin, string $provisionedVia): ClientResolution
     {
         $email = 'guest+'.strtolower((string) Str::ulid()).'@guest.local';
+        $phone = PhoneNormalizer::normalize((string) $phone) ?? $phone;
 
         $user = User::create([
             'name' => $name,
             'email' => $email,
-            'phone' => null,
+            'phone' => $phone,
             'ci' => null,
             'password' => Str::password(32),
             'role' => 'user',
