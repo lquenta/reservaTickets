@@ -25,7 +25,7 @@
             <p class="text-sm sm:text-base text-slate-600 dark:text-slate-400 mt-1">Visitas, conversiones, ventas, reservas y asistencia del periodo seleccionado.</p>
         </div>
         <a href="{{ route('admin.reports.metrics', request()->query()) }}" class="inline-flex w-full sm:w-auto justify-center items-center gap-2 rounded-xl border-2 border-violet-500 px-4 py-2.5 text-violet-700 dark:text-violet-200 font-semibold hover:bg-violet-50 dark:hover:bg-violet-900/30 transition shrink-0">
-            <span aria-hidden="true">📄</span> Ver reporte
+            <x-icon name="pdf" class="w-4 h-4" /> Ver reporte
         </a>
     </div>
 
@@ -282,7 +282,7 @@ document.addEventListener('DOMContentLoaded', function () {
     var gridColor = isDark ? 'rgba(148, 163, 184, 0.15)' : 'rgba(148, 163, 184, 0.25)';
     var tooltipBg = isDark ? '#0f172a' : '#ffffff';
     var tooltipFg = isDark ? '#e2e8f0' : '#0f172a';
-    var palette = ['#7c3aed', '#e11d8a', '#06b6d4', '#10b981', '#f59e0b', '#6366f1', '#f43f5e', '#14b8a6'];
+    var palette = ['#a569ff', '#ff2daa', '#39ff14', '#4b0082', '#ffd700', '#3d6bff', '#ff00e0', '#f2c14e'];
 
     function isCompact() {
         return window.matchMedia('(max-width: 767px)').matches;
@@ -308,8 +308,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     {
                         label: 'Visitas',
                         data: payload.trend.map(function (row) { return row.visits; }),
-                        borderColor: '#7c3aed',
-                        backgroundColor: 'rgba(124, 58, 237, 0.15)',
+                        borderColor: '#a569ff',
+                        backgroundColor: 'rgba(165, 105, 255, 0.15)',
                         tension: 0.35,
                         fill: true,
                         pointRadius: compact ? 0 : 2,
@@ -319,8 +319,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     {
                         label: 'Conversiones',
                         data: payload.trend.map(function (row) { return row.conversions; }),
-                        borderColor: '#e11d8a',
-                        backgroundColor: 'rgba(225, 29, 138, 0.12)',
+                        borderColor: '#ff2daa',
+                        backgroundColor: 'rgba(255, 45, 170, 0.12)',
                         tension: 0.35,
                         fill: false,
                         pointRadius: compact ? 0 : 2,
@@ -330,8 +330,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     {
                         label: 'Ventas (Bs)',
                         data: payload.trend.map(function (row) { return row.sales; }),
-                        borderColor: '#10b981',
-                        backgroundColor: 'rgba(16, 185, 129, 0.12)',
+                        borderColor: '#39ff14',
+                        backgroundColor: 'rgba(57, 255, 20, 0.12)',
                         tension: 0.35,
                         fill: false,
                         pointRadius: compact ? 0 : 2,

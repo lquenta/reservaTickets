@@ -9,7 +9,7 @@
     }
 @endphp
 <article class="rounded-2xl border-2 border-violet-200/60 dark:border-violet-700/50 bg-white dark:bg-slate-800/80 overflow-hidden shadow-lg flex flex-col">
-    <div class="aspect-[16/9] bg-gradient-to-br from-violet-600 to-fuchsia-700 relative">
+    <div class="aspect-[16/9] bg-gradient-to-br from-[#4B0082] to-[#FF2DAA] relative">
         @if($event->cover_image_path)
             <img src="{{ asset('storage/'.$event->cover_image_path) }}" alt="" class="absolute inset-0 w-full h-full object-cover">
         @endif
@@ -41,7 +41,7 @@
         @endif
         <div class="mt-auto flex items-center gap-2 pt-2">
             <a href="{{ route('admin.events.show', $event) }}"
-               class="flex-1 text-center rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 px-4 py-2.5 text-white text-sm font-semibold hover:shadow-lg transition">
+               class="flex-1 text-center rounded-xl bg-gradient-to-r from-[#4B0082] to-[#FF2DAA] px-4 py-2.5 text-white text-sm font-semibold hover:shadow-lg transition">
                 Gestionar evento
             </a>
             <div x-data="{ open: false }" class="relative">

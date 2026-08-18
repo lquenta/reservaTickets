@@ -60,7 +60,7 @@ final class SectionLayoutColors
             return false;
         }
 
-        // Magenta / fuchsia de marca (#E11D8A y cercanos)
+        // Magenta / rosa eléctrico de marca (#FF2DAA, #E11D8A y cercanos)
         if ($r >= 180 && $g <= 80 && $b >= 100 && $b <= 230) {
             return false;
         }

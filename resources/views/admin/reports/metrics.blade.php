@@ -10,7 +10,7 @@
             <p class="text-slate-600 dark:text-slate-400">Mismos KPIs del dashboard para consulta y exportacion.</p>
         </div>
         <a href="{{ route('admin.reports.pdf.metrics', request()->query()) }}" target="_blank" class="inline-flex items-center gap-2 rounded-xl bg-red-600 hover:bg-red-700 px-4 py-2.5 text-white font-semibold transition">
-            <span aria-hidden="true">📄</span> Descargar PDF
+            <x-icon name="pdf" class="w-4 h-4" /> Descargar PDF
         </a>
     </div>
 

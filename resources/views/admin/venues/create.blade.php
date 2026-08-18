@@ -54,7 +54,7 @@
         </div>
 
         <div class="flex gap-4">
-            <button type="submit" class="rounded-lg bg-gradient-to-r from-violet-600 to-fuchsia-600 px-6 py-2 text-white font-medium">Crear lugar</button>
+            <button type="submit" class="rounded-lg bg-gradient-to-r from-[#4B0082] to-[#FF2DAA] px-6 py-2 text-white font-medium">Crear lugar</button>
             <a href="{{ route('admin.venues.index') }}" class="rounded-lg border border-slate-300 dark:border-slate-600 px-6 py-2 text-slate-700 dark:text-slate-300">Cancelar</a>
         </div>
     </form>

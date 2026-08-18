@@ -10,11 +10,11 @@
 
 <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
     @forelse($events as $event)
-        <div class="rounded-xl border border-fuchsia-900/50 bg-black/60 p-5 flex flex-col">
+        <div class="rounded-xl border border-purple-900/50 bg-black/60 p-5 flex flex-col">
             <h2 class="text-lg font-semibold text-white flex items-center gap-2 flex-wrap">
                 {{ $event->name }}
                 @if($event->isPresaleActive())
-                    <span class="inline-flex rounded-full bg-[#22d3ee]/90 text-[#041016] px-2 py-0.5 text-[10px] font-bold uppercase">Preventa</span>
+                    <span class="inline-flex rounded-full bg-[#39ff14]/90 text-[#0d061b] px-2 py-0.5 text-[10px] font-bold uppercase">Preventa</span>
                 @endif
             </h2>
             <p class="text-sm text-white/60 mt-1">{{ $event->starts_at->translatedFormat('d M Y, H:i') }}</p>
@@ -23,12 +23,12 @@
             @endif
             <div class="mt-4 flex flex-col gap-2">
                 <a href="{{ route('seller.events.surrogate-sale.create', $event) }}"
-                   class="inline-flex justify-center rounded-lg bg-[#e11d8a] px-4 py-2 text-sm font-semibold text-white hover:bg-fuchsia-700 transition">
+                   class="inline-flex justify-center rounded-lg bg-[#ff2daa] px-4 py-2 text-sm font-semibold text-white hover:bg-pink-600 transition">
                     Vender para cliente
                 </a>
                 @if($event->venue_id)
                     <a href="{{ route('seller.events.seats', $event) }}"
-                       class="inline-flex justify-center rounded-lg border border-fuchsia-900/60 bg-black/40 px-4 py-2 text-sm font-medium text-white/90 hover:border-[#e11d8a] hover:text-[#e11d8a] transition">
+                       class="inline-flex justify-center rounded-lg border border-purple-900/60 bg-black/40 px-4 py-2 text-sm font-medium text-white/90 hover:border-[#ff2daa] hover:text-[#ff2daa] transition">
                         Ver mapa de butacas
                     </a>
                 @endif

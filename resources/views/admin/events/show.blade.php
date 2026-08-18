@@ -56,14 +56,14 @@
         @if($event->is_active && !$event->sales_paused)
             @include('admin.events._action-tile', [
                 'href' => route('admin.events.surrogate-sale.create', $event),
-                'icon' => '🛒',
+                'icon' => 'cart',
                 'title' => 'Venta surrogada',
                 'description' => 'Registrar compra en nombre de un cliente.',
                 'button' => 'Iniciar venta',
             ])
             @include('admin.events._action-tile', [
                 'href' => route('admin.events.honored-guest.create', $event),
-                'icon' => '⭐',
+                'icon' => 'star',
                 'title' => 'Invitado de honor',
                 'description' => 'Cortesía sin cobro.',
                 'button' => 'Registrar invitado',
@@ -71,7 +71,7 @@
         @endif
         @include('admin.events._action-tile', [
             'href' => route('admin.refunds.index', ['event_id' => $event->id]),
-            'icon' => '↩️',
+            'icon' => 'refund',
             'title' => 'Reembolsos',
             'description' => 'Buscar reservas confirmadas y procesar devolución.',
             'button' => 'Gestionar reembolsos',
@@ -85,7 +85,7 @@
         @if($event->venue_id)
             @include('admin.events._action-tile', [
                 'href' => route('admin.events.seats', $event),
-                'icon' => '🪑',
+                'icon' => 'seat',
                 'title' => 'Mapa de butacas',
                 'description' => 'Ver ocupación y bloquear butacas.',
                 'button' => 'Ver mapa',
@@ -95,7 +95,7 @@
             @if($event->sales_paused)
                 @include('admin.events._action-tile', [
                     'href' => route('admin.events.resume-sales', $event),
-                    'icon' => '▶️',
+                    'icon' => 'play',
                     'title' => 'Reanudar ventas',
                     'method' => 'PATCH',
                     'confirm' => '¿Reanudar ventas para este evento?',
@@ -104,7 +104,7 @@
             @else
                 @include('admin.events._action-tile', [
                     'href' => route('admin.events.pause-sales', $event),
-                    'icon' => '⏸️',
+                    'icon' => 'pause',
                     'title' => 'Pausar ventas',
                     'description' => 'El evento sigue visible; no se pueden reservar.',
                     'method' => 'PATCH',
@@ -114,7 +114,7 @@
             @endif
             @include('admin.events._action-tile', [
                 'href' => route('admin.events.sold-out', $event),
-                'icon' => '🚫',
+                'icon' => 'ban',
                 'title' => 'Sold out',
                 'method' => 'PATCH',
                 'confirm' => '¿Marcar como SOLD OUT?',
@@ -124,7 +124,7 @@
         @else
             @include('admin.events._action-tile', [
                 'href' => route('admin.events.reopen-sales', $event),
-                'icon' => '🔓',
+                'icon' => 'unlock',
                 'title' => 'Reabrir ventas',
                 'method' => 'PATCH',
                 'confirm' => '¿Reabrir ventas?',
@@ -133,14 +133,14 @@
         @endif
         @include('admin.events._action-tile', [
             'href' => route('admin.events.reschedule.create', $event),
-            'icon' => '📅',
+            'icon' => 'calendar',
             'title' => 'Reprogramar fecha',
             'description' => 'Cambiar fecha/hora con registro en historial.',
             'button' => 'Reprogramar',
         ])
         @include('admin.events._action-tile', [
             'href' => route('admin.reservations.index', ['event_id' => $event->id]),
-            'icon' => '📋',
+            'icon' => 'clipboard',
             'title' => 'Reservas del evento',
             'button' => 'Ver reservas',
         ])
@@ -152,20 +152,20 @@
     <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
         @include('admin.events._action-tile', [
             'href' => route('admin.events.edit', $event),
-            'icon' => '✏️',
+            'icon' => 'edit',
             'title' => 'Editar evento',
             'description' => 'Nombre, descripción, imágenes, secciones.',
             'button' => 'Editar',
         ])
         @include('admin.events._action-tile', [
             'href' => route('admin.ticket-templates.edit', $event),
-            'icon' => '🎟️',
+            'icon' => 'ticket',
             'title' => 'Plantilla de ticket',
             'button' => 'Configurar',
         ])
         @include('admin.events._action-tile', [
             'href' => route('admin.reports.index', ['tab' => 'nombres-por-evento', 'event_id' => $event->id]),
-            'icon' => '📈',
+            'icon' => 'chart',
             'title' => 'Reportes',
             'description' => 'Nombres por evento y reembolsos.',
             'button' => 'Ver reportes',
@@ -173,7 +173,7 @@
     </div>
 </section>
 
-<section x-data="{ open: false }" class="rounded-2xl border-2 border-red-300/60 dark:border-fuchsia-800/50 bg-red-50/30 dark:bg-red-900/10 p-6">
+<section x-data="{ open: false }" class="rounded-2xl border-2 border-red-300/60 dark:border-purple-800/50 bg-red-50/30 dark:bg-red-900/10 p-6">
     <button type="button" @click="open = !open" class="flex w-full items-center justify-between text-left font-semibold text-red-700 dark:text-red-300">
         Zona peligro
         <span x-text="open ? '−' : '+'"></span>
@@ -181,7 +181,7 @@
     <div x-show="open" x-cloak class="mt-4">
         @include('admin.events._action-tile', [
             'href' => route('admin.events.destroy', $event),
-            'icon' => '🗑️',
+            'icon' => 'trash',
             'title' => 'Eliminar evento',
             'description' => 'Acción irreversible.',
             'method' => 'DELETE',

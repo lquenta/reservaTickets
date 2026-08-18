@@ -122,7 +122,7 @@
         </div>
 
         <div class="flex gap-4">
-            <button type="submit" class="rounded-lg bg-gradient-to-r from-violet-600 to-fuchsia-600 px-6 py-2 text-white font-medium">Guardar</button>
+            <button type="submit" class="rounded-lg bg-gradient-to-r from-[#4B0082] to-[#FF2DAA] px-6 py-2 text-white font-medium">Guardar</button>
             <a href="{{ route('admin.venues.index') }}" class="rounded-lg border border-slate-300 dark:border-slate-600 px-6 py-2 text-slate-700 dark:text-slate-300">Cancelar</a>
         </div>
     </form>
@@ -220,7 +220,7 @@
                 <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Arrastra elementos, redimensiona con las esquinas y rota. En <strong class="text-slate-700 dark:text-slate-200">Inserción por filas</strong> indica la fila como letra (<span class="font-mono">A</span>, <span class="font-mono">B</span>…) o como número interno (<span class="font-mono">1</span>, <span class="font-mono">2</span>…), igual que en el grid del venue.</p>
                 <p id="layout-seat-stats" class="mt-2 inline-flex flex-wrap items-center gap-2 text-xs text-slate-600 dark:text-slate-400"></p>
             </div>
-            <button id="layout-save-btn" type="button" class="shrink-0 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 px-5 py-2.5 text-white text-sm font-semibold shadow-md hover:from-violet-500 hover:to-fuchsia-500 focus:outline-none focus:ring-2 focus:ring-violet-400 focus:ring-offset-2 dark:focus:ring-offset-slate-800">
+            <button id="layout-save-btn" type="button" class="shrink-0 rounded-xl bg-gradient-to-r from-[#4B0082] to-[#FF2DAA] px-5 py-2.5 text-white text-sm font-semibold shadow-md hover:from-[#4B0082] hover:to-[#FF2DAA] focus:outline-none focus:ring-2 focus:ring-violet-400 focus:ring-offset-2 dark:focus:ring-offset-slate-800">
                 Guardar layout
             </button>
         </div>

@@ -76,7 +76,7 @@
     <div class="p-6 border-b border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 flex flex-wrap items-center justify-between gap-4">
         <h2 class="text-xl font-bold text-slate-800 dark:text-white">Registros</h2>
         <a href="{{ route('admin.reports.pdf.audit') . '?' . http_build_query(request()->query()) }}" target="_blank" class="inline-flex items-center gap-2 rounded-xl bg-red-600 hover:bg-red-700 px-4 py-2.5 text-white font-semibold transition">
-            <span aria-hidden="true">📄</span> Descargar PDF
+            <x-icon name="pdf" class="w-4 h-4" /> Descargar PDF
         </a>
     </div>
     <div class="overflow-x-auto">
