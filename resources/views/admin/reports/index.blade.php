@@ -9,7 +9,7 @@
         <p class="text-slate-600 dark:text-slate-400 mt-1">Entradas vendidas, clientes y ventas (reservas confirmadas).</p>
     </div>
     <a href="{{ route('admin.reports.audit') }}" class="inline-flex items-center gap-2 rounded-xl border-2 border-violet-500 bg-violet-50 dark:bg-violet-900/30 dark:border-violet-600 px-4 py-2.5 text-violet-700 dark:text-violet-200 font-semibold hover:bg-violet-100 dark:hover:bg-violet-900/50 transition">
-        <span aria-hidden="true">📋</span> Auditoría de reservas
+        <x-icon name="clipboard" class="w-4 h-4" /> Auditoría de reservas
     </a>
 </div>
 
@@ -22,44 +22,44 @@
         <button type="button"
                 @click="tab = 'entradas'"
                 :class="tab === 'entradas' ? 'bg-violet-600 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600'"
-                class="rounded-xl px-4 py-2.5 font-semibold transition">
-            🎫 Entradas vendidas
+                class="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 font-semibold transition">
+            <x-icon name="ticket" class="w-4 h-4 inline-block -mt-0.5" /> Entradas vendidas
         </button>
         <button type="button"
                 @click="tab = 'clientes'"
                 :class="tab === 'clientes' ? 'bg-violet-600 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600'"
-                class="rounded-xl px-4 py-2.5 font-semibold transition">
-            👥 Clientes que compraron
+                class="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 font-semibold transition">
+            <x-icon name="users" class="w-4 h-4 inline-block -mt-0.5" /> Clientes que compraron
         </button>
         <button type="button"
                 @click="tab = 'ventas'"
                 :class="tab === 'ventas' ? 'bg-violet-600 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600'"
-                class="rounded-xl px-4 py-2.5 font-semibold transition">
-            📈 Reporte de ventas
+                class="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 font-semibold transition">
+            <x-icon name="chart" class="w-4 h-4 inline-block -mt-0.5" /> Reporte de ventas
         </button>
         <button type="button"
                 @click="tab = 'clientes-por-evento'"
                 :class="tab === 'clientes-por-evento' ? 'bg-violet-600 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600'"
-                class="rounded-xl px-4 py-2.5 font-semibold transition">
-            📋 Clientes por evento
+                class="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 font-semibold transition">
+            <x-icon name="clipboard" class="w-4 h-4 inline-block -mt-0.5" /> Clientes por evento
         </button>
         <button type="button"
                 @click="tab = 'nombres-por-evento'"
                 :class="tab === 'nombres-por-evento' ? 'bg-violet-600 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600'"
-                class="rounded-xl px-4 py-2.5 font-semibold transition">
-            📝 Nombres por evento
+                class="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 font-semibold transition">
+            <x-icon name="document" class="w-4 h-4 inline-block -mt-0.5" /> Nombres por evento
         </button>
         <button type="button"
                 @click="tab = 'reembolsos'"
                 :class="tab === 'reembolsos' ? 'bg-violet-600 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600'"
-                class="rounded-xl px-4 py-2.5 font-semibold transition">
-            ↩️ Reembolsos
+                class="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 font-semibold transition">
+            <x-icon name="refund" class="w-4 h-4 inline-block -mt-0.5" /> Reembolsos
         </button>
         <button type="button"
                 @click="tab = 'metricas'"
                 :class="tab === 'metricas' ? 'bg-violet-600 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600'"
-                class="rounded-xl px-4 py-2.5 font-semibold transition">
-            📊 Metricas
+                class="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 font-semibold transition">
+            <x-icon name="dashboard" class="w-4 h-4 inline-block -mt-0.5" /> Metricas
         </button>
     </div>
 
@@ -71,7 +71,7 @@
                 <p class="text-slate-600 dark:text-slate-400 text-sm mt-1">Reservas en estado REEMBOLSADO (filtro por fecha de reembolso).</p>
             </div>
             <a href="{{ route('admin.reports.pdf.reembolsos', request()->only(['refund_event_id', 'refund_date_from', 'refund_date_to'])) }}" target="_blank" class="inline-flex items-center gap-2 rounded-xl bg-red-600 hover:bg-red-700 px-4 py-2.5 text-white font-semibold transition">
-                <span aria-hidden="true">📄</span> Descargar PDF
+                <x-icon name="pdf" class="w-4 h-4" /> Descargar PDF
             </a>
         </div>
         <div class="p-6">
@@ -161,7 +161,7 @@
                 <p class="text-slate-600 dark:text-slate-400 text-sm mt-1">Total de tickets emitidos (reservas confirmadas).</p>
             </div>
             <a href="{{ route('admin.reports.pdf.entradas') }}" target="_blank" class="inline-flex items-center gap-2 rounded-xl bg-red-600 hover:bg-red-700 px-4 py-2.5 text-white font-semibold transition">
-                <span aria-hidden="true">📄</span> Descargar PDF
+                <x-icon name="pdf" class="w-4 h-4" /> Descargar PDF
             </a>
         </div>
         <div class="p-6">
@@ -203,7 +203,7 @@
                 <p class="text-slate-600 dark:text-slate-400 text-sm mt-1">Listado de usuarios con al menos una reserva confirmada.</p>
             </div>
             <a href="{{ route('admin.reports.pdf.clientes') }}" target="_blank" class="inline-flex items-center gap-2 rounded-xl bg-red-600 hover:bg-red-700 px-4 py-2.5 text-white font-semibold transition">
-                <span aria-hidden="true">📄</span> Descargar PDF
+                <x-icon name="pdf" class="w-4 h-4" /> Descargar PDF
             </a>
         </div>
         <div class="p-6">
@@ -238,7 +238,7 @@
                 <p class="text-slate-600 dark:text-slate-400 text-sm mt-1">Lista de clientes que reservaron y confirmaron el ticket, agrupada por evento.</p>
             </div>
             <a href="{{ route('admin.reports.pdf.clientes-por-evento') }}" target="_blank" class="inline-flex items-center gap-2 rounded-xl bg-red-600 hover:bg-red-700 px-4 py-2.5 text-white font-semibold transition">
-                <span aria-hidden="true">📄</span> Descargar PDF
+                <x-icon name="pdf" class="w-4 h-4" /> Descargar PDF
             </a>
         </div>
         <div class="p-6">
@@ -307,7 +307,7 @@
                     <a href="{{ $selectedNamesEventId ? route('admin.reports.pdf.nombres-por-evento', ['event_id' => $selectedNamesEventId]) : '#' }}"
                        target="_blank"
                        class="inline-flex items-center gap-2 rounded-xl bg-red-600 hover:bg-red-700 px-4 py-2.5 text-white font-semibold transition">
-                        <span aria-hidden="true">📄</span> Descargar PDF
+                        <x-icon name="pdf" class="w-4 h-4" /> Descargar PDF
                     </a>
                 </div>
             </form>
@@ -360,7 +360,7 @@
                 <p class="text-slate-600 dark:text-slate-400 text-sm mt-1">Entradas vendidas por evento y monto cobrado (incluye descuentos de preventa).</p>
             </div>
             <a href="{{ route('admin.reports.pdf.ventas') }}" target="_blank" class="inline-flex items-center gap-2 rounded-xl bg-red-600 hover:bg-red-700 px-4 py-2.5 text-white font-semibold transition">
-                <span aria-hidden="true">📄</span> Descargar PDF
+                <x-icon name="pdf" class="w-4 h-4" /> Descargar PDF
             </a>
         </div>
         <div class="p-6">
@@ -405,7 +405,7 @@
                 <p class="text-slate-600 dark:text-slate-400 text-sm mt-1">Visitas, conversiones, ventas, confirmado, pendiente y asistencia.</p>
             </div>
             <a href="{{ route('admin.reports.pdf.metrics', request()->query()) }}" target="_blank" class="inline-flex items-center gap-2 rounded-xl bg-red-600 hover:bg-red-700 px-4 py-2.5 text-white font-semibold transition">
-                <span aria-hidden="true">📄</span> Descargar PDF
+                <x-icon name="pdf" class="w-4 h-4" /> Descargar PDF
             </a>
         </div>
         <div class="p-6 space-y-6">

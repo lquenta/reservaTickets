@@ -8,7 +8,7 @@
         <h1 class="text-3xl font-bold text-slate-800 dark:text-white">Eventos</h1>
         <p class="text-slate-600 dark:text-slate-400 mt-1">Catálogo de eventos. Abre un evento para gestionar ventas, butacas y operaciones.</p>
     </div>
-    <a href="{{ route('admin.events.create') }}" class="rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 px-5 py-2.5 text-white font-semibold shadow-lg shadow-violet-500/30 hover:shadow-violet-500/50 transition shrink-0">
+    <a href="{{ route('admin.events.create') }}" class="rounded-xl bg-gradient-to-r from-[#4B0082] to-[#FF2DAA] px-5 py-2.5 text-white font-semibold shadow-lg shadow-violet-500/30 hover:shadow-violet-500/50 transition shrink-0">
         Nuevo evento
     </a>
 </div>

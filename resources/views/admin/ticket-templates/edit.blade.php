@@ -32,7 +32,7 @@
     {{-- Ticket WYSIWYG: el ticket es el editor --}}
     <div class="rounded-3xl border-2 border-violet-200/60 dark:border-violet-700/50 bg-gradient-to-br from-slate-50 to-violet-50/30 dark:from-slate-800 dark:to-violet-950/20 p-6 md:p-8 shadow-xl mb-8">
         <p class="text-sm text-slate-500 dark:text-slate-400 mb-4 flex items-center gap-2">
-            <span aria-hidden="true">✏️</span> Edita haciendo clic en los textos resaltados
+            <x-icon name="edit" class="w-4 h-4 text-[#a569ff]" /> Edita haciendo clic en los textos resaltados
         </p>
         <div class="bg-white dark:bg-slate-900 rounded-2xl border-2 border-violet-400 dark:border-violet-500 p-6 md:p-8 shadow-lg max-w-md mx-auto text-left">
             {{-- Título (editable) --}}
@@ -91,7 +91,7 @@
     </div>
 
     <div class="flex flex-wrap gap-3">
-        <button type="submit" class="rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 px-6 py-3 text-white font-bold shadow-lg shadow-violet-500/30 hover:shadow-violet-500/50 transition">Guardar diseño</button>
+        <button type="submit" class="rounded-xl bg-gradient-to-r from-[#4B0082] to-[#FF2DAA] px-6 py-3 text-white font-bold shadow-lg shadow-violet-500/30 hover:shadow-violet-500/50 transition">Guardar diseño</button>
         <a href="{{ route('admin.events.index') }}" class="rounded-xl border-2 border-slate-300 dark:border-slate-600 px-6 py-3 text-slate-700 dark:text-slate-300 font-medium hover:bg-slate-100 dark:hover:bg-slate-700 transition">Volver a eventos</a>
     </div>
 </form>

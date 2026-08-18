@@ -25,6 +25,7 @@ class SectionLayoutColorsTest extends TestCase
     public function test_rejects_brand_magenta_family(): void
     {
         $this->assertFalse(SectionLayoutColors::isAllowed('#e11d8a'));
+        $this->assertFalse(SectionLayoutColors::isAllowed('#ff2daa'));
         $this->assertFalse(SectionLayoutColors::isAllowed('#c026d3'));
     }
 

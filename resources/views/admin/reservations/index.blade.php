@@ -61,7 +61,7 @@
                             @if($r->sale_type === 'surrogate')
                                 <span class="inline-flex mt-1 rounded-full bg-indigo-100 dark:bg-indigo-900/40 text-indigo-800 dark:text-indigo-200 px-2 py-0.5 text-xs font-medium">Venta surrogada</span>
                             @elseif($r->sale_type === 'honored_guest')
-                                <span class="inline-flex mt-1 rounded-full bg-fuchsia-100 dark:bg-fuchsia-900/40 text-fuchsia-800 dark:text-fuchsia-200 px-2 py-0.5 text-xs font-medium">Invitado de honor</span>
+                                <span class="inline-flex mt-1 rounded-full bg-[#a569ff]/20 dark:bg-purple-900/40 text-[#4B0082] dark:text-[#a569ff] px-2 py-0.5 text-xs font-medium">Invitado de honor</span>
                             @endif
                             @if($r->soldBy)
                                 <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Vendido/invitado por: <strong>{{ $r->soldBy->name }}</strong></p>
@@ -97,7 +97,7 @@
                         <td class="px-5 py-4">
                             @if($r->payment_receipt_path)
                                 <a href="{{ asset('storage/'.$r->payment_receipt_path) }}" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-violet-600 dark:text-violet-400 hover:bg-violet-100 dark:hover:bg-violet-900/40 transition">
-                                    <span aria-hidden="true">🖼️</span> Ver comprobante
+                                    <x-icon name="image" class="w-4 h-4" /> Ver comprobante
                                 </a>
                             @elseif($r->sale_type === 'honored_guest')
                                 <span class="text-slate-500 dark:text-slate-400 text-sm">— (invitación)</span>
@@ -113,7 +113,7 @@
                                     @endif
                                     <form method="POST" action="{{ route('admin.reservations.cancel', $r) }}" class="inline" onsubmit="return confirm('¿Cancelar esta reserva en proceso? Las butacas quedarán liberadas.');">
                                         @csrf
-                                        <button type="submit" class="rounded-xl bg-red-600 px-4 py-2 text-white font-semibold hover:bg-fuchsia-700 transition">Cancelar</button>
+                                        <button type="submit" class="rounded-xl bg-red-600 px-4 py-2 text-white font-semibold hover:bg-pink-600 transition">Cancelar</button>
                                     </form>
                                 </div>
                             @elseif($r->status === 'PENDIENTE_PAGO')
@@ -124,16 +124,16 @@
                                     </form>
                                     <form method="POST" action="{{ route('admin.reservations.reject', $r) }}" class="inline" onsubmit="return confirm('¿Rechazar esta reserva? El comprobante no será aceptado y las butacas quedarán liberadas.');">
                                         @csrf
-                                        <button type="submit" class="rounded-xl bg-red-600 px-4 py-2 text-white font-semibold hover:bg-fuchsia-700 transition">Rechazar</button>
+                                        <button type="submit" class="rounded-xl bg-red-600 px-4 py-2 text-white font-semibold hover:bg-pink-600 transition">Rechazar</button>
                                     </form>
                                 </div>
                             @elseif($r->status === 'CONFIRMADO')
                                 <div class="flex flex-wrap items-center justify-end gap-2">
                                     <a href="{{ route('admin.reservations.tickets-pdf', $r) }}" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 rounded-xl border-2 border-violet-500 px-4 py-2 text-sm font-semibold text-violet-600 dark:text-violet-400 hover:bg-violet-50 dark:hover:bg-violet-900/30 transition">
-                                        <span aria-hidden="true">📄</span> Ver PDF
+                                        <x-icon name="pdf" class="w-4 h-4" /> Ver PDF
                                     </a>
                                     <a href="{{ route('admin.reservations.tickets-pdf', ['reservation' => $r, 'download' => 1]) }}" class="inline-flex items-center gap-1.5 rounded-xl bg-violet-600 px-4 py-2 text-sm font-semibold text-white hover:bg-violet-700 transition">
-                                        <span aria-hidden="true">⬇️</span> Descargar
+                                        <x-icon name="download" class="w-4 h-4" /> Descargar
                                     </a>
                                     <form method="POST" action="{{ route('admin.reservations.resend-tickets', $r) }}" class="inline" onsubmit="return confirm('¿Reenviar los boletos por correo a {{ $r->ticketDeliveryEmail() ?? '—' }}?');">
                                         @csrf
