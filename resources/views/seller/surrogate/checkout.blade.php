@@ -30,7 +30,7 @@
     <div class="rounded-2xl border border-violet-500/40 bg-violet-900/20 px-4 py-4 mb-6">
         <p class="font-semibold text-violet-100">Venta surrogada — {{ $client->name }}</p>
         @if($client->isGuest())
-            <p class="text-sm text-amber-200/90 mt-1">Invitado temporal — los tickets llegarán a tu correo ({{ $reservation->soldBy?->email }}) al autorizar. Tú entregas los tickets al invitado.</p>
+            <p class="text-sm text-amber-200/90 mt-1">Invitado temporal — {{ $client->phone }} · los tickets llegarán a tu correo ({{ $reservation->soldBy?->email }}) al autorizar. Tú entregas los tickets al invitado.</p>
         @else
             <p class="text-sm text-violet-200/80 mt-1">{{ $client->email }} · {{ $client->phone }}
                 @if($client->hasVerifiedEmail())

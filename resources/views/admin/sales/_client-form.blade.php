@@ -38,10 +38,10 @@
                 <span>
                     <span class="font-semibold uppercase tracking-wide">Yo entregaré los tickets</span>
                     <span class="block mt-1 text-slate-600 dark:text-slate-400 font-normal" x-show="deliverTickets">
-                        Solo se requiere el nombre del invitado. Los tickets se enviarán a tu correo al autorizar la reserva.
+                        Se requiere nombre y teléfono celular. Los tickets se enviarán a tu correo al autorizar la reserva.
                     </span>
                     <span class="block mt-1 text-slate-600 dark:text-slate-400 font-normal" x-show="!deliverTickets" x-cloak>
-                        Desmarca para registrar correo y teléfono del cliente. Los tickets se enviarán al correo del cliente al autorizar.
+                        Desmarca para registrar también el correo del cliente. Los tickets se enviarán al correo del cliente al autorizar.
                     </span>
                 </span>
             </label>
@@ -71,21 +71,20 @@
                 <p class="font-semibold">Cliente existente</p>
                 <p class="mt-1">Se usará la cuenta registrada. Los datos se muestran en solo lectura salvo que marques actualizar.</p>
             </div>
-            <div>
-                <label for="client_phone" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Teléfono</label>
-                <input type="text" name="client_phone" id="client_phone" x-model="phone"
-                       :readonly="existing && !updateProfile"
-                       :disabled="deliverTickets"
-                       :required="!deliverTickets"
-                       class="w-full rounded-xl border-2 border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 px-4 py-2.5 text-slate-900 dark:text-white disabled:opacity-50">
-                @error('client_phone')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
-            </div>
-            <div x-show="existing" x-cloak>
-                <label class="inline-flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300">
-                    <input type="checkbox" name="update_existing_profile" value="1" x-model="updateProfile" class="rounded border-slate-400">
-                    Actualizar nombre y teléfono en la cuenta
-                </label>
-            </div>
+        </div>
+        <div>
+            <label for="client_phone" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Teléfono celular</label>
+            <input type="text" name="client_phone" id="client_phone" x-model="phone"
+                   :readonly="existing && !updateProfile && !!phone"
+                   required maxlength="20"
+                   class="w-full rounded-xl border-2 border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 px-4 py-2.5 text-slate-900 dark:text-white">
+            @error('client_phone')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+        </div>
+        <div x-show="existing && !deliverTickets" x-cloak>
+            <label class="inline-flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300">
+                <input type="checkbox" name="update_existing_profile" value="1" x-model="updateProfile" class="rounded border-slate-400">
+                Actualizar nombre y teléfono en la cuenta
+            </label>
         </div>
         <div>
             <label for="client_name" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Nombre completo</label>
@@ -114,7 +113,6 @@ function adminClientLookup(lookupUrl, oldData) {
                 this.existing = false;
                 this.updateProfile = false;
                 this.email = '';
-                this.phone = '';
             }
         },
         async lookup() {

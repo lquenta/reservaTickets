@@ -13,10 +13,13 @@ class AdminSurrogateClientRequest extends FormRequest
 
     public function rules(): array
     {
+        $phoneRules = ['required', 'string', 'max:20', 'regex:/^[0-9\s+\-]+$/'];
+
         if ($this->guestClientMode()) {
             return [
                 'seller_will_deliver_tickets' => ['nullable', 'boolean'],
                 'client_name' => ['required', 'string', 'max:255', 'regex:/^[\pL\s\-\.\']+$/u'],
+                'client_phone' => $phoneRules,
             ];
         }
 
@@ -25,7 +28,7 @@ class AdminSurrogateClientRequest extends FormRequest
             'client_name' => ['required', 'string', 'max:255', 'regex:/^[\pL\s\-\.\']+$/u'],
             'client_email' => ['required', 'string', 'email', 'max:255'],
             'client_email_confirmation' => ['required', 'same:client_email'],
-            'client_phone' => ['required', 'string', 'max:20', 'regex:/^[0-9\s+\-]+$/'],
+            'client_phone' => $phoneRules,
             'update_existing_profile' => ['nullable', 'boolean'],
         ];
     }
@@ -35,6 +38,7 @@ class AdminSurrogateClientRequest extends FormRequest
         return [
             'client_name.regex' => 'El nombre solo puede contener letras, espacios y guiones.',
             'client_email_confirmation.same' => 'La confirmación del correo debe coincidir.',
+            'client_phone.required' => 'El teléfono celular del cliente es obligatorio.',
             'client_phone.regex' => 'El teléfono solo puede contener números, espacios, + y -.',
         ];
     }

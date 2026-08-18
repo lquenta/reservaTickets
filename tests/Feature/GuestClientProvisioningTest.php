@@ -21,7 +21,21 @@ class GuestClientProvisioningTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_surrogate_start_defaults_to_guest_when_only_name_submitted(): void
+    public function test_surrogate_start_requires_client_phone_even_in_guest_mode(): void
+    {
+        $admin = User::factory()->create(['role' => User::ROLE_ADMIN]);
+        $event = $this->createEvent();
+
+        $this->actingAs($admin)
+            ->from(route('admin.events.surrogate-sale.create', $event))
+            ->post(route('admin.events.surrogate-sale.start', $event), [
+                'client_name' => 'Invitado Por Defecto',
+            ])
+            ->assertRedirect(route('admin.events.surrogate-sale.create', $event))
+            ->assertSessionHasErrors('client_phone');
+    }
+
+    public function test_surrogate_start_defaults_to_guest_when_only_name_and_phone_submitted(): void
     {
         Notification::fake();
 
@@ -31,12 +45,14 @@ class GuestClientProvisioningTest extends TestCase
         $this->actingAs($admin)
             ->post(route('admin.events.surrogate-sale.start', $event), [
                 'client_name' => 'Invitado Por Defecto',
+                'client_phone' => '70000001',
             ])
             ->assertRedirect(route('admin.events.surrogate-sale.seats', $event));
 
         $client = User::findOrFail(session('admin_surrogate.client_user_id'));
         $this->assertTrue($client->is_guest);
         $this->assertSame('Invitado Por Defecto', $client->name);
+        $this->assertSame('70000001', $client->phone);
     }
 
     public function test_surrogate_start_with_deliver_tickets_creates_guest_user(): void
@@ -50,6 +66,7 @@ class GuestClientProvisioningTest extends TestCase
             ->post(route('admin.events.surrogate-sale.start', $event), [
                 'seller_will_deliver_tickets' => '1',
                 'client_name' => 'Invitado Temporal',
+                'client_phone' => '70000002',
             ])
             ->assertRedirect(route('admin.events.surrogate-sale.seats', $event));
 
@@ -59,7 +76,7 @@ class GuestClientProvisioningTest extends TestCase
         $client = User::findOrFail($clientId);
         $this->assertTrue($client->is_guest);
         $this->assertSame('Invitado Temporal', $client->name);
-        $this->assertNull($client->phone);
+        $this->assertSame('70000002', $client->phone);
         $this->assertStringEndsWith('@guest.local', $client->email);
         $this->assertSame(User::PROVISIONED_VIA_SURROGATE, $client->provisioned_via);
 
@@ -77,6 +94,7 @@ class GuestClientProvisioningTest extends TestCase
             ->post(route('admin.events.honored-guest.start', $event), [
                 'seller_will_deliver_tickets' => '1',
                 'client_name' => 'Invitado Honor',
+                'client_phone' => '70000003',
             ])
             ->assertRedirect(route('admin.events.honored-guest.seats', $event));
 
