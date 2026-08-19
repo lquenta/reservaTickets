@@ -1,0 +1,53 @@
+@extends('layouts.admin')
+
+@section('title', 'Añadir video - Admin')
+
+@section('admin')
+<div class="mb-8">
+    <a href="{{ route('admin.featured-videos.index') }}" class="text-white/70 hover:text-[#ff2daa] text-sm transition">← Videos</a>
+    <h1 class="text-3xl font-bold text-slate-800 dark:text-white mt-2">Añadir video de Facebook</h1>
+    <p class="text-slate-600 dark:text-slate-400 mt-1">Aparecerá en el reproductor de la página principal.</p>
+</div>
+
+<div class="rounded-2xl border-2 border-violet-200/60 dark:border-violet-700/50 bg-white dark:bg-slate-800/80 p-6 shadow-lg">
+    <form action="{{ route('admin.featured-videos.store') }}" method="POST" enctype="multipart/form-data" class="space-y-6">
+        @csrf
+        <div>
+            <label for="video_url" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">URL del reel o video *</label>
+            <input type="url" name="video_url" id="video_url" value="{{ old('video_url') }}" required maxlength="500"
+                placeholder="https://www.facebook.com/reel/1051618684397981"
+                class="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-white px-4 py-3 focus:ring-2 focus:ring-violet-500 focus:border-violet-500">
+            <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">Copia la URL de la barra de direcciones al abrir el reel. No uses el enlace de Compartir (<code>facebook.com/share/…</code>).</p>
+            @error('video_url')<p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
+        </div>
+        <div>
+            <label for="title" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Título (opcional)</label>
+            <input type="text" name="title" id="title" value="{{ old('title') }}" maxlength="255"
+                placeholder="Ej. Detrás de cámaras"
+                class="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-white px-4 py-3 focus:ring-2 focus:ring-violet-500 focus:border-violet-500">
+            @error('title')<p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
+        </div>
+        <div>
+            <label for="thumbnail" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Miniatura (opcional, JPG/PNG/WebP, máx. 5 MB)</label>
+            <input type="file" name="thumbnail" id="thumbnail" accept="image/jpeg,image/png,image/webp"
+                class="block w-full text-sm text-slate-600 dark:text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:font-medium file:bg-violet-100 file:text-violet-700 dark:file:bg-violet-900/50 dark:file:text-violet-300">
+            <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">Recomendada: una captura del video. Si no subes una, se muestra un botón de play.</p>
+            @error('thumbnail')<p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
+        </div>
+        <div class="flex items-center gap-3">
+            <input type="hidden" name="is_active" value="0">
+            <input type="checkbox" name="is_active" id="is_active" value="1" {{ old('is_active', '1') ? 'checked' : '' }}
+                class="rounded border-slate-300 dark:border-slate-600 text-violet-600 focus:ring-violet-500">
+            <label for="is_active" class="text-sm font-medium text-slate-700 dark:text-slate-300">Mostrar en la página principal</label>
+        </div>
+        <div class="flex gap-3">
+            <button type="submit" class="rounded-xl bg-[#ff2daa] hover:bg-pink-600 px-5 py-2.5 text-white font-semibold transition">
+                Guardar video
+            </button>
+            <a href="{{ route('admin.featured-videos.index') }}" class="rounded-xl border border-slate-300 dark:border-slate-600 px-5 py-2.5 text-slate-700 dark:text-slate-300 font-medium hover:bg-slate-100 dark:hover:bg-slate-700 transition">
+                Cancelar
+            </a>
+        </div>
+    </form>
+</div>
+@endsection

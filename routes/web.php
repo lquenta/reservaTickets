@@ -86,6 +86,13 @@ Route::prefix('admin')->middleware(['auth', 'admin'])->name('admin.')->group(fun
     Route::put('team-members/{team_member}', [\App\Http\Controllers\Admin\TeamMemberController::class, 'update'])->name('team-members.update');
     Route::delete('team-members/{team_member}', [\App\Http\Controllers\Admin\TeamMemberController::class, 'destroy'])->name('team-members.destroy');
     Route::patch('team-members/reorder', [\App\Http\Controllers\Admin\TeamMemberController::class, 'reorder'])->name('team-members.reorder');
+    Route::get('featured-videos', [\App\Http\Controllers\Admin\FeaturedVideoController::class, 'index'])->name('featured-videos.index');
+    Route::get('featured-videos/create', [\App\Http\Controllers\Admin\FeaturedVideoController::class, 'create'])->name('featured-videos.create');
+    Route::post('featured-videos', [\App\Http\Controllers\Admin\FeaturedVideoController::class, 'store'])->name('featured-videos.store');
+    Route::get('featured-videos/{featured_video}/edit', [\App\Http\Controllers\Admin\FeaturedVideoController::class, 'edit'])->name('featured-videos.edit');
+    Route::put('featured-videos/{featured_video}', [\App\Http\Controllers\Admin\FeaturedVideoController::class, 'update'])->name('featured-videos.update');
+    Route::delete('featured-videos/{featured_video}', [\App\Http\Controllers\Admin\FeaturedVideoController::class, 'destroy'])->name('featured-videos.destroy');
+    Route::patch('featured-videos/reorder', [\App\Http\Controllers\Admin\FeaturedVideoController::class, 'reorder'])->name('featured-videos.reorder');
     Route::get('site-content/hero', [\App\Http\Controllers\Admin\SiteContentController::class, 'hero'])->name('site-content.hero');
     Route::put('site-content/hero', [\App\Http\Controllers\Admin\SiteContentController::class, 'updateHero'])->name('site-content.update-hero');
     Route::resource('venues', \App\Http\Controllers\Admin\VenueController::class)->except(['show']);
