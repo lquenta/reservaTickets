@@ -74,35 +74,38 @@
     </div>
 
     <div x-data="{ scrolled: false }"
-         x-init="window.addEventListener('scroll', () => { scrolled = window.scrollY > 60; }); @if(request()->routeIs('home')) $nextTick(() => { const ids = ['hero', 'quienes-somos', 'nuestros-eventos', 'contacto', 'boletin']; const observer = new IntersectionObserver((entries) => { const visible = entries.filter(e => e.isIntersecting).sort((a,b) => a.boundingClientRect.top - b.boundingClientRect.top); if (visible.length) Alpine.store('scrollSpy').activeSection = visible[0].target.id; }, { rootMargin: '-15% 0px -55% 0px', threshold: 0 }); ids.forEach(id => { const el = document.getElementById(id); if (el) observer.observe(el); }); }); @endif">
+         x-init="window.addEventListener('scroll', () => { scrolled = window.scrollY > 60; }); @if(request()->routeIs('home')) $nextTick(() => { const ids = ['hero', 'videos', 'quienes-somos', 'nuestros-eventos', 'contacto', 'boletin']; const observer = new IntersectionObserver((entries) => { const visible = entries.filter(e => e.isIntersecting).sort((a,b) => a.boundingClientRect.top - b.boundingClientRect.top); if (visible.length) Alpine.store('scrollSpy').activeSection = visible[0].target.id; }, { rootMargin: '-15% 0px -55% 0px', threshold: 0 }); ids.forEach(id => { const el = document.getElementById(id); if (el) observer.observe(el); }); }); @endif">
     <header class="fixed top-0 left-0 right-0 z-40 transition-all duration-300">
-        <nav class="px-4 sm:px-6 lg:px-8 py-4" :class="scrolled ? 'bg-black/95 backdrop-blur border-b border-purple-900/50' : 'bg-transparent'">
-            <div class="max-w-7xl mx-auto flex justify-between items-center">
-                <a href="{{ route('home') }}" class="text-xl font-bold tracking-widest text-[#ff2daa] hover:text-[#39ff14] transition font-display">
+        <nav class="px-3 sm:px-6 lg:px-8 py-3 sm:py-4" :class="scrolled ? 'bg-black/95 backdrop-blur border-b border-purple-900/50' : 'bg-transparent'">
+            <div class="max-w-7xl mx-auto flex justify-between items-center gap-2">
+                <a href="{{ route('home') }}" class="text-lg sm:text-xl font-bold tracking-widest text-[#ff2daa] hover:text-[#39ff14] transition font-display shrink-0">
                     NOVA
                 </a>
-                <div class="flex items-center gap-4 sm:gap-6" x-data x-effect="$store.scrollSpy.activeSection">
+                <div class="flex items-center gap-2 sm:gap-6 min-w-0" x-data x-effect="$store.scrollSpy.activeSection">
+                    @if(request()->routeIs('home') && isset($featured_videos) && $featured_videos->isNotEmpty())
+                    <a href="{{ route('home') }}#videos" class="text-sm transition tracking-wide hidden sm:inline" :class="$store.scrollSpy.activeSection === 'videos' ? 'text-[#ff2daa] font-semibold' : 'text-white/80 hover:text-[#39ff14]'">Videos</a>
+                    @endif
                     <a href="{{ route('home') }}#quienes-somos" class="text-sm transition tracking-wide hidden sm:inline" :class="$store.scrollSpy.activeSection === 'quienes-somos' ? 'text-[#ff2daa] font-semibold' : 'text-white/80 hover:text-[#39ff14]'">Quiénes somos</a>
                     <a href="{{ route('home') }}#nuestros-eventos" class="text-sm transition tracking-wide hidden sm:inline" :class="$store.scrollSpy.activeSection === 'nuestros-eventos' ? 'text-[#ff2daa] font-semibold' : 'text-white/80 hover:text-[#39ff14]'">Eventos</a>
                     <a href="{{ route('home') }}#contacto" class="text-sm transition tracking-wide hidden sm:inline" :class="$store.scrollSpy.activeSection === 'contacto' ? 'text-[#ff2daa] font-semibold' : 'text-white/80 hover:text-[#39ff14]'">Contacto</a>
                     <a href="{{ route('home') }}#boletin" class="text-sm transition tracking-wide hidden sm:inline" :class="$store.scrollSpy.activeSection === 'boletin' ? 'text-[#ff2daa] font-semibold' : 'text-white/80 hover:text-[#39ff14]'">Boletín</a>
-                    <a href="{{ route('events.index') }}" class="text-sm font-semibold px-4 py-2 rounded transition btn-nova-secondary">Eventos</a>
+                    <a href="{{ route('events.index') }}" class="text-xs sm:text-sm font-semibold px-2.5 py-1.5 sm:px-4 sm:py-2 rounded transition btn-nova-secondary shrink-0">Eventos</a>
                     @auth
                         @if(auth()->user()->isVendedor())
-                            <a href="{{ route('seller.events.index') }}" class="text-sm text-[#ff2daa] font-semibold">Vender tickets</a>
+                            <a href="{{ route('seller.events.index') }}" class="text-xs sm:text-sm text-[#ff2daa] font-semibold">Vender tickets</a>
                         @elseif(!auth()->user()->isAdmin())
-                            <a href="{{ route('reservations.index') }}" class="text-sm text-white/80 hover:text-[#39ff14] transition">Mis reservas</a>
+                            <a href="{{ route('reservations.index') }}" class="text-xs sm:text-sm text-white/80 hover:text-[#39ff14] transition hidden sm:inline">Mis reservas</a>
                         @endif
                         @if(auth()->user()->isAdmin())
-                            <a href="{{ route('admin.dashboard') }}" class="text-sm text-[#ff2daa] font-semibold">Admin</a>
+                            <a href="{{ route('admin.dashboard') }}" class="text-xs sm:text-sm text-[#ff2daa] font-semibold">Admin</a>
                         @endif
                         <form method="POST" action="{{ route('logout') }}" class="inline">
                             @csrf
-                            <button type="submit" class="text-sm text-white/60 hover:text-[#39ff14] transition">Cerrar sesión</button>
+                            <button type="submit" class="text-xs sm:text-sm text-white/60 hover:text-[#39ff14] transition">Cerrar sesión</button>
                         </form>
                     @else
-                        <a href="{{ route('login') }}" class="text-sm text-white/80 hover:text-[#39ff14] transition">Iniciar sesión</a>
-                        <a href="{{ route('register') }}" class="text-sm font-semibold px-4 py-2 rounded transition btn-nova-primary">Registrarse</a>
+                        <a href="{{ route('login') }}" class="text-sm text-white/80 hover:text-[#39ff14] transition hidden sm:inline">Iniciar sesión</a>
+                        <a href="{{ route('register') }}" class="text-xs sm:text-sm font-semibold px-2.5 py-1.5 sm:px-4 sm:py-2 rounded transition btn-nova-primary shrink-0">Registrarse</a>
                     @endauth
                 </div>
             </div>

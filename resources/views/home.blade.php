@@ -55,6 +55,67 @@
         </div>
     </section>
 
+    @if(isset($featured_videos) && $featured_videos->isNotEmpty())
+    {{-- Videos de Facebook --}}
+    @php
+        $videoPlayerPayload = $featured_videos->map(fn ($v) => [
+            'title' => $v->title ?: '',
+            'embed' => $v->embedUrl(),
+            'thumb' => $v->thumbnailUrl(),
+        ])->values()->all();
+    @endphp
+    <section id="videos" class="relative py-12 md:py-20 px-4 section-stranger-bg"
+             x-data="Object.assign({ visible: false }, facebookVideoPlayer({{ \Illuminate\Support\Js::from($videoPlayerPayload) }}))"
+             x-init="initPlayer(); const o = new IntersectionObserver(([e]) => { if (e.isIntersecting) visible = true }, { threshold: 0.05 }); o.observe($el)">
+        <div class="section-stranger-bg__inner"></div>
+        <div class="relative z-10 w-full max-w-5xl mx-auto transition duration-700 ease-out"
+             :class="visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'">
+            <h2 class="font-display text-4xl sm:text-5xl md:text-6xl tracking-widest text-[#ff2daa] text-center mb-6 md:mb-10 st-glow-title">
+                VIDEOS
+            </h2>
+
+            <div class="flex justify-center">
+                <div x-ref="stage"
+                     class="w-full overflow-hidden rounded-lg border border-purple-900/50 bg-black shadow-[0_0_40px_rgba(255,45,170,0.12)]"
+                     style="max-width: 400px; aspect-ratio: 9 / 16; position: relative;">
+                    <iframe src="{{ $featured_videos->first()?->embedUrl(360, 640) }}"
+                            :src="embedSrc()"
+                            :width="pluginWidth"
+                            :height="pluginHeight"
+                            style="position:absolute;inset:0;width:100%;height:100%;border:0;display:block;overflow:hidden"
+                            scrolling="no"
+                            allowfullscreen="true"
+                            allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
+                            title="Video de Facebook"></iframe>
+                </div>
+            </div>
+
+            <div class="grid gap-3 mt-6 mx-auto" x-show="videos.length > 1" x-cloak
+                 style="max-width: 400px;"
+                 :class="videos.length === 2 ? 'grid-cols-2' : 'grid-cols-3'">
+                <template x-for="(v, i) in videos" :key="i">
+                    <button type="button"
+                            @click="active = i"
+                            class="group relative overflow-hidden rounded-lg border bg-black/80 text-left transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-[#ff2daa]/50"
+                            :class="active === i ? 'border-[#ff2daa] shadow-[0_0_20px_rgba(255,45,170,0.2)]' : 'border-purple-900/50 hover:border-[#ff2daa]/50'">
+                        <div class="relative bg-gradient-to-br from-[#180a2e] to-[#ff2daa]/20" style="aspect-ratio: 9 / 16">
+                            <img x-show="v.thumb" x-cloak :src="v.thumb" :alt="v.title || 'Video'" class="absolute inset-0 w-full h-full object-cover" draggable="false">
+                            <div class="absolute inset-0 bg-black/35 group-hover:bg-black/20 transition"></div>
+                            <span class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                <span class="flex h-11 w-11 items-center justify-center rounded-full border-2 transition"
+                                      :class="active === i ? 'border-[#ff2daa] bg-[#ff2daa]/20 text-[#ff2daa]' : 'border-white/80 bg-black/50 text-white'">
+                                    <svg class="w-5 h-5 ml-0.5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+                                </span>
+                            </span>
+                        </div>
+                        <p class="px-3 py-2 text-sm font-medium truncate" :class="active === i ? 'text-[#ff2daa]' : 'text-white/80'" x-text="v.title || ('Video ' + (i + 1))"></p>
+                    </button>
+                </template>
+            </div>
+        </div>
+    </section>
+    @endif
+
     {{-- Quiénes somos: contenido editable por admin + slider integrantes --}}
     <section id="quienes-somos" class="relative min-h-screen flex flex-col items-center justify-center py-20 px-4 section-stranger-bg" x-data="{ visible: false }" x-init="const o = new IntersectionObserver(([e]) => { if (e.isIntersecting) visible = true }, { threshold: 0.1 }); o.observe($el)">
         <div class="section-stranger-bg__inner"></div>
@@ -224,7 +285,7 @@
     <section id="contacto" class="relative min-h-screen flex items-center justify-center py-20 px-4 section-stranger-bg" x-data="{ visible: false }" x-init="const o = new IntersectionObserver(([e]) => { if (e.isIntersecting) visible = true }, { threshold: 0.1 }); o.observe($el)">
         <div class="section-stranger-bg__inner"></div>
         <div class="relative z-10 w-full max-w-2xl mx-auto" x-show="visible" x-transition:enter="transition ease-out duration-700" x-transition:enter-start="opacity-0 translate-y-8" x-transition:enter-end="opacity-100 translate-y-0">
-            <h2 class="font-display text-4xl sm:text-5xl tracking-widest text-[#ff2daa] text-center mb-10 st-glow-title">
+            <h2 class="font-display text-3xl sm:text-4xl md:text-5xl tracking-wide sm:tracking-widest text-[#ff2daa] text-center mb-10 st-glow-title px-1">
                 CONTÁCTENOS
             </h2>
 
@@ -312,6 +373,36 @@
 <script>
 function homeReveal() {
     return { init() {} };
+}
+function facebookVideoPlayer(videos) {
+    return {
+        videos: Array.isArray(videos) ? videos : [],
+        active: 0,
+        pluginWidth: 360,
+        pluginHeight: 640,
+        initPlayer() {
+            const apply = () => {
+                const el = this.$refs.stage;
+                if (!el) return;
+                const w = Math.round(el.getBoundingClientRect().width);
+                if (w >= 220 && w !== this.pluginWidth) {
+                    this.pluginWidth = w;
+                    this.pluginHeight = Math.round(w * 16 / 9);
+                }
+            };
+            this.$nextTick(() => {
+                apply();
+                if (this.$refs.stage && typeof ResizeObserver !== 'undefined') {
+                    new ResizeObserver(apply).observe(this.$refs.stage);
+                }
+            });
+        },
+        embedSrc() {
+            const base = this.videos[this.active] && this.videos[this.active].embed;
+            if (!base) return '';
+            return base + '&width=' + this.pluginWidth + '&height=' + this.pluginHeight;
+        }
+    };
 }
 function heroSlider(count, slides) {
     return {

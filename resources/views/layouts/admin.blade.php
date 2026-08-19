@@ -73,6 +73,11 @@
                         </a>
                     </li>
                     <li>
+                        <a href="{{ route('admin.featured-videos.index') }}" @click="adminMenuOpen = false" class="flex items-center gap-2 px-3 py-2 rounded-xl text-white/80 hover:bg-purple-900/30 hover:text-[#ff2daa] font-medium transition {{ request()->routeIs('admin.featured-videos.*') ? 'bg-purple-900/30 text-[#ff2daa]' : '' }}">
+                            <x-icon name="play" class="w-4 h-4" /> Videos Facebook
+                        </a>
+                    </li>
+                    <li>
                         <a href="{{ route('admin.site-content.hero') }}" @click="adminMenuOpen = false" class="flex items-center gap-2 px-3 py-2 rounded-xl text-white/80 hover:bg-purple-900/30 hover:text-[#ff2daa] font-medium transition {{ request()->routeIs('admin.site-content.hero') ? 'bg-purple-900/30 text-[#ff2daa]' : '' }}">
                             <x-icon name="home" class="w-4 h-4" /> Texto Hero
                         </a>

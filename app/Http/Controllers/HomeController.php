@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Event;
+use App\Models\FeaturedVideo;
 use App\Models\HeroSetting;
 use App\Models\HeroSlide;
 use App\Models\SiteContent;
@@ -34,7 +35,14 @@ class HomeController extends Controller
         $quienes_somos = SiteContent::quienesSomos();
         $hero_content = SiteContent::hero();
         $team_members = TeamMember::orderBy('sort_order')->orderBy('id')->get();
+        $featured_videos = FeaturedVideo::active()
+            ->orderBy('sort_order')
+            ->orderBy('id')
+            ->take(FeaturedVideo::MAX_ON_HOME)
+            ->get()
+            ->filter(fn (FeaturedVideo $video) => $video->embedUrl())
+            ->values();
 
-        return view('home', compact('featured_events', 'hero_video_url', 'hero_slides', 'quienes_somos', 'hero_content', 'team_members'));
+        return view('home', compact('featured_events', 'hero_video_url', 'hero_slides', 'quienes_somos', 'hero_content', 'team_members', 'featured_videos'));
     }
 }
