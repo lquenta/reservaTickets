@@ -26,12 +26,28 @@ class PublicGuestCheckoutTest extends TestCase
             ->assertDontSee('Inicia sesión para reservar')
             ->assertSee(route('reservations.entry', $event), false);
 
-        $this->get(route('reservations.entry', $event))
+        $entry = $this->get(route('reservations.entry', $event))
             ->assertOk()
+            ->assertSee('Puedes reservar sin crear cuenta')
+            ->assertSee('Continuar como invitado')
             ->assertSee('Iniciar sesión')
             ->assertSee('Registrarse')
-            ->assertSee('Continuar como invitado')
             ->assertSee(route('reservations.create', $event), false);
+
+        $html = $entry->getContent();
+        $choiceStart = strpos($html, 'Puedes reservar sin crear cuenta');
+        $this->assertNotFalse($choiceStart);
+        $choiceBlock = substr($html, $choiceStart);
+        $this->assertLessThan(
+            strpos($choiceBlock, 'Iniciar sesión'),
+            strpos($choiceBlock, 'Continuar como invitado'),
+            'Guest CTA should be the primary (first) option on the entry screen.'
+        );
+        $this->assertStringContainsString(
+            'bg-[#ff2daa]',
+            substr($choiceBlock, 0, strpos($choiceBlock, 'Continuar como invitado') + 40),
+            'Guest CTA should use the primary button style.'
+        );
     }
 
     public function test_logged_in_unverified_user_can_reserve_without_throwaway(): void
