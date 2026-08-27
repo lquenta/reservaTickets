@@ -72,8 +72,6 @@ class ClientProvisioningService
             'is_guest' => false,
         ]);
 
-        $user->sendEmailVerificationNotification();
-
         app(ReservationAuditService::class)->log(
             ReservationAuditLog::ACTION_USER_PROVISIONED_BY_ADMIN,
             ReservationAuditLog::RESULT_SUCCESS,
@@ -115,6 +113,43 @@ class ClientProvisioningService
         );
 
         return new ClientResolution($user, true);
+    }
+
+    public function createPublicGuestUser(string $firstName, string $lastName, string $email, string $phone): ClientResolution
+    {
+        $email = strtolower(trim($email));
+        $existing = User::where('email', $email)->first();
+        if ($existing && ($existing->isAdmin() || $existing->isVendedor())) {
+            throw ValidationException::withMessages([
+                'guest_email' => ['No se puede usar la cuenta de un administrador o vendedor.'],
+            ]);
+        }
+
+        $name = trim($firstName.' '.$lastName);
+        $phone = PhoneNormalizer::normalize($phone) ?? $phone;
+        $storedEmail = $this->uniquePublicGuestEmail($email);
+
+        $user = User::create([
+            'name' => $name,
+            'email' => $storedEmail,
+            'phone' => $phone,
+            'ci' => null,
+            'password' => Str::password(32),
+            'role' => 'user',
+            'created_by_user_id' => null,
+            'provisioned_via' => User::PROVISIONED_VIA_PUBLIC_GUEST,
+            'is_guest' => true,
+        ]);
+
+        return new ClientResolution($user, true);
+    }
+
+    private function uniquePublicGuestEmail(string $email): string
+    {
+        $ulid = strtolower((string) Str::ulid());
+        [$local, $domain] = explode('@', $email, 2);
+
+        return $local.'+pub-'.$ulid.'@'.$domain;
     }
 
     public function lookupByEmail(string $email): ?User

@@ -3,14 +3,13 @@
 namespace App\Models;
 
 use App\Notifications\VerifyEmail as VerifyEmailNotification;
-use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-class User extends Authenticatable implements MustVerifyEmail
+class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
@@ -18,6 +17,8 @@ class User extends Authenticatable implements MustVerifyEmail
     public const PROVISIONED_VIA_SURROGATE = 'admin_surrogate';
 
     public const PROVISIONED_VIA_HONORED_GUEST = 'admin_honored_guest';
+
+    public const PROVISIONED_VIA_PUBLIC_GUEST = 'public_guest';
 
     protected $fillable = [
         'name',
@@ -50,10 +51,42 @@ class User extends Authenticatable implements MustVerifyEmail
         return (bool) $this->is_guest;
     }
 
+    public function hasVerifiedEmail(): bool
+    {
+        return $this->email_verified_at !== null;
+    }
+
+    public function markEmailAsVerified(): bool
+    {
+        return $this->forceFill([
+            'email_verified_at' => $this->freshTimestamp(),
+        ])->save();
+    }
+
+    /**
+     * Correo al que se envían tickets. Para invitados de vendedor (@guest.local) es null.
+     * Para invitados públicos se quita el sufijo único +pub-{ulid}.
+     */
+    public function notifyEmail(): ?string
+    {
+        $email = $this->email;
+        if (! is_string($email) || $email === '') {
+            return null;
+        }
+
+        if (str_ends_with(strtolower($email), '@guest.local')) {
+            return null;
+        }
+
+        $stripped = preg_replace('/\+pub-[^@]+@/i', '@', $email);
+
+        return $stripped ?: $email;
+    }
+
     public function displayEmail(): ?string
     {
         if ($this->isGuest()) {
-            return null;
+            return $this->notifyEmail();
         }
 
         return $this->email;

@@ -42,7 +42,7 @@
                         @foreach($event->reservations as $res)
                             <tr>
                                 <td>{{ $res->user->name }}</td>
-                                <td>{{ $res->user->email }} · {{ $res->user->phone ?? '—' }}</td>
+                                <td>{{ $res->user->displayEmail() ?? $res->user->email }} · {{ $res->user->phone ?? '—' }}</td>
                                 <td class="num">{{ $res->reservationTickets->count() }}</td>
                                 <td>{{ $res->reservationTickets->map(fn($t) => $t->seat?->display_label)->filter()->implode(', ') ?: '—' }}</td>
                             </tr>

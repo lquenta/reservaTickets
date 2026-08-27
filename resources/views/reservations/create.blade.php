@@ -323,6 +323,10 @@
                 </div>
             </div>
 
+            @if(!$isAdminSale)
+                @include('reservations._guest-contact-fields')
+            @endif
+
             @if(config('services.recaptcha.site_key') && !$isAdminSale)
             <div class="g-recaptcha" data-sitekey="{{ config('services.recaptcha.site_key') }}"></div>
             @endif
@@ -769,6 +773,10 @@
                     </div>
                 @endfor
             </div>
+
+            @if(!$isAdminSale)
+                @include('reservations._guest-contact-fields')
+            @endif
 
             @if(config('services.recaptcha.site_key') && !$isAdminSale)
             <div class="g-recaptcha" data-sitekey="{{ config('services.recaptcha.site_key') }}"></div>
@@ -1237,6 +1245,10 @@
                     </template>
                 </div>
             </div>
+
+            @if(!$isAdminSale)
+                @include('reservations._guest-contact-fields')
+            @endif
 
             @if(config('services.recaptcha.site_key') && !$isAdminSale)
             <div class="g-recaptcha" data-sitekey="{{ config('services.recaptcha.site_key') }}"></div>

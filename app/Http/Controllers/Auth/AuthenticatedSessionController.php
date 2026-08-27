@@ -26,7 +26,7 @@ class AuthenticatedSessionController extends Controller
             return redirect()->intended(route('admin.dashboard', absolute: false));
         }
 
-        return redirect()->route('events.index');
+        return redirect()->intended(route('events.index', absolute: false));
     }
 
     public function destroy(Request $request): RedirectResponse

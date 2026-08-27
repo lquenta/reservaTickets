@@ -138,7 +138,7 @@
                             @foreach($refundedReservations as $r)
                                 <tr class="border-t border-slate-200 dark:border-slate-700">
                                     <td class="px-3 py-2">{{ $r->refunded_at?->format('d/m/Y H:i') }}</td>
-                                    <td class="px-3 py-2">{{ $r->user?->name }}<br><span class="text-slate-500">{{ $r->user?->email }}</span></td>
+                                    <td class="px-3 py-2">{{ $r->user?->name }}<br><span class="text-slate-500">{{ $r->user?->displayEmail() ?? $r->user?->email }}</span></td>
                                     <td class="px-3 py-2">{{ $r->event?->name }}</td>
                                     <td class="px-3 py-2 font-mono">{{ $r->payment_code }}</td>
                                     <td class="px-3 py-2 text-right">{{ number_format($r->refund_amount ?? 0, 2) }} Bs</td>
@@ -263,7 +263,7 @@
                                         @foreach($event->reservations as $res)
                                             <tr class="border-t border-slate-200 dark:border-slate-700">
                                                 <td class="px-4 py-3 font-medium text-slate-800 dark:text-white">{{ $res->user->name }}</td>
-                                                <td class="px-4 py-3 text-sm text-slate-600 dark:text-slate-400">{{ $res->user->email }} · {{ $res->user->phone ?? '—' }}</td>
+                                                <td class="px-4 py-3 text-sm text-slate-600 dark:text-slate-400">{{ $res->user->displayEmail() ?? $res->user->email }} · {{ $res->user->phone ?? '—' }}</td>
                                                 <td class="px-4 py-3 text-right font-medium">{{ $res->reservationTickets->count() }}</td>
                                             </tr>
                                         @endforeach

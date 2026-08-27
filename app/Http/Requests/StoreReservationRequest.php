@@ -38,6 +38,15 @@ class StoreReservationRequest extends FormRequest
             'g-recaptcha-response' => [config('services.recaptcha.secret_key') ? 'required' : 'nullable', 'string'],
         ];
 
+        if (! $this->user()) {
+            $nameRegex = '/^[\pL\pM\s\-\.\']+$/u';
+            $rules['guest_first_name'] = ['required', 'string', 'max:255', 'regex:'.$nameRegex];
+            $rules['guest_last_name'] = ['required', 'string', 'max:255', 'regex:'.$nameRegex];
+            $rules['guest_phone'] = ['required', 'string', 'max:20', 'regex:/^[0-9\s+\-]+$/'];
+            $rules['guest_email'] = ['required', 'string', 'email', 'max:255'];
+            $rules['guest_email_confirmation'] = ['required', 'same:guest_email'];
+        }
+
         if ($event && $event->venue_id) {
             if ($event->hasSections()) {
                 $rules['seat_ids'] = ['nullable', 'array', 'max:'.ReservationService::MAX_SEATS];
@@ -244,6 +253,10 @@ class StoreReservationRequest extends FormRequest
         $messages = [
             'holder_name.regex' => 'El nombre solo puede contener letras, espacios, guiones, comas y apóstrofos.',
             'g-recaptcha-response.required' => 'Debe completar la verificación de seguridad.',
+            'guest_first_name.regex' => 'El nombre solo puede contener letras, espacios y guiones.',
+            'guest_last_name.regex' => 'El apellido solo puede contener letras, espacios y guiones.',
+            'guest_phone.regex' => 'El teléfono solo puede contener números, espacios, + y -.',
+            'guest_email_confirmation.same' => 'La confirmación del correo debe coincidir.',
         ];
         $count = is_array($this->input('seat_ids')) ? count($this->input('seat_ids')) : (int) $this->input('quantity', 1);
         for ($i = 1; $i <= max($count, 4); $i++) {

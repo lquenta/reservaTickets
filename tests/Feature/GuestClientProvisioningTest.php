@@ -7,10 +7,8 @@ use App\Mail\TicketsSentMail;
 use App\Models\Event;
 use App\Models\Reservation;
 use App\Models\User;
-use App\Notifications\VerifyEmail as VerifyEmailNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
@@ -201,7 +199,7 @@ class GuestClientProvisioningTest extends TestCase
         Mail::assertSent(TicketsSentMail::class, fn (TicketsSentMail $mail) => $mail->hasTo('seller@example.com'));
     }
 
-    public function test_normal_surrogate_start_still_requires_email_and_sends_verification(): void
+    public function test_normal_surrogate_start_still_requires_email_without_verification(): void
     {
         Notification::fake();
 
@@ -222,7 +220,7 @@ class GuestClientProvisioningTest extends TestCase
         $this->assertNotNull($client);
         $this->assertFalse($client->is_guest);
 
-        Notification::assertSentTo($client, VerifyEmailNotification::class);
+        Notification::assertNothingSent();
     }
 
     private function createEvent(): Event
