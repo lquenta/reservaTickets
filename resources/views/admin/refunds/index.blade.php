@@ -63,7 +63,7 @@
                 <div class="px-5 py-4 border-b border-slate-200 dark:border-slate-700 bg-slate-50/80 dark:bg-slate-800/80 flex flex-wrap items-center justify-between gap-3">
                     <div>
                         <p class="font-bold text-slate-800 dark:text-white text-lg">{{ $reservation->user?->name }}</p>
-                        <p class="text-sm text-slate-500 dark:text-slate-400">{{ $reservation->user?->email }}</p>
+                        <p class="text-sm text-slate-500 dark:text-slate-400">{{ $reservation->user?->displayEmail() ?? $reservation->user?->email }}</p>
                     </div>
                     <div class="text-right">
                         <p class="text-xs uppercase text-slate-500 font-semibold">Código de pago</p>

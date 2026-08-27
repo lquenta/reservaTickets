@@ -6,6 +6,8 @@ use App\Http\Requests\StoreReservationRequest;
 use App\Models\Event;
 use App\Models\Reservation;
 use App\Models\ReservationAuditLog;
+use App\Models\User;
+use App\Services\ClientProvisioningService;
 use App\Services\ReservationAuditService;
 use App\Services\ReservationService;
 use App\Support\SectionLayoutColors;
@@ -23,6 +25,25 @@ class ReservationController extends Controller
         $reservations = auth()->user()->reservations()->with('event')->latest()->paginate(10);
 
         return view('reservations.index', compact('reservations'));
+    }
+
+    public function entry(Event $event): View|RedirectResponse
+    {
+        if (! $event->acceptsReservations()) {
+            $message = $event->sales_paused && $event->is_active
+                ? 'Las ventas de este evento están pausadas. Favor comunicarse al '.Event::SALES_CONTACT_PHONE.' para más información.'
+                : 'Este evento no está disponible.';
+
+            return redirect()->route('events.index')->with('message', $message);
+        }
+
+        if (auth()->check()) {
+            return redirect()->route('reservations.create', $event);
+        }
+
+        session(['url.intended' => route('reservations.create', $event)]);
+
+        return view('reservations.entry', compact('event'));
     }
 
     public function create(Event $event): View|RedirectResponse
@@ -194,13 +215,14 @@ class ReservationController extends Controller
         }
 
         $singleName = $request->boolean('single_name');
+        $buyer = $this->resolveBuyer($request);
 
         if ($event->venue_id) {
             $seatIds = array_map('intval', $request->validated('seat_ids', []));
             if ($event->hasSections()) {
                 $sectionQuantities = $request->validated('section_quantities', []);
                 $reservation = $service->createReservationWithSections(
-                    auth()->user(),
+                    $buyer,
                     $event,
                     $seatIds,
                     is_array($sectionQuantities) ? $sectionQuantities : [],
@@ -216,14 +238,14 @@ class ReservationController extends Controller
                 if (! $singleName && $count > 0) {
                     $seatAssignments = array_map(fn ($i) => (int) $request->validated("seat_for_{$i}"), range(1, $count));
                 }
-                $reservation = $service->createReservation(auth()->user(), $event, $seatIds, $singleName, $names, $seatAssignments);
+                $reservation = $service->createReservation($buyer, $event, $seatIds, $singleName, $names, $seatAssignments);
             }
         } else {
             $quantity = (int) $request->validated('quantity');
             $names = $singleName
                 ? [$request->validated('holder_name')]
                 : array_map(fn ($i) => $request->validated("holder_name_{$i}"), range(1, $quantity));
-            $reservation = $service->createReservationWithoutSeats(auth()->user(), $event, $quantity, $singleName, $names);
+            $reservation = $service->createReservationWithoutSeats($buyer, $event, $quantity, $singleName, $names);
         }
 
         app(ReservationAuditService::class)->log(
@@ -232,8 +254,12 @@ class ReservationController extends Controller
             auth()->user(),
             $event,
             $reservation,
-            auth()->user()
+            $buyer
         );
+
+        if (! auth()->check()) {
+            Reservation::rememberInGuestSession($reservation->id);
+        }
 
         return redirect()->route('checkout.show', $reservation);
     }
@@ -347,5 +373,19 @@ class ReservationController extends Controller
             'Content-Type' => 'application/pdf',
             'Content-Disposition' => $disposition.'; filename="'.$filename.'"',
         ]);
+    }
+
+    private function resolveBuyer(StoreReservationRequest $request): User
+    {
+        if (auth()->check()) {
+            return auth()->user();
+        }
+
+        return app(ClientProvisioningService::class)->createPublicGuestUser(
+            $request->validated('guest_first_name'),
+            $request->validated('guest_last_name'),
+            $request->validated('guest_email'),
+            $request->validated('guest_phone'),
+        )->user;
     }
 }

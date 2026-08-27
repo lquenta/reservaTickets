@@ -52,7 +52,9 @@
                     <tr class="border-t border-slate-200 dark:border-slate-700 hover:bg-slate-50/50 dark:hover:bg-slate-700/30 transition">
                         <td class="px-5 py-4">
                             <p class="font-medium text-slate-800 dark:text-white">{{ $r->user->name }}</p>
-                            @if($r->user->isGuest())
+                            @if($r->user->displayEmail())
+                                <p class="text-sm text-slate-500 dark:text-slate-400">{{ $r->user->displayEmail() }}</p>
+                            @elseif($r->user->isGuest())
                                 <p class="text-sm text-slate-500 dark:text-slate-400">Sin correo — entrega manual</p>
                             @else
                                 <p class="text-sm text-slate-500 dark:text-slate-400">{{ $r->user->email }}</p>

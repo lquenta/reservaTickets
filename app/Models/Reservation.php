@@ -124,11 +124,31 @@ class Reservation extends Model
     {
         $this->loadMissing(['user', 'soldBy']);
 
-        if ($this->user?->isGuest()) {
+        if ($this->user?->isGuest() && $this->isAdminSale()) {
             return $this->soldBy?->email;
         }
 
-        return $this->user?->email;
+        return $this->user?->notifyEmail() ?? $this->user?->email;
+    }
+
+    public function canBeAccessedByCurrentSession(): bool
+    {
+        if (auth()->check()) {
+            return $this->user_id === auth()->id();
+        }
+
+        $ids = array_map('intval', session('guest_reservation_ids', []));
+
+        return in_array((int) $this->id, $ids, true);
+    }
+
+    public static function rememberInGuestSession(int $reservationId): void
+    {
+        $ids = array_map('intval', session('guest_reservation_ids', []));
+        if (! in_array($reservationId, $ids, true)) {
+            $ids[] = $reservationId;
+            session(['guest_reservation_ids' => $ids]);
+        }
     }
 
     public function hasValidatedTickets(): bool

@@ -52,7 +52,7 @@
                 @foreach($refundedReservations as $r)
                     <tr>
                         <td>{{ $r->refunded_at?->format('d/m/Y H:i') }}</td>
-                        <td>{{ $r->user?->name }} ({{ $r->user?->email }})</td>
+                        <td>{{ $r->user?->name }} ({{ $r->user?->displayEmail() ?? $r->user?->email }})</td>
                         <td>{{ $r->event?->name }}</td>
                         <td>{{ $r->payment_code }}</td>
                         <td class="text-right">{{ number_format($r->refund_amount ?? 0, 2) }}</td>

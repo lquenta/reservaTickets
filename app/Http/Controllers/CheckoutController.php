@@ -16,7 +16,7 @@ class CheckoutController extends Controller
 {
     public function show(Reservation $reservation): View|RedirectResponse
     {
-        if ($reservation->user_id !== auth()->id()) {
+        if (! $reservation->canBeAccessedByCurrentSession()) {
             abort(403);
         }
         if ($reservation->status !== Reservation::STATUS_INICIADO) {
@@ -49,7 +49,7 @@ class CheckoutController extends Controller
 
     public function confirm(Request $request, Reservation $reservation): RedirectResponse
     {
-        if ($reservation->user_id !== auth()->id()) {
+        if (! $reservation->canBeAccessedByCurrentSession()) {
             abort(403);
         }
         if ($reservation->status !== Reservation::STATUS_INICIADO || $reservation->isExpired()) {
@@ -95,6 +95,11 @@ class CheckoutController extends Controller
 
         NotifyAdminNewReservationJob::dispatch($reservation)->onConnection('database');
 
-        return redirect()->route('reservations.index')->with('message', 'Reserva registrada. Recibirás los tickets por correo una vez se autorice el pago.');
+        $message = 'Reserva registrada. Recibirás los tickets por correo una vez se autorice el pago.';
+        if (auth()->check()) {
+            return redirect()->route('reservations.index')->with('message', $message);
+        }
+
+        return redirect()->route('home')->with('message', $message);
     }
 }

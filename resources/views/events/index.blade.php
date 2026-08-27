@@ -53,6 +53,14 @@
                 $isSalesPaused = $event->sales_paused && $event->is_active;
                 $canReserve = $event->acceptsReservations();
                 $contactMessage = 'Favor comunicarse al '.\App\Models\Event::SALES_CONTACT_PHONE.' para más información';
+                $reserveUrl = '';
+                if ($canReserve) {
+                    if (! auth()->check()) {
+                        $reserveUrl = route('reservations.entry', $event);
+                    } elseif (! auth()->user()->isAdmin()) {
+                        $reserveUrl = route('reservations.create', $event);
+                    }
+                }
             @endphp
             <article class="group relative overflow-hidden rounded-2xl border border-purple-900/50 hover:border-[#39ff14]/50 transition-all duration-300 hover:-translate-y-1 min-h-[320px] flex flex-col cursor-pointer"
                      data-event-name="{{ e($event->name) }}"
@@ -64,8 +72,8 @@
                      data-event-sold-out="{{ $isSoldOut ? '1' : '0' }}"
                      data-event-sales-paused="{{ $isSalesPaused ? '1' : '0' }}"
                      data-event-contact-message="{{ e($contactMessage) }}"
-                     data-event-reserve-url="{{ auth()->check() && !auth()->user()->isAdmin() && $canReserve ? route('reservations.create', $event) : '' }}"
-                     data-event-login-url="{{ !auth()->check() && $canReserve ? route('login') : '' }}"
+                     data-event-reserve-url="{{ $reserveUrl }}"
+                     data-event-login-url=""
                      data-event-admin-url="{{ auth()->check() && auth()->user()->isAdmin() ? route('admin.dashboard') : '' }}"
                      @click="open($event.currentTarget)">
                 <div class="absolute inset-0 bg-cover bg-center bg-no-repeat transition-transform duration-500 group-hover:scale-105
@@ -133,8 +141,8 @@
                                 Más info
                             </span>
                         @else
-                            <a href="{{ route('login') }}" @click.stop class="inline-flex items-center justify-center rounded-xl bg-white/10 text-white font-medium px-5 py-3 border border-white/30 hover:bg-white/20 transition w-fit backdrop-blur mt-2">
-                                Inicia sesión para reservar
+                            <a href="{{ $reserveUrl }}" @click.stop class="inline-flex items-center justify-center rounded-xl bg-[#ff2daa] text-white font-semibold px-5 py-3 hover:bg-pink-600 transition w-fit mt-2">
+                                Reservar tickets
                             </a>
                         @endif
                     @endauth
@@ -199,8 +207,8 @@
                             </a>
                         </template>
                         <template x-if="selected.login_url">
-                            <a :href="selected.login_url" class="inline-flex items-center justify-center rounded-xl bg-white/10 text-white font-medium px-6 py-3 border border-white/30 hover:bg-white/20 transition">
-                                Inicia sesión para reservar
+                            <a :href="selected.login_url" class="inline-flex items-center justify-center rounded-xl bg-[#ff2daa] text-white font-semibold px-6 py-3 hover:bg-pink-600 transition">
+                                Reservar tickets
                             </a>
                         </template>
                         <template x-if="selected.admin_url">

@@ -264,7 +264,7 @@
                                         <button type="button" @click="showContactInfo = !showContactInfo" class="inline-block text-sm font-semibold text-amber-400 hover:text-amber-300 transition text-left">Más info</button>
                                         <p x-show="showContactInfo" x-cloak class="text-amber-200/90 text-sm mt-2">Favor comunicarse al {{ \App\Models\Event::SALES_CONTACT_PHONE }} para más información</p>
                                     @else
-                                        <a href="{{ route('login') }}" class="inline-block text-sm text-white/70 hover:text-[#39ff14] transition">Inicia sesión para reservar</a>
+                                        <a href="{{ route('reservations.entry', $event) }}" class="inline-block text-sm font-semibold text-[#ff2daa] hover:text-[#39ff14] transition">Reservar →</a>
                                     @endif
                                 @endauth
                             </div>

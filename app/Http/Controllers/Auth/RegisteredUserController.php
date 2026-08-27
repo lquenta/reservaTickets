@@ -32,6 +32,6 @@ class RegisteredUserController extends Controller
 
         auth()->login($user);
 
-        return redirect()->route('verification.notice');
+        return redirect()->intended(route('events.index', absolute: false));
     }
 }

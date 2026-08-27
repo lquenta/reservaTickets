@@ -44,7 +44,7 @@ Route::middleware('auth')->group(function () {
     Route::post('email/verification-notification', [EmailVerificationNotificationController::class, 'store'])->middleware('throttle:6,1')->name('verification.send');
 });
 
-Route::middleware(['auth', 'verified', 'seller'])->name('seller.')->group(function () {
+Route::middleware(['auth', 'seller'])->name('seller.')->group(function () {
     Route::get('seller/events', [\App\Http\Controllers\Seller\EventController::class, 'index'])->name('events.index');
     Route::get('seller/events/{event}/seats', [\App\Http\Controllers\Seller\EventController::class, 'seats'])->name('events.seats');
     Route::get('events/{event}/surrogate-sale', [\App\Http\Controllers\Seller\SurrogateSaleController::class, 'create'])->name('events.surrogate-sale.create');
@@ -56,13 +56,17 @@ Route::middleware(['auth', 'verified', 'seller'])->name('seller.')->group(functi
     Route::post('seller/surrogate-sale/checkout/{reservation}/confirm', [\App\Http\Controllers\Seller\SurrogateSaleController::class, 'confirm'])->name('surrogate-sale.checkout.confirm');
 });
 
-Route::middleware(['auth', 'verified', 'can.reserve'])->group(function () {
-    Route::get('reservations', [\App\Http\Controllers\ReservationController::class, 'index'])->name('reservations.index');
+Route::middleware(['can.reserve'])->group(function () {
+    Route::get('events/{event}/reservar', [\App\Http\Controllers\ReservationController::class, 'entry'])->name('reservations.entry');
     Route::get('events/{event}/reserve', [\App\Http\Controllers\ReservationController::class, 'create'])->name('reservations.create');
     Route::get('events/{event}/seats', [\App\Http\Controllers\ReservationController::class, 'seats'])->name('reservations.seats');
     Route::post('reservations', [\App\Http\Controllers\ReservationController::class, 'store'])->name('reservations.store')->middleware('throttle:10,1');
     Route::get('checkout/{reservation}', [\App\Http\Controllers\CheckoutController::class, 'show'])->name('checkout.show');
     Route::post('checkout/{reservation}/confirm', [\App\Http\Controllers\CheckoutController::class, 'confirm'])->name('checkout.confirm');
+});
+
+Route::middleware(['auth', 'can.reserve'])->group(function () {
+    Route::get('reservations', [\App\Http\Controllers\ReservationController::class, 'index'])->name('reservations.index');
     Route::post('reservations/{reservation}/cancel', [\App\Http\Controllers\ReservationController::class, 'cancel'])->name('reservations.cancel');
     Route::get('reservations/{reservation}/tickets-pdf', [\App\Http\Controllers\ReservationController::class, 'downloadTicketsPdf'])->name('reservations.tickets-pdf');
 });
