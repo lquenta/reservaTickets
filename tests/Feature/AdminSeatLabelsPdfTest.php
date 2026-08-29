@@ -98,6 +98,8 @@ class AdminSeatLabelsPdfTest extends TestCase
         $this->assertTrue($data['pages']->flatten(1)->contains(fn ($l) => $l['label'] === 'A2' && $l['occupied'] === false));
         $this->assertSame($section->layout_color, $data['pages']->first()->first()['overlay_color']);
         $this->assertSame(SeatLabelLayout::rgba($section->layout_color, 20), $data['pages']->first()->first()['overlay_rgba']);
+        $this->assertArrayNotHasKey('coverPath', $data);
+        $this->assertGreaterThan(70, $data['pages']->first()->first()['seat_font']);
     }
 
     public function test_custom_color_and_opacity_apply_to_all_labels(): void

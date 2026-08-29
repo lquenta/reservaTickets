@@ -50,4 +50,14 @@ class SeatLabelLayoutTest extends TestCase
         $this->assertSame('#FFFFFF', SeatLabelLayout::tintedHex('#2563EB', 0));
         $this->assertNotSame('#2563EB', SeatLabelLayout::tintedHex('#2563EB', 20));
     }
+
+    public function test_seat_font_fills_the_cell(): void
+    {
+        $small = SeatLabelLayout::fontSizesForCell(50, 35, 2);
+        $this->assertGreaterThan(60, $small['seat']);
+        $this->assertGreaterThan($small['section'] * 3, $small['seat']);
+
+        $sheet8 = SeatLabelLayout::fontSizes(8, 'portrait');
+        $this->assertGreaterThan(70, $sheet8['seat']);
+    }
 }
