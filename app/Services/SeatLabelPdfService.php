@@ -168,9 +168,9 @@ class SeatLabelPdfService
         $inner = SeatLabelLayout::pageInnerMm($orientation);
         $cellWidthMm = $grid['cols'] > 0 ? $inner['width'] / $grid['cols'] : $inner['width'];
         $cellHeightMm = $grid['rows'] > 0 ? $inner['height'] / $grid['rows'] : $inner['height'];
-        $fonts = SeatLabelLayout::fontSizesForCell($cellWidthMm, $cellHeightMm);
-
         $labels = $this->labelsForEvent($event, $options['section_id']);
+        $maxChars = max(2, (int) $labels->max(fn (array $label): int => mb_strlen((string) $label['label'])));
+        $fonts = SeatLabelLayout::fontSizesForCell($cellWidthMm, $cellHeightMm, $maxChars);
         $customColor = SectionLayoutColors::normalize($options['custom_color'] ?? null);
         $sectionColors = [];
         foreach ($options['section_colors'] as $id => $hex) {
@@ -180,7 +180,7 @@ class SeatLabelPdfService
             }
         }
 
-        $prepared = $labels->map(function (array $label) use ($options, $customColor, $sectionColors, $opacity, $cellWidthMm, $cellHeightMm) {
+        $prepared = $labels->map(function (array $label) use ($options, $customColor, $sectionColors, $opacity, $fonts) {
             $overlay = null;
             if ($options['color_mode'] === 'custom') {
                 $overlay = $customColor;
@@ -193,17 +193,17 @@ class SeatLabelPdfService
                 }
             }
 
-            $chars = max(1, mb_strlen((string) $label['label']));
             $label['overlay_color'] = $overlay;
             $label['overlay_rgba'] = SeatLabelLayout::rgba($overlay, $opacity);
             $label['overlay_tint'] = SeatLabelLayout::tintedHex($overlay, $opacity);
-            $label['seat_font'] = SeatLabelLayout::fontSizesForCell($cellWidthMm, $cellHeightMm, $chars)['seat'];
+            $label['seat_font'] = $fonts['seat'];
 
             return $label;
         });
 
         $pages = $prepared->chunk($perPage)->values();
         $rowHeightMm = $grid['rows'] > 0 ? round($inner['height'] / $grid['rows'], 2) : $inner['height'];
+        $cellWidthMm = round($cellWidthMm, 2);
         $colWidthPct = $grid['cols'] > 0 ? round(100 / $grid['cols'], 4) : 100;
 
         return [
@@ -218,6 +218,7 @@ class SeatLabelPdfService
             'pageCount' => SeatLabelLayout::pageCount($prepared->count(), $perPage),
             'fonts' => $fonts,
             'rowHeightMm' => $rowHeightMm,
+            'cellWidthMm' => $cellWidthMm,
             'colWidthPct' => $colWidthPct,
             'inner' => $inner,
             'orientation' => $orientation,
