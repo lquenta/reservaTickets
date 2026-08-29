@@ -90,6 +90,13 @@
                 'description' => 'Ver ocupación y bloquear butacas.',
                 'button' => 'Ver mapa',
             ])
+            @include('admin.events._action-tile', [
+                'href' => route('admin.events.seat-labels.create', $event),
+                'icon' => 'pdf',
+                'title' => 'Etiquetas de asientos',
+                'description' => 'PDF recortable: ocupadas y libres, con color de sector.',
+                'button' => 'Generar etiquetas',
+            ])
         @endif
         @if($event->is_active)
             @if($event->sales_paused)

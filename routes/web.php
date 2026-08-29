@@ -103,6 +103,8 @@ Route::prefix('admin')->middleware(['auth', 'admin'])->name('admin.')->group(fun
     Route::get('venues/{venue}/layout', [\App\Http\Controllers\Admin\VenueController::class, 'layout'])->name('venues.layout');
     Route::put('venues/{venue}/layout', [\App\Http\Controllers\Admin\VenueController::class, 'saveLayout'])->name('venues.layout.save');
     Route::get('events/{event}/seats', [\App\Http\Controllers\Admin\EventController::class, 'seats'])->name('events.seats');
+    Route::get('events/{event}/seat-labels', [\App\Http\Controllers\Admin\SeatLabelController::class, 'create'])->name('events.seat-labels.create');
+    Route::get('events/{event}/seat-labels/pdf', [\App\Http\Controllers\Admin\SeatLabelController::class, 'download'])->name('events.seat-labels.pdf');
     Route::post('events/{event}/seats/{seat}/block', [\App\Http\Controllers\Admin\EventController::class, 'blockSeat'])->name('events.seats.block');
     Route::delete('events/{event}/seats/{seat}/block', [\App\Http\Controllers\Admin\EventController::class, 'unblockSeat'])->name('events.seats.unblock');
     Route::patch('events/{event}/sold-out', [\App\Http\Controllers\Admin\EventController::class, 'markSoldOut'])->name('events.sold-out');
