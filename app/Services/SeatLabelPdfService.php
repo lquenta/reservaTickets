@@ -128,7 +128,6 @@ class SeatLabelPdfService
             'event_name' => $event->name,
             'event_date' => $event->starts_at->translatedFormat('d/m/Y H:i'),
             'venue_name' => $this->venueName($event),
-            'cover_url' => $event->cover_image_path ? asset('storage/'.$event->cover_image_path) : null,
             'labels' => $labels->map(fn (array $l) => [
                 'key' => $l['key'],
                 'label' => $l['label'],
@@ -166,8 +165,10 @@ class SeatLabelPdfService
         $opacity = SeatLabelLayout::normalizeOpacity($options['overlay_opacity']);
         $orientation = $options['orientation'] === 'landscape' ? 'landscape' : 'portrait';
         $grid = SeatLabelLayout::grid($perPage, $orientation);
-        $fonts = SeatLabelLayout::fontSizes($perPage);
         $inner = SeatLabelLayout::pageInnerMm($orientation);
+        $cellWidthMm = $grid['cols'] > 0 ? $inner['width'] / $grid['cols'] : $inner['width'];
+        $cellHeightMm = $grid['rows'] > 0 ? $inner['height'] / $grid['rows'] : $inner['height'];
+        $fonts = SeatLabelLayout::fontSizesForCell($cellWidthMm, $cellHeightMm);
 
         $labels = $this->labelsForEvent($event, $options['section_id']);
         $customColor = SectionLayoutColors::normalize($options['custom_color'] ?? null);
@@ -179,7 +180,7 @@ class SeatLabelPdfService
             }
         }
 
-        $prepared = $labels->map(function (array $label) use ($options, $customColor, $sectionColors, $opacity) {
+        $prepared = $labels->map(function (array $label) use ($options, $customColor, $sectionColors, $opacity, $cellWidthMm, $cellHeightMm) {
             $overlay = null;
             if ($options['color_mode'] === 'custom') {
                 $overlay = $customColor;
@@ -192,9 +193,11 @@ class SeatLabelPdfService
                 }
             }
 
+            $chars = max(1, mb_strlen((string) $label['label']));
             $label['overlay_color'] = $overlay;
             $label['overlay_rgba'] = SeatLabelLayout::rgba($overlay, $opacity);
             $label['overlay_tint'] = SeatLabelLayout::tintedHex($overlay, $opacity);
+            $label['seat_font'] = SeatLabelLayout::fontSizesForCell($cellWidthMm, $cellHeightMm, $chars)['seat'];
 
             return $label;
         });
@@ -208,7 +211,6 @@ class SeatLabelPdfService
             'eventName' => $event->name,
             'eventDate' => $event->starts_at->translatedFormat('l d/m/Y H:i'),
             'venueName' => $this->venueName($event),
-            'coverPath' => $this->coverFilePath($event),
             'pages' => $pages,
             'cols' => $grid['cols'],
             'rows' => $grid['rows'],
@@ -221,16 +223,6 @@ class SeatLabelPdfService
             'orientation' => $orientation,
             'opacity' => $opacity,
         ];
-    }
-
-    public function coverFilePath(Event $event): ?string
-    {
-        if (! $event->cover_image_path) {
-            return null;
-        }
-        $path = storage_path('app/public/'.$event->cover_image_path);
-
-        return is_file($path) ? str_replace('\\', '/', $path) : null;
     }
 
     private function venueName(Event $event): string

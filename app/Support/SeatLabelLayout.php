@@ -68,18 +68,40 @@ final class SeatLabelLayout
     }
 
     /**
+     * Tamaños de fuente para una celda: el código de butaca llena el espacio útil.
+     *
      * @return array{seat: int, section: int, meta: int}
      */
-    public static function fontSizes(int $perPage): array
+    public static function fontSizesForCell(float $cellWidthMm, float $cellHeightMm, int $seatChars = 3): array
     {
-        $perPage = self::normalizePerPage($perPage);
-        $root = sqrt($perPage);
+        $mmToPt = 72 / 25.4;
+        $seatChars = max(1, $seatChars);
+        $section = max(6, min(16, (int) round($cellHeightMm * $mmToPt * 0.09)));
+        $usableW = max(8.0, $cellWidthMm - 3.0);
+        $usableH = max(10.0, $cellHeightMm * 0.84);
+        $fromHeight = $usableH * $mmToPt * 0.95;
+        $fromWidth = ($usableW * $mmToPt) / ($seatChars * 0.58);
+        $seat = (int) round(max(18, min($fromHeight, $fromWidth)));
 
         return [
-            'seat' => max(10, min(64, (int) round(72 / $root))),
-            'section' => max(7, min(22, (int) round(24 / $root))),
-            'meta' => max(6, min(14, (int) round(16 / $root))),
+            'seat' => $seat,
+            'section' => $section,
+            'meta' => max(6, (int) round($section * 0.75)),
         ];
+    }
+
+    /**
+     * @return array{seat: int, section: int, meta: int}
+     */
+    public static function fontSizes(int $perPage, string $orientation = 'portrait'): array
+    {
+        $perPage = self::normalizePerPage($perPage);
+        $grid = self::grid($perPage, $orientation);
+        $inner = self::pageInnerMm($orientation);
+        $cellW = $grid['cols'] > 0 ? $inner['width'] / $grid['cols'] : $inner['width'];
+        $cellH = $grid['rows'] > 0 ? $inner['height'] / $grid['rows'] : $inner['height'];
+
+        return self::fontSizesForCell($cellW, $cellH, 3);
     }
 
     /**

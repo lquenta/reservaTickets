@@ -11,7 +11,7 @@
     <h1 class="text-3xl font-bold text-slate-800 dark:text-white">Etiquetas de asientos</h1>
     <p class="text-slate-600 dark:text-slate-400 mt-2 max-w-3xl">
         PDF con una etiqueta por butaca (ocupadas y libres). Elegí cuántas van por hoja; el recuento de páginas se actualiza al instante.
-        El color del sector se aplica como fondo suave sobre la portada del evento para no tapar la imagen.
+        El código de asiento llena la etiqueta; el color del sector va de fondo suave.
     </p>
 </div>
 
@@ -75,7 +75,7 @@
                 </div>
                 <input type="range" min="0" max="80" step="1" x-model.number="opacity"
                        class="w-full accent-violet-600">
-                <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Recomendado 20%: se ve el color sin tapar la imagen.</p>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Recomendado 20%: tinte suave del sector, sin tapar el código.</p>
             </div>
 
             <div x-show="colorMode === 'custom'">
@@ -138,17 +138,15 @@
 
         <section class="rounded-2xl border-2 border-violet-200/60 dark:border-violet-700/50 bg-white dark:bg-slate-800/80 p-5">
             <h2 class="font-semibold text-slate-800 dark:text-white mb-1">Muestra de etiqueta</h2>
-            <p class="text-xs text-slate-500 dark:text-slate-400 mb-4">Así se ve el color sobre la imagen con la intensidad actual.</p>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mb-4">El código ocupa casi toda la celda; el color del sector queda de fondo.</p>
             <div class="max-w-sm mx-auto">
                 <template x-if="sampleLabel">
-                    <div class="relative overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-600 aspect-[4/3] flex items-center justify-center text-center p-4"
+                    <div class="relative overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-600 aspect-[4/3] flex flex-col items-center justify-center text-center px-2 py-3"
                          :style="sampleStyle(sampleLabel)">
-                        <div class="relative z-10">
-                            <p class="text-sm font-bold text-slate-900 drop-shadow-[0_0_6px_#fff]" x-text="eventName"></p>
-                            <p class="text-xs text-slate-700 drop-shadow-[0_0_6px_#fff] mt-0.5" x-text="eventDate + ' · ' + venueName"></p>
-                            <p class="text-xs font-semibold uppercase tracking-wide mt-2 drop-shadow-[0_0_6px_#fff]" x-text="sampleLabel.section || ''"></p>
-                            <span class="inline-block mt-2 rounded-lg bg-white/90 border border-slate-200 px-3 py-1.5 font-mono font-bold text-xl text-violet-800" x-text="sampleLabel.label"></span>
-                        </div>
+                        <p class="relative z-10 text-xs font-semibold uppercase tracking-wide text-slate-700" x-text="sampleLabel.section || ''"></p>
+                        <span class="relative z-10 font-mono font-black leading-none text-violet-800"
+                              :style="'font-size:' + sampleSeatFont + 'px'"
+                              x-text="sampleLabel.label"></span>
                     </div>
                 </template>
             </div>
@@ -172,11 +170,11 @@
                             <div class="relative overflow-hidden border border-dashed border-slate-300 flex items-center justify-center text-center p-1"
                                  :style="cell ? sampleStyle(cell) : {}">
                                 <template x-if="cell">
-                                    <div class="relative z-10 min-w-0">
-                                        <p class="font-semibold uppercase leading-tight text-slate-800 truncate px-0.5"
+                                    <div class="relative z-10 min-w-0 w-full h-full flex flex-col items-center justify-center px-0.5">
+                                        <p class="font-semibold uppercase leading-tight text-slate-700 truncate w-full"
                                            :style="'font-size:' + previewFont.section + 'px'"
                                            x-text="cell.section || ''"></p>
-                                        <p class="font-mono font-bold text-violet-800 leading-tight"
+                                        <p class="font-mono font-black text-violet-800 leading-none"
                                            :style="'font-size:' + previewFont.seat + 'px'"
                                            x-text="cell.label"></p>
                                     </div>
@@ -203,7 +201,6 @@ function seatLabelPreview(payload) {
         eventName: payload.event_name,
         eventDate: payload.event_date,
         venueName: payload.venue_name,
-        coverUrl: payload.cover_url,
         labels: payload.labels || [],
         sections: payload.sections || [],
         perPageOptions: payload.defaults?.per_page_options || [1, 2, 4, 8, 16, 32, 64],
@@ -246,9 +243,14 @@ function seatLabelPreview(payload) {
         get previewFont() {
             const root = Math.sqrt(this.perPage);
             return {
-                seat: Math.max(8, Math.min(28, Math.round(42 / root))),
-                section: Math.max(6, Math.min(12, Math.round(16 / root))),
+                seat: Math.max(18, Math.min(96, Math.round(120 / root))),
+                section: Math.max(6, Math.min(11, Math.round(14 / root))),
             };
+        },
+        get sampleSeatFont() {
+            const label = this.sampleLabel?.label || 'A1';
+            const chars = Math.max(2, String(label).length);
+            return Math.max(48, Math.min(120, Math.round(220 / chars)));
         },
         get sheetStyle() {
             const portrait = this.orientation !== 'landscape';
@@ -282,13 +284,11 @@ function seatLabelPreview(payload) {
         sampleStyle(label) {
             const rgb = this.hexToRgb(this.overlayColor(label));
             const a = Math.max(0, Math.min(80, Number(this.opacity))) / 100;
-            const overlay = rgb ? `rgba(${rgb[0]},${rgb[1]},${rgb[2]},${a})` : 'transparent';
-            const layers = [];
-            layers.push(`linear-gradient(${overlay}, ${overlay})`);
-            if (this.coverUrl) {
-                layers.push(`url('${this.coverUrl}')`);
-            }
-            return `background-image:${layers.join(',')};background-size:cover;background-position:center;`;
+            if (!rgb) return 'background-color:#ffffff;';
+            const r = Math.round(255 * (1 - a) + rgb[0] * a);
+            const g = Math.round(255 * (1 - a) + rgb[1] * a);
+            const b = Math.round(255 * (1 - a) + rgb[2] * a);
+            return `background-color:rgb(${r},${g},${b});`;
         },
         get pdfUrl() {
             const params = new URLSearchParams();
