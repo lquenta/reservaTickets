@@ -51,13 +51,20 @@ class SeatLabelLayoutTest extends TestCase
         $this->assertNotSame('#2563EB', SeatLabelLayout::tintedHex('#2563EB', 20));
     }
 
-    public function test_seat_font_fills_the_cell(): void
+    public function test_seat_font_fills_the_cell_without_overflowing_width(): void
     {
-        $small = SeatLabelLayout::fontSizesForCell(50, 35, 2);
-        $this->assertGreaterThan(60, $small['seat']);
-        $this->assertGreaterThan($small['section'] * 3, $small['seat']);
+        $two = SeatLabelLayout::fontSizesForCell(50, 35, 2);
+        $three = SeatLabelLayout::fontSizesForCell(50, 35, 3);
+        $this->assertGreaterThan(40, $two['seat']);
+        $this->assertGreaterThan($two['section'] * 3, $two['seat']);
+        $this->assertLessThan($two['seat'], $three['seat']);
+
+        $fourCol = SeatLabelLayout::fontSizesForCell(49.5, 71.25, 3);
+        $estimatedWidthPt = $fourCol['seat'] * 3 * SeatLabelLayout::GLYPH_WIDTH_EM;
+        $cellWidthPt = 49.5 * (72 / 25.4);
+        $this->assertLessThan($cellWidthPt, $estimatedWidthPt);
 
         $sheet8 = SeatLabelLayout::fontSizes(8, 'portrait');
-        $this->assertGreaterThan(70, $sheet8['seat']);
+        $this->assertGreaterThan(50, $sheet8['seat']);
     }
 }

@@ -68,7 +68,12 @@ final class SeatLabelLayout
     }
 
     /**
-     * Tamaños de fuente para una celda: el código de butaca llena el espacio útil.
+     * Ancho aproximado de un glifo bold DejaVu (em). Conservador para que no desborde en DomPDF.
+     */
+    public const GLYPH_WIDTH_EM = 0.85;
+
+    /**
+     * Tamaños de fuente para una celda: el código de butaca llena el espacio sin salirse.
      *
      * @return array{seat: int, section: int, meta: int}
      */
@@ -76,12 +81,12 @@ final class SeatLabelLayout
     {
         $mmToPt = 72 / 25.4;
         $seatChars = max(1, $seatChars);
-        $section = max(6, min(16, (int) round($cellHeightMm * $mmToPt * 0.09)));
-        $usableW = max(8.0, $cellWidthMm - 3.0);
-        $usableH = max(10.0, $cellHeightMm * 0.84);
-        $fromHeight = $usableH * $mmToPt * 0.95;
-        $fromWidth = ($usableW * $mmToPt) / ($seatChars * 0.58);
-        $seat = (int) round(max(18, min($fromHeight, $fromWidth)));
+        $section = max(6, min(14, (int) round($cellHeightMm * $mmToPt * 0.08)));
+        $usableW = max(6.0, $cellWidthMm - 6.0);
+        $usableH = max(8.0, $cellHeightMm * 0.72);
+        $fromHeight = $usableH * $mmToPt * 0.82;
+        $fromWidth = ($usableW * $mmToPt) / ($seatChars * self::GLYPH_WIDTH_EM);
+        $seat = (int) round(max(12, min($fromHeight, $fromWidth)));
 
         return [
             'seat' => $seat,

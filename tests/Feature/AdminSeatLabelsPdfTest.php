@@ -99,7 +99,7 @@ class AdminSeatLabelsPdfTest extends TestCase
         $this->assertSame($section->layout_color, $data['pages']->first()->first()['overlay_color']);
         $this->assertSame(SeatLabelLayout::rgba($section->layout_color, 20), $data['pages']->first()->first()['overlay_rgba']);
         $this->assertArrayNotHasKey('coverPath', $data);
-        $this->assertGreaterThan(70, $data['pages']->first()->first()['seat_font']);
+        $this->assertGreaterThan(50, $data['pages']->first()->first()['seat_font']);
     }
 
     public function test_custom_color_and_opacity_apply_to_all_labels(): void
@@ -189,6 +189,29 @@ class AdminSeatLabelsPdfTest extends TestCase
         $labels = app(SeatLabelPdfService::class)->labelsForEvent($event);
 
         $this->assertSame(['A1', 'A2', 'A3', 'B1', 'B2'], $labels->pluck('label')->all());
+    }
+
+    public function test_pdf_uses_one_seat_font_that_fits_four_columns(): void
+    {
+        [$event] = $this->createEventWithSeats(12);
+
+        $data = app(SeatLabelPdfService::class)->buildPdfData($event, [
+            'per_page' => 8,
+            'section_id' => null,
+            'color_mode' => 'sector',
+            'custom_color' => null,
+            'overlay_opacity' => 20,
+            'section_colors' => [],
+            'orientation' => 'landscape',
+        ]);
+
+        $this->assertSame(4, $data['cols']);
+        $this->assertSame(2, $data['rows']);
+        $fonts = $data['pages']->flatten(1)->pluck('seat_font')->unique()->values();
+        $this->assertCount(1, $fonts);
+        $estimatedWidthPt = $fonts->first() * 3 * SeatLabelLayout::GLYPH_WIDTH_EM;
+        $cellWidthPt = $data['cellWidthMm'] * (72 / 25.4);
+        $this->assertLessThan($cellWidthPt, $estimatedWidthPt);
     }
 
     /**

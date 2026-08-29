@@ -167,14 +167,14 @@
                      :style="sheetStyle">
                     <div class="grid h-full w-full" :style="sheetGridStyle">
                         <template x-for="(cell, idx) in previewCells" :key="idx">
-                            <div class="relative overflow-hidden border border-dashed border-slate-300 flex items-center justify-center text-center p-1"
+                            <div class="relative overflow-hidden border border-dashed border-slate-300 flex items-center justify-center text-center min-w-0"
                                  :style="cell ? sampleStyle(cell) : {}">
                                 <template x-if="cell">
-                                    <div class="relative z-10 min-w-0 w-full h-full flex flex-col items-center justify-center px-0.5">
+                                    <div class="relative z-10 min-w-0 w-full h-full flex flex-col items-center justify-center overflow-hidden px-1">
                                         <p class="font-semibold uppercase leading-tight text-slate-700 truncate w-full"
                                            :style="'font-size:' + previewFont.section + 'px'"
                                            x-text="cell.section || ''"></p>
-                                        <p class="font-mono font-black text-violet-800 leading-none"
+                                        <p class="font-mono font-black text-violet-800 leading-none whitespace-nowrap overflow-hidden max-w-full"
                                            :style="'font-size:' + previewFont.seat + 'px'"
                                            x-text="cell.label"></p>
                                     </div>
@@ -240,17 +240,35 @@ function seatLabelPreview(payload) {
             }
             return { cols: bestCols, rows: bestRows };
         },
+        get maxLabelChars() {
+            const slice = this.filteredLabels.slice(0, this.perPage);
+            let max = 2;
+            slice.forEach((l) => { max = Math.max(max, String(l.label || '').length); });
+            return max;
+        },
         get previewFont() {
-            const root = Math.sqrt(this.perPage);
+            const portrait = this.orientation !== 'landscape';
+            const pageW = portrait ? 210 : 297;
+            const pageH = portrait ? 297 : 210;
+            const margin = 6;
+            const cellWmm = (pageW - margin * 2) / this.grid.cols;
+            const cellHmm = (pageH - margin * 2) / this.grid.rows;
+            const scale = 520 / pageW;
+            const mmToPt = 72 / 25.4;
+            const chars = this.maxLabelChars;
+            const usableW = Math.max(6, cellWmm - 6);
+            const usableH = Math.max(8, cellHmm * 0.72);
+            const fromH = usableH * mmToPt * 0.82;
+            const fromW = (usableW * mmToPt) / (chars * 0.85);
+            const seatPt = Math.max(12, Math.min(fromH, fromW));
+            const sectionPt = Math.max(6, Math.min(14, cellHmm * mmToPt * 0.08));
             return {
-                seat: Math.max(18, Math.min(96, Math.round(120 / root))),
-                section: Math.max(6, Math.min(11, Math.round(14 / root))),
+                seat: Math.max(10, Math.round(seatPt * scale * (25.4 / 72))),
+                section: Math.max(6, Math.round(sectionPt * scale * (25.4 / 72))),
             };
         },
         get sampleSeatFont() {
-            const label = this.sampleLabel?.label || 'A1';
-            const chars = Math.max(2, String(label).length);
-            return Math.max(48, Math.min(120, Math.round(220 / chars)));
+            return Math.max(36, Math.min(96, this.previewFont.seat * 2.2));
         },
         get sheetStyle() {
             const portrait = this.orientation !== 'landscape';
@@ -258,7 +276,8 @@ function seatLabelPreview(payload) {
             const h = portrait ? 297 : 210;
             const maxW = 520;
             const scale = maxW / w;
-            return `width:${w * scale}px;height:${h * scale}px;`;
+            const pad = 6 * scale;
+            return `width:${w * scale}px;height:${h * scale}px;padding:${pad}px;box-sizing:border-box;`;
         },
         get sheetGridStyle() {
             return `grid-template-columns:repeat(${this.grid.cols},minmax(0,1fr));grid-template-rows:repeat(${this.grid.rows},minmax(0,1fr));`;
