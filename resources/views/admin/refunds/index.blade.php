@@ -145,12 +145,20 @@
                     <div class="space-y-4">
                         <h3 class="font-semibold text-slate-800 dark:text-white">Comprobante de pago</h3>
                         @if($reservation->payment_receipt_path)
+                            @php
+                                $receiptExt = strtolower(pathinfo($reservation->payment_receipt_path, PATHINFO_EXTENSION));
+                                $receiptIsImage = in_array($receiptExt, ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp'], true);
+                            @endphp
                             <a href="{{ asset('storage/'.$reservation->payment_receipt_path) }}" target="_blank" rel="noopener"
                                class="block rounded-xl border border-slate-200 dark:border-slate-600 overflow-hidden bg-slate-100 dark:bg-slate-900/50">
-                                <img src="{{ asset('storage/'.$reservation->payment_receipt_path) }}" alt="Comprobante de pago"
-                                     class="w-full max-h-80 object-contain">
+                                @if($receiptIsImage)
+                                    <img src="{{ asset('storage/'.$reservation->payment_receipt_path) }}" alt="Comprobante de pago"
+                                         class="w-full max-h-80 object-contain">
+                                @else
+                                    <span class="block px-4 py-8 text-center text-sm font-medium text-violet-700 dark:text-violet-300">Abrir comprobante{{ $receiptExt !== '' ? ' (.'.$receiptExt.')' : '' }}</span>
+                                @endif
                             </a>
-                            <p class="text-xs text-slate-500">Clic en la imagen para abrir en tamaño completo.</p>
+                            <p class="text-xs text-slate-500">{{ $receiptIsImage ? 'Clic en la imagen para abrir en tamaño completo.' : 'Clic para abrir el archivo.' }}</p>
                         @elseif($reservation->isHonoredGuest())
                             <p class="rounded-xl border border-dashed border-slate-300 dark:border-slate-600 px-4 py-8 text-center text-slate-500 text-sm">
                                 Invitado de honor — sin comprobante de pago.

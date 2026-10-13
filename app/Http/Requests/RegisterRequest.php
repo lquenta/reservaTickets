@@ -13,14 +13,23 @@ class RegisterRequest extends FormRequest
         return true;
     }
 
+    protected function prepareForValidation(): void
+    {
+        $ci = preg_replace('/[\s.]+/', '', (string) $this->input('ci', ''));
+
+        $this->merge([
+            'email' => strtolower(trim((string) $this->input('email', ''))),
+            'ci' => $ci,
+        ]);
+    }
+
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:255', 'regex:/^[\pL\s\-\.\']+$/u'],
+            'name' => ['required', 'string', 'max:255', 'regex:/^[\pL\pM\s\-\.\']+$/u'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
-            'email_confirmation' => ['required', 'same:email'],
             'ci' => ['required', 'string', 'max:15', 'regex:/^[0-9\-]+$/'],
-            'phone' => ['required', 'string', 'max:20', 'regex:/^[0-9\s+\-]+$/'],
+            'phone' => ['required', 'string', 'max:20', 'regex:/^[0-9\s+\-().]+$/'],
             'password' => ['required', 'string', 'min:8', 'max:255', 'confirmed'],
             'g-recaptcha-response' => [config('services.recaptcha.secret_key') ? 'required' : 'nullable', 'string'],
         ];
@@ -29,11 +38,14 @@ class RegisterRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'name.regex' => __('El nombre solo puede contener letras, espacios y guiones.'),
-            'ci.regex' => __('El CI solo puede contener dígitos y guiones.'),
-            'phone.regex' => __('El teléfono solo puede contener números, espacios, + y -.'),
-            'email_confirmation.same' => __('La confirmación del correo debe coincidir.'),
-            'g-recaptcha-response.required' => __('Debe completar la verificación de seguridad.'),
+            'name.regex' => 'El nombre solo puede contener letras, espacios, puntos, apóstrofos y guiones.',
+            'ci.regex' => 'El CI solo puede contener números. Puedes usar espacios, puntos y guiones.',
+            'ci.required' => 'El CI es obligatorio.',
+            'phone.regex' => 'El teléfono solo puede contener números, espacios, paréntesis, puntos, + y -.',
+            'password.confirmed' => 'La confirmación de la contraseña no coincide.',
+            'password.min' => 'La contraseña debe tener al menos 8 caracteres.',
+            'email.unique' => 'Este correo ya tiene una cuenta. Recupera la contraseña para entrar.',
+            'g-recaptcha-response.required' => 'Debe completar la verificación de seguridad.',
         ];
     }
 

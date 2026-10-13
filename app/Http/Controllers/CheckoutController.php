@@ -68,11 +68,10 @@ class CheckoutController extends Controller
 
         $request->validate([
             'accept_terms' => ['required', 'accepted'],
-            'payment_receipt' => ['required', 'image', 'max:5120'], // 5 MB
+            'payment_receipt' => ['required', 'file', 'max:15360'],
         ], [
-            'payment_receipt.required' => 'Debe subir una captura o foto del comprobante de pago.',
-            'payment_receipt.image' => 'El comprobante debe ser una imagen (JPG, PNG, etc.).',
-            'payment_receipt.max' => 'La imagen no debe superar 5 MB.',
+            'payment_receipt.required' => 'Debe subir el comprobante de pago.',
+            'payment_receipt.max' => 'El comprobante no debe superar 15 MB.',
         ]);
 
         $path = $request->file('payment_receipt')->store('payment-receipts', 'public');

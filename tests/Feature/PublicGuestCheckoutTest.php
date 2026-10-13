@@ -72,6 +72,13 @@ class PublicGuestCheckoutTest extends TestCase
             'user_id' => $user->id,
             'event_id' => $event->id,
         ]);
+        $reservation = Reservation::query()->first();
+        $this->assertNotNull($reservation?->expires_at);
+        $this->assertEqualsWithDelta(
+            now()->addMinutes(Reservation::HOLD_MINUTES)->getTimestamp(),
+            $reservation->expires_at->getTimestamp(),
+            2
+        );
         $this->assertFalse($user->fresh()->is_guest);
         $this->assertSame(0, User::where('is_guest', true)->count());
     }
@@ -162,12 +169,78 @@ class PublicGuestCheckoutTest extends TestCase
             ->assertSessionHasErrors('guest_email');
     }
 
+    public function test_checkout_accepts_any_receipt_up_to_15_mb(): void
+    {
+        Storage::fake('public');
+        $event = $this->createEvent();
+
+        $this->post(route('reservations.store'), [
+            'event_id' => $event->id,
+            'quantity' => 1,
+            'single_name' => 1,
+            'holder_name' => 'Titular Uno',
+            'guest_first_name' => 'Ana',
+            'guest_last_name' => 'Perez',
+            'guest_phone' => '70001111',
+            'guest_email' => 'ana.pdf@example.com',
+            'guest_email_confirmation' => 'ana.pdf@example.com',
+        ]);
+
+        $reservation = Reservation::query()->firstOrFail();
+
+        $this->post(route('checkout.confirm', $reservation), [
+            'accept_terms' => '1',
+            'payment_receipt' => UploadedFile::fake()->create('comprobante.pdf', 15361, 'application/pdf'),
+        ])->assertSessionHasErrors('payment_receipt');
+
+        $this->assertSame(Reservation::STATUS_INICIADO, $reservation->fresh()->status);
+
+        $this->post(route('checkout.confirm', $reservation), [
+            'accept_terms' => '1',
+            'payment_receipt' => UploadedFile::fake()->create('comprobante.pdf', 100, 'application/pdf'),
+        ])->assertRedirect(route('home'));
+
+        $this->assertSame(Reservation::STATUS_PENDIENTE_PAGO, $reservation->fresh()->status);
+        $this->assertNotNull($reservation->fresh()->payment_receipt_path);
+    }
+
+    public function test_started_event_stays_on_sale_online(): void
+    {
+        $event = Event::create([
+            'name' => 'Evento en curso',
+            'description' => 'Ya empezó',
+            'starts_at' => now()->subHour(),
+            'venue' => 'Sala test',
+            'payment_code_prefix' => 'CUR',
+            'is_active' => true,
+            'sales_paused' => false,
+        ]);
+
+        $this->get(route('events.index'))->assertOk()->assertSee('Evento en curso');
+        $this->get(route('home'))->assertOk()->assertSee('Evento en curso');
+
+        $this->post(route('reservations.store'), [
+            'event_id' => $event->id,
+            'quantity' => 1,
+            'single_name' => 1,
+            'holder_name' => 'Titular Uno',
+            'guest_first_name' => 'Ana',
+            'guest_last_name' => 'Perez',
+            'guest_phone' => '70001111',
+            'guest_email' => 'ana.curso@example.com',
+            'guest_email_confirmation' => 'ana.curso@example.com',
+        ])->assertRedirect();
+
+        $reservation = Reservation::query()->where('event_id', $event->id)->first();
+        $this->assertNotNull($reservation);
+        $this->assertSame(Reservation::STATUS_INICIADO, $reservation->status);
+    }
+
     public function test_register_redirects_to_events_not_verification(): void
     {
         $this->post(route('register'), [
             'name' => 'Nuevo Usuario',
             'email' => 'nuevo@example.com',
-            'email_confirmation' => 'nuevo@example.com',
             'ci' => '1234567',
             'phone' => '70000000',
             'password' => 'password123',

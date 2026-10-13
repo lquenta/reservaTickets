@@ -15,7 +15,7 @@ class AdminSurrogateCheckoutRequest extends FormRequest
     {
         $rules = [
             'accept_terms' => ['required', 'accepted'],
-            'payment_receipt' => ['required', 'image', 'max:5120'],
+            'payment_receipt' => ['required', 'file', 'max:15360'],
         ];
 
         $reservation = $this->route('reservation');
@@ -30,7 +30,8 @@ class AdminSurrogateCheckoutRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'payment_receipt.required' => 'Debe subir una captura o foto del comprobante de pago.',
+            'payment_receipt.required' => 'Debe subir el comprobante de pago.',
+            'payment_receipt.max' => 'El comprobante no debe superar 15 MB.',
             'seller_delivery_responsibility.accepted' => 'Debe asumir la responsabilidad de entrega de tickets al cliente si el correo no está verificado.',
         ];
     }

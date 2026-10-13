@@ -14,9 +14,11 @@ class HomeController extends Controller
 {
     public function __invoke(): View
     {
+        $now = now();
         $featured_events = Event::where('is_active', true)
-            ->where('starts_at', '>', now())
-            ->orderBy('starts_at')
+            ->orderByRaw('CASE WHEN starts_at >= ? THEN 0 ELSE 1 END', [$now])
+            ->orderByRaw('CASE WHEN starts_at >= ? THEN starts_at END', [$now])
+            ->orderByDesc('starts_at')
             ->take(3)
             ->get();
 

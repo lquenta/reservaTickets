@@ -17,6 +17,7 @@ class Venue extends Model
         'plan_image_path',
         'seat_rows',
         'seat_columns',
+        'seat_row_limits',
         'layout_canvas_width',
         'layout_canvas_height',
     ];
@@ -26,6 +27,7 @@ class Venue extends Model
         return [
             'seat_rows' => 'integer',
             'seat_columns' => 'integer',
+            'seat_row_limits' => 'array',
             'layout_canvas_width' => 'integer',
             'layout_canvas_height' => 'integer',
         ];
