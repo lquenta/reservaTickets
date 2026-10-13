@@ -171,6 +171,7 @@
             <div class="flex gap-6 text-sm">
                 <a href="{{ route('events.index') }}" class="text-white/50 hover:text-[#39ff14] transition">Eventos</a>
                 <a href="{{ route('terms') }}" class="text-white/50 hover:text-[#39ff14] transition">Términos y condiciones</a>
+                <a href="{{ route('privacy') }}" class="text-white/50 hover:text-[#39ff14] transition">Política de privacidad</a>
                 <a href="{{ route('home') }}#contacto" class="text-white/50 hover:text-[#39ff14] transition">Contacto</a>
                 @guest
                     <a href="{{ route('login') }}" class="text-white/50 hover:text-[#39ff14] transition">Iniciar sesión</a>

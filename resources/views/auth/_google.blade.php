@@ -9,6 +9,10 @@
         </svg>
         Continuar con Google
     </a>
+    <p class="mt-3 text-center text-xs text-white/60">
+        Google nos entrega tu nombre y tu correo para crear o abrir tu cuenta.
+        <a href="{{ route('privacy') }}" class="text-[#ff2daa] hover:text-[#39ff14] underline underline-offset-2">Política de privacidad</a>
+    </p>
     @if(!empty($divider))
         <div class="my-6 flex items-center gap-3 text-xs uppercase tracking-wide text-white/40">
             <span class="h-px flex-1 bg-white/15"></span>

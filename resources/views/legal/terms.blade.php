@@ -35,7 +35,7 @@
 
             <section>
                 <h2 class="text-lg font-semibold text-[#ff2daa] mb-2">4. Protección de datos y ciberseguridad</h2>
-                <p>Sus datos personales se tratan conforme a nuestra política de privacidad y a la normativa aplicable (incl. RGPD/LOPDGDD donde corresponda). En particular:</p>
+                <p>Sus datos personales se tratan conforme a nuestra <a href="{{ route('privacy') }}" class="text-[#ff2daa] hover:text-[#39ff14] underline underline-offset-2">política de privacidad</a>. En particular:</p>
                 <ul class="list-disc list-inside space-y-1 ml-2 mt-2">
                     <li>Recabamos solo los datos necesarios para la reserva, emisión de entradas y comunicación (nombre, email, datos de la reserva, comprobante de pago).</li>
                     <li>Implementamos medidas técnicas y organizativas razonables para proteger la confidencialidad e integridad de los datos (acceso restringido, cifrado, controles de seguridad).</li>
