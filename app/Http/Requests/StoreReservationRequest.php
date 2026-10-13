@@ -83,7 +83,7 @@ class StoreReservationRequest extends FormRequest
             }
         } else {
             $quantity = (int) $this->input('quantity', 1);
-            $rules['quantity'] = ['required', 'integer', 'min:1', 'max:4'];
+            $rules['quantity'] = ['required', 'integer', 'min:1', 'max:'.ReservationService::MAX_SEATS];
             if ($this->boolean('single_name')) {
                 $rules['holder_name'] = ['required', 'string', 'max:255', 'regex:/^[\pL\pM\s\-\.\'\x{2019}\x{2018},]+$/u'];
             } else {
@@ -259,7 +259,7 @@ class StoreReservationRequest extends FormRequest
             'guest_email_confirmation.same' => 'La confirmación del correo debe coincidir.',
         ];
         $count = is_array($this->input('seat_ids')) ? count($this->input('seat_ids')) : (int) $this->input('quantity', 1);
-        for ($i = 1; $i <= max($count, 4); $i++) {
+        for ($i = 1; $i <= max($count, ReservationService::MAX_SEATS); $i++) {
             $messages["holder_name_{$i}.regex"] = 'El nombre del ticket '.$i.' solo puede contener letras, espacios, guiones, comas y apóstrofos.';
         }
 

@@ -345,7 +345,7 @@
     </div>
     <script>
         function reservationSections(config) {
-            const maxSeats = config.maxSeats || 12;
+            const maxSeats = config.maxSeats || {{ \App\Services\ReservationService::MAX_SEATS }};
             const seatsMap = config.seatsMap || {};
             const seatIdToPrice = config.seatIdToPrice || {};
             const sectionIdToPrice = config.sectionIdToPrice || {};
@@ -739,7 +739,7 @@
                 <label class="block text-sm font-medium text-white/80 mb-2">Cantidad de tickets</label>
                 <select name="quantity" x-model.number="quantity" required
                         class="w-full rounded-xl border border-purple-900/50 bg-black/60 px-4 py-3 text-white focus:ring-2 focus:ring-[#39ff14] focus:border-[#39ff14]">
-                    @for($i = 1; $i <= 4; $i++)
+                    @for($i = 1; $i <= \App\Services\ReservationService::MAX_SEATS; $i++)
                         <option value="{{ $i }}">{{ $i }}</option>
                     @endfor
                 </select>
@@ -767,7 +767,7 @@
             </div>
 
             <div x-show="singleName === '0' || singleName === false" x-cloak>
-                @for($i = 1; $i <= 4; $i++)
+                @for($i = 1; $i <= \App\Services\ReservationService::MAX_SEATS; $i++)
                     <div class="mb-4" x-show="quantity >= {{ $i }}">
                         <label for="holder_name_{{ $i }}" class="block text-sm font-medium text-white/80 mb-1">Nombre ticket {{ $i }}</label>
                         <input id="holder_name_{{ $i }}" type="text" name="holder_name_{{ $i }}" value="{{ old("holder_name_{$i}") }}" maxlength="255"

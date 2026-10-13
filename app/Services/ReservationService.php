@@ -16,7 +16,7 @@ use Illuminate\Validation\ValidationException;
 
 class ReservationService
 {
-    public const MAX_SEATS = 4;
+    public const MAX_SEATS = 10;
 
     /** Máximo de reservas pendientes (INICIADO o PENDIENTE_PAGO) por usuario y evento. */
     public const MAX_PENDING_RESERVATIONS_PER_USER_EVENT = 1;
