@@ -10,7 +10,6 @@ use App\Http\Controllers\Auth\EmailVerificationPromptController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Auth\VerifyEmailController;
 use App\Http\Controllers\Auth\VerifyEmailTokenController;
-use App\Http\Controllers\ContactController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\NewsletterController;
@@ -24,7 +23,6 @@ Route::get('terminos-y-condiciones', function () {
 
 Route::get('events', [EventController::class, 'index'])->name('events.index');
 
-Route::post('contact', [ContactController::class, 'store'])->name('contact.store');
 Route::post('newsletter', [NewsletterController::class, 'subscribe'])->name('newsletter.subscribe')->middleware('throttle:5,1');
 Route::post('analytics/events', [AnalyticsEventController::class, 'store'])->name('analytics.events.store')->middleware('throttle:120,1');
 

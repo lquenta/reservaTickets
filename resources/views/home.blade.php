@@ -289,47 +289,19 @@
                 CONTÁCTENOS
             </h2>
 
-            <div class="grid gap-8 md:grid-cols-2 mb-10">
-                <div class="text-center md:text-left">
-                    <p class="text-white/80 mb-2">Email</p>
-                    <a href="mailto:{{ config('mail.from.address', 'contacto@nova.com') }}" class="text-[#ff2daa] hover:text-[#39ff14] transition">{{ config('mail.from.address', 'contacto@nova.com') }}</a>
-                </div>
-                <div class="text-center md:text-left">
-                    <p class="text-white/80 mb-2">¿Dudas?</p>
-                    <p class="text-white/90">Escríbenos y te respondemos a la brevedad.</p>
-                </div>
-            </div>
+            <p class="text-white/80 text-center mb-8">Escríbenos por WhatsApp y te respondemos a la brevedad.</p>
 
-            <form action="{{ route('contact.store') }}" method="POST" class="space-y-4">
-                @csrf
-                <div>
-                    <label for="contact-name" class="block text-sm text-white/80 mb-1">Nombre</label>
-                    <input type="text" name="name" id="contact-name" value="{{ old('name') }}" required
-                        class="w-full px-4 py-3 bg-black/60 border border-purple-900/50 rounded text-white placeholder-white/40 focus:border-[#39ff14] focus:ring-1 focus:ring-[#39ff14] outline-none transition">
-                    @error('name')<p class="mt-1 text-sm text-red-400">{{ $message }}</p>@enderror
-                </div>
-                <div>
-                    <label for="contact-email" class="block text-sm text-white/80 mb-1">Correo</label>
-                    <input type="email" name="email" id="contact-email" value="{{ old('email') }}" required
-                        class="w-full px-4 py-3 bg-black/60 border border-purple-900/50 rounded text-white placeholder-white/40 focus:border-[#39ff14] focus:ring-1 focus:ring-[#39ff14] outline-none transition">
-                    @error('email')<p class="mt-1 text-sm text-red-400">{{ $message }}</p>@enderror
-                </div>
-                <div>
-                    <label for="contact-message" class="block text-sm text-white/80 mb-1">Mensaje</label>
-                    <textarea name="message" id="contact-message" rows="4" required
-                        class="w-full px-4 py-3 bg-black/60 border border-purple-900/50 rounded text-white placeholder-white/40 focus:border-[#39ff14] focus:ring-1 focus:ring-[#39ff14] outline-none transition resize-none">{{ old('message') }}</textarea>
-                    @error('message')<p class="mt-1 text-sm text-red-400">{{ $message }}</p>@enderror
-                </div>
-                @if(config('services.recaptcha.site_key'))
-                    <div class="g-recaptcha" data-sitekey="{{ config('services.recaptcha.site_key') }}"></div>
-                @endif
-                @error('g-recaptcha-response')
-                    <p class="text-sm text-red-400">{{ $message }}</p>
-                @enderror
-                <button type="submit" class="w-full py-3 font-bold tracking-widest rounded transition st-glow-btn btn-nova-primary">
-                    ENVIAR
-                </button>
-            </form>
+            <div class="text-center">
+                <a href="https://wa.me/59164066996?text={{ rawurlencode('necesito ayuda por favor') }}"
+                   target="_blank"
+                   rel="noopener noreferrer"
+                   class="inline-flex items-center justify-center gap-3 px-8 py-4 font-bold tracking-widest rounded-xl bg-[#25D366] text-black hover:bg-[#1ebe5d] transition">
+                    <svg class="h-6 w-6" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                        <path d="M20.5 3.5A11 11 0 0 0 2.1 17.2L1 23l6-1.6A11 11 0 0 0 20.5 3.5zM12 20.2a8.2 8.2 0 0 1-4.2-1.1l-.3-.2-3.5.9.9-3.4-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.4-.7-1.6-.8s-.4-.1-.5.1-.6.8-.7.9-.3.2-.5.1a6.7 6.7 0 0 1-2-1.2 7.4 7.4 0 0 1-1.4-1.7c-.1-.2 0-.4.1-.5l.4-.4.2-.3a1.7 1.7 0 0 0 .1-.4.5.5 0 0 0 0-.4c0-.1-.5-1.3-.7-1.7s-.4-.4-.5-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.4 3.9c.6.2 1.1.4 1.5.5a3.6 3.6 0 0 0 1.6.1 2.7 2.7 0 0 0 1.8-1.2 2.2 2.2 0 0 0 .2-1.2c-.1-.1-.2-.2-.4-.3z"/>
+                    </svg>
+                    Escribir por WhatsApp
+                </a>
+            </div>
         </div>
     </section>
 
