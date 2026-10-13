@@ -12,7 +12,7 @@ class UserController extends Controller
 {
     public function index(Request $request): View
     {
-        $query = User::with('createdBy')->latest();
+        $query = User::with('createdBy')->withCount('reservations')->latest();
 
         if ($request->filled('q')) {
             $search = $request->string('q')->trim()->toString();
@@ -32,6 +32,10 @@ class UserController extends Controller
                         ->orWhere('phone', 'like', $term);
                 }
             });
+
+            $query->with([
+                'reservations' => fn ($q) => $q->with(['event', 'soldBy', 'reservationTickets.seat'])->latest(),
+            ]);
         }
 
         $users = $query->paginate(15)->withQueryString();

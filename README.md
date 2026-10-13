@@ -66,7 +66,7 @@ Añade esta línea (ajusta la ruta a tu proyecto):
 
 Con eso, cada minuto Laravel ejecutará:
 
-- `reservations:cancel-expired` — cancela reservas en proceso pasados 10 minutos.
+- `reservations:cancel-expired` — cancela reservas en proceso pasados 20 minutos.
 - `queue:work database --stop-when-empty` — procesa los jobs de la cola (envío de tickets por correo, etc.) y termina cuando no hay más.
 
 No hace falta un worker permanente ni otro cron; todo va con este único entry.
