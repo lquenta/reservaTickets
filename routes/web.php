@@ -21,6 +21,10 @@ Route::get('terminos-y-condiciones', function () {
     return view('legal.terms');
 })->name('terms');
 
+Route::get('politica-de-privacidad', function () {
+    return view('legal.privacy');
+})->name('privacy');
+
 Route::get('events', [EventController::class, 'index'])->name('events.index');
 
 Route::post('newsletter', [NewsletterController::class, 'subscribe'])->name('newsletter.subscribe')->middleware('throttle:5,1');
