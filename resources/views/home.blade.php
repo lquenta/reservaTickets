@@ -134,7 +134,7 @@
                             @endif
                         @endforeach
                     @else
-                        <p class="text-white/90">NOVA es tu plataforma para descubrir eventos y reservar tickets de forma rápida y segura. Conectamos organizadores con el público: elige tu evento, reserva de 1 a 4 entradas con un código único de pago y recibe tus tickets por correo.</p>
+                        <p class="text-white/90">NOVA es tu plataforma para descubrir eventos y reservar tickets de forma rápida y segura. Conectamos organizadores con el público: elige tu evento, reserva de 1 a 10 entradas con un código único de pago y recibe tus tickets por correo.</p>
                         <p class="text-white/70 text-base">Simple, transparente y pensado para que no te pierdas nada.</p>
                     @endif
                 </div>

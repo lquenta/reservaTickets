@@ -16,7 +16,7 @@ class SiteContentController extends Controller
             ['key' => SiteContent::KEY_QUIENES_SOMOS],
             [
                 'title' => 'QUIÉNES SOMOS',
-                'content' => "NOVA es tu plataforma para descubrir eventos y reservar tickets de forma rápida y segura.\nConectamos organizadores con el público: elige tu evento, reserva de 1 a 4 entradas con un código único de pago y recibe tus tickets por correo.\n\nSimple, transparente y pensado para que no te pierdas nada.",
+                'content' => "NOVA es tu plataforma para descubrir eventos y reservar tickets de forma rápida y segura.\nConectamos organizadores con el público: elige tu evento, reserva de 1 a 10 entradas con un código único de pago y recibe tus tickets por correo.\n\nSimple, transparente y pensado para que no te pierdas nada.",
             ]
         );
         return view('admin.site-content.quienes-somos', compact('block'));
