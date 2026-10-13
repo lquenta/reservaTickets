@@ -73,7 +73,7 @@
 
             <section>
                 <h2 class="text-lg font-semibold text-[#ff2daa] mb-2">9. Contacto</h2>
-                <p>Para consultas sobre estos Términos y Condiciones o sobre el tratamiento de sus datos, puede contactarnos a través del formulario de contacto disponible en el Sitio o en la sección «Contacto».</p>
+                <p>Para consultas sobre estos Términos y Condiciones o sobre el tratamiento de sus datos, puede escribirnos por WhatsApp desde la sección «Contacto».</p>
             </section>
         </div>
 
