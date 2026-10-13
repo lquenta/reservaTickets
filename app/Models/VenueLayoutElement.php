@@ -18,6 +18,9 @@ class VenueLayoutElement extends Model
 
     public const TYPE_TABLE = 'table';
 
+    /** Silla de relleno: no se vende, no tiene rótulo ni butaca asociada. */
+    public const TYPE_UNAVAILABLE = 'unavailable';
+
     protected $fillable = [
         'venue_id',
         'seat_id',

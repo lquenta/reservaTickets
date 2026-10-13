@@ -3,6 +3,8 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Exceptions\ThrottleRequestsException;
+use Illuminate\Http\Request;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -20,5 +22,19 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        $exceptions->render(function (ThrottleRequestsException $e, Request $request) {
+            if (! $request->is('login', 'register', 'forgot-password', 'reset-password', 'reset-password/*')) {
+                return null;
+            }
+
+            $message = 'Demasiados intentos. Espera un minuto e inténtalo de nuevo.';
+
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $message], 429);
+            }
+
+            return redirect()->back()
+                ->withInput($request->except('password', 'password_confirmation'))
+                ->with('message', $message);
+        });
     })->create();

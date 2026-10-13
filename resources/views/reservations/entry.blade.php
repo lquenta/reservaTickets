@@ -14,6 +14,7 @@
                class="flex w-full items-center justify-center rounded-xl bg-[#ff2daa] px-5 py-4 text-white font-bold hover:bg-pink-600 transition">
                 Continuar como invitado
             </a>
+            @include('auth._google')
             <a href="{{ route('login') }}"
                class="flex w-full items-center justify-center rounded-xl border border-white/30 bg-white/10 px-5 py-4 text-white font-semibold hover:bg-white/20 transition">
                 Iniciar sesión

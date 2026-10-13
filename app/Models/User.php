@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Notifications\ResetPassword as ResetPasswordNotification;
 use App\Notifications\VerifyEmail as VerifyEmailNotification;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -20,9 +21,12 @@ class User extends Authenticatable
 
     public const PROVISIONED_VIA_PUBLIC_GUEST = 'public_guest';
 
+    public const PROVISIONED_VIA_GOOGLE = 'google';
+
     protected $fillable = [
         'name',
         'email',
+        'google_id',
         'ci',
         'phone',
         'password',
@@ -136,5 +140,10 @@ class User extends Authenticatable
     public function sendEmailVerificationNotification(): void
     {
         $this->notify(new VerifyEmailNotification);
+    }
+
+    public function sendPasswordResetNotification($token): void
+    {
+        $this->notify(new ResetPasswordNotification($token));
     }
 }

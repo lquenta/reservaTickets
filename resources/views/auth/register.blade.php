@@ -6,7 +6,9 @@
 <div class="max-w-md mx-auto">
     <div class="rounded-2xl border border-purple-900/50 bg-black/60 backdrop-blur p-8 md:p-10">
         <h1 class="font-display text-3xl font-bold text-[#ff2daa] tracking-widest mb-2">CREAR CUENTA</h1>
-        <p class="text-white/80 mb-8">Completa tus datos para reservar tickets.</p>
+        <p class="text-white/80 mb-8">{{ filled(config('services.google.client_id')) && filled(config('services.google.client_secret')) ? 'Entra con Google o completa tus datos para reservar tickets.' : 'Completa tus datos para reservar tickets.' }}</p>
+
+        @include('auth._google', ['divider' => true])
 
         <form method="POST" action="{{ route('register') }}" class="space-y-4">
             @csrf
@@ -14,8 +16,7 @@
             <div>
                 <label for="name" class="block text-sm font-medium text-white/80 mb-1">Nombre completo</label>
                 <input id="name" type="text" name="name" value="{{ old('name') }}" required autofocus autocomplete="name" maxlength="255"
-                       class="w-full rounded-xl border border-purple-900/50 bg-black/60 px-4 py-3 text-white placeholder-white/40 focus:ring-2 focus:ring-[#39ff14] focus:border-[#39ff14] @error('name') border-red-500 @enderror"
-                       pattern="[\p{L}\s\-\.']+">
+                       class="w-full rounded-xl border border-purple-900/50 bg-black/60 px-4 py-3 text-white placeholder-white/40 focus:ring-2 focus:ring-[#39ff14] focus:border-[#39ff14] @error('name') border-red-500 @enderror">
                 @error('name')
                     <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
                 @enderror
@@ -27,22 +28,16 @@
                        class="w-full rounded-xl border border-purple-900/50 bg-black/60 px-4 py-3 text-white placeholder-white/40 focus:ring-2 focus:ring-[#39ff14] focus:border-[#39ff14] @error('email') border-red-500 @enderror">
                 @error('email')
                     <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
-                @enderror
-            </div>
-            <div>
-                <label for="email_confirmation" class="block text-sm font-medium text-white/80 mb-1">Confirmar correo</label>
-                <input id="email_confirmation" type="email" name="email_confirmation" value="{{ old('email_confirmation') }}" required autocomplete="email" maxlength="255"
-                       class="w-full rounded-xl border border-purple-900/50 bg-black/60 px-4 py-3 text-white placeholder-white/40 focus:ring-2 focus:ring-[#39ff14] @error('email_confirmation') border-red-500 @enderror">
-                @error('email_confirmation')
-                    <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
+                    @if(str_contains($message, 'Recupera la contraseña'))
+                        <a href="{{ route('password.request') }}" class="mt-1 inline-block text-sm font-medium text-[#ff2daa] hover:text-[#39ff14]">Recuperar contraseña</a>
+                    @endif
                 @enderror
             </div>
 
             <div>
                 <label for="ci" class="block text-sm font-medium text-white/80 mb-1">CI</label>
-                <input id="ci" type="text" name="ci" value="{{ old('ci') }}" required maxlength="15"
-                       class="w-full rounded-xl border border-purple-900/50 bg-black/60 px-4 py-3 text-white placeholder-white/40 focus:ring-2 focus:ring-[#39ff14] @error('ci') border-red-500 @enderror"
-                       pattern="[0-9\-]+">
+                <input id="ci" type="text" name="ci" value="{{ old('ci') }}" required maxlength="20"
+                       class="w-full rounded-xl border border-purple-900/50 bg-black/60 px-4 py-3 text-white placeholder-white/40 focus:ring-2 focus:ring-[#39ff14] @error('ci') border-red-500 @enderror">
                 @error('ci')
                     <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
                 @enderror
@@ -51,8 +46,7 @@
             <div>
                 <label for="phone" class="block text-sm font-medium text-white/80 mb-1">Teléfono celular</label>
                 <input id="phone" type="text" name="phone" value="{{ old('phone') }}" required maxlength="20"
-                       class="w-full rounded-xl border border-purple-900/50 bg-black/60 px-4 py-3 text-white placeholder-white/40 focus:ring-2 focus:ring-[#39ff14] @error('phone') border-red-500 @enderror"
-                       pattern="[0-9\s+\-]+">
+                       class="w-full rounded-xl border border-purple-900/50 bg-black/60 px-4 py-3 text-white placeholder-white/40 focus:ring-2 focus:ring-[#39ff14] @error('phone') border-red-500 @enderror">
                 @error('phone')
                     <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
                 @enderror
@@ -60,7 +54,7 @@
 
             <div>
                 <label for="password" class="block text-sm font-medium text-white/80 mb-1">Contraseña</label>
-                <input id="password" type="password" name="password" required autocomplete="new-password" minlength="8" maxlength="255"
+                <input id="password" type="password" name="password" required autocomplete="new-password" maxlength="255"
                        class="w-full rounded-xl border border-purple-900/50 bg-black/60 px-4 py-3 text-white placeholder-white/40 focus:ring-2 focus:ring-[#39ff14] @error('password') border-red-500 @enderror">
                 @error('password')
                     <p class="mt-1 text-sm text-red-400">{{ $message }}</p>

@@ -27,7 +27,7 @@ class LoginRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'g-recaptcha-response.required' => __('Debe completar la verificación de seguridad.'),
+            'g-recaptcha-response.required' => 'Debe completar la verificación de seguridad.',
         ];
     }
 
@@ -39,7 +39,7 @@ class LoginRequest extends FormRequest
         $recaptcha = app(RecaptchaService::class);
         if (! $recaptcha->verify($this->input('g-recaptcha-response', ''))) {
             throw ValidationException::withMessages([
-                'g-recaptcha-response' => [__('La verificación de seguridad ha fallado. Intente de nuevo.')],
+                'g-recaptcha-response' => ['La verificación de seguridad ha fallado. Intente de nuevo.'],
             ]);
         }
     }

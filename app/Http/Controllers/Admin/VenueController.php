@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\ReservationTicket;
 use App\Models\Section;
 use App\Models\Venue;
 use App\Models\VenueLayoutElement;
+use App\Support\SeatRowLimits;
 use App\Support\SectionLayoutColors;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -152,7 +154,9 @@ class VenueController extends Controller
         $validated = $request->validate([
             'elements' => ['required', 'array'],
             'elements.*.id' => ['nullable', 'integer'],
-            'elements.*.type' => ['required', 'in:seat,stage,speaker,table'],
+            'elements.*.type' => ['required', 'in:seat,stage,speaker,table,unavailable'],
+            'seat_row_limits' => ['nullable', 'array'],
+            'seat_row_limits.*' => ['integer', 'min:1', 'max:50'],
             'elements.*.seat_id' => ['nullable', 'integer'],
             'elements.*.x' => ['required', 'numeric', 'min:0', 'max:10000'],
             'elements.*.y' => ['required', 'numeric', 'min:0', 'max:10000'],
@@ -219,7 +223,18 @@ class VenueController extends Controller
             }
         }
 
-        DB::transaction(function () use ($venue, $elements, $seatSectionAssignments, $validated) {
+        DB::transaction(function () use ($venue, $elements, $seatIds, $seatSectionAssignments, $validated) {
+            if (array_key_exists('seat_row_limits', $validated)) {
+                $limits = SeatRowLimits::normalize(
+                    $validated['seat_row_limits'],
+                    (int) $venue->seat_rows,
+                    (int) $venue->seat_columns
+                );
+                $venue->seat_row_limits = $limits === [] ? null : $limits;
+                $venue->save();
+                $this->syncSeatsForVenue($venue, $seatIds->all());
+            }
+
             $existingIds = $venue->layoutElements()->pluck('id')->all();
 
             // Borrar primero los elementos que ya no están en el payload para liberar el
@@ -318,6 +333,7 @@ class VenueController extends Controller
                 'number' => $seat->number,
                 'section_id' => $seat->section_id,
             ])->values(),
+            'seat_row_limits' => $venue->seat_row_limits ?? (object) [],
             'sections' => $venue->sections->map(fn (Section $s) => [
                 'id' => $s->id,
                 'name' => $s->name,
@@ -326,19 +342,63 @@ class VenueController extends Controller
         ]);
     }
 
-    private function syncSeatsForVenue(Venue $venue): void
+    /**
+     * @param  list<int>  $seatIdsKeptOnLayout  Butacas que el plano todavía referencia. No se pueden borrar.
+     */
+    private function syncSeatsForVenue(Venue $venue, array $seatIdsKeptOnLayout = []): void
     {
         $rows = (int) $venue->seat_rows;
         $cols = (int) $venue->seat_columns;
+        $limits = SeatRowLimits::normalize(
+            is_array($venue->seat_row_limits) ? $venue->seat_row_limits : null,
+            $rows,
+            $cols
+        );
+        $stored = is_array($venue->seat_row_limits) ? $venue->seat_row_limits : null;
+        $encodedLimits = $limits === [] ? null : $limits;
+        if (json_encode($stored) !== json_encode($encodedLimits)) {
+            $venue->seat_row_limits = $encodedLimits;
+            $venue->save();
+        }
 
-        // Eliminar butacas fuera del nuevo grid
-        $venue->seats()->where(function ($q) use ($rows, $cols) {
-            $q->where('row', '>', $rows)->orWhere('number', '>', $cols);
-        })->delete();
+        $doomed = $venue->seats()->get()->filter(function ($seat) use ($rows, $cols, $limits) {
+            if ((int) $seat->row > $rows || (int) $seat->number > $cols) {
+                return true;
+            }
+
+            return (int) $seat->number > SeatRowLimits::maxForRow($limits, (int) $seat->row, $cols);
+        })->values();
+
+        if ($doomed->isNotEmpty()) {
+            $doomedIds = $doomed->pluck('id')->map(fn ($id) => (int) $id);
+            $kept = collect($seatIdsKeptOnLayout)->map(fn ($id) => (int) $id);
+            $stillOnLayout = $doomed->filter(fn ($seat) => $kept->contains((int) $seat->id));
+            if ($stillOnLayout->isNotEmpty()) {
+                $labels = $stillOnLayout->map(fn ($seat) => $seat->display_label)->implode(', ');
+                throw ValidationException::withMessages([
+                    'elements' => "El plano todavía incluye butacas que esa fila no vende ({$labels}). Vuelve a insertar el pasillo central antes de guardar.",
+                ]);
+            }
+
+            $withTickets = $doomed->filter(function ($seat) {
+                return ReservationTicket::query()->where('seat_id', $seat->id)->exists();
+            });
+            if ($withTickets->isNotEmpty()) {
+                $labels = $withTickets->map(fn ($seat) => $seat->display_label)->implode(', ');
+                throw ValidationException::withMessages([
+                    'seat_row_limits' => "No se puede quitar del inventario una butaca que ya tiene entradas ({$labels}).",
+                ]);
+            }
+
+            $ids = $doomedIds->all();
+            $venue->layoutElements()->whereIn('seat_id', $ids)->delete();
+            $venue->seats()->whereIn('id', $ids)->delete();
+        }
 
         for ($row = 1; $row <= $rows; $row++) {
-            for ($num = 1; $num <= $cols; $num++) {
-                $rowLetter = $row >= 1 && $row <= 26 ? chr(64 + $row) : (string) $row;
+            $max = SeatRowLimits::maxForRow($limits, $row, $cols);
+            $rowLetter = $row >= 1 && $row <= 26 ? chr(64 + $row) : (string) $row;
+            for ($num = 1; $num <= $max; $num++) {
                 $venue->seats()->updateOrCreate(
                     ['row' => $row, 'number' => $num],
                     ['label' => $rowLetter.'-'.$num]

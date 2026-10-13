@@ -87,22 +87,22 @@
             </div>
         @else
             <div class="rounded-2xl border border-purple-900/50 bg-purple-900/10 p-6">
-                <p class="text-white/80 font-medium">Realice el pago por el medio indicado por el organizador (transferencia, efectivo, etc.). Luego suba la captura o foto del comprobante abajo.</p>
+                <p class="text-white/80 font-medium">Realice el pago por el medio indicado por el organizador (transferencia, efectivo, etc.). Luego suba el comprobante abajo.</p>
             </div>
         @endif
 
         <p class="text-white/70 text-sm leading-relaxed">
-            Después de pagar, <strong class="text-white">suba una captura o foto del comprobante de pago</strong> (transferencia, depósito, etc.). Revisaremos el comprobante y te enviaremos los tickets por correo una vez autorizado.
+            Después de pagar, <strong class="text-white">suba el comprobante de pago</strong> (transferencia, depósito, etc.). Revisaremos el comprobante y te enviaremos los tickets por correo una vez autorizado.
         </p>
 
         <form method="POST" action="{{ route('checkout.confirm', $reservation) }}" enctype="multipart/form-data" class="space-y-5 pt-2">
             @csrf
 
             <div class="p-4 rounded-xl border border-purple-900/50">
-                <label for="payment_receipt" class="block font-semibold text-white/80 mb-2">Comprobante de pago (captura o foto) <span class="text-[#a569ff]">*</span></label>
-                <input id="payment_receipt" type="file" name="payment_receipt" accept="image/*" required
+                <label for="payment_receipt" class="block font-semibold text-white/80 mb-2">Comprobante de pago <span class="text-[#a569ff]">*</span></label>
+                <input id="payment_receipt" type="file" name="payment_receipt" required
                        class="w-full rounded-xl border border-purple-900/50 bg-black/60 px-4 py-3 text-white file:mr-4 file:rounded-lg file:border-0 file:bg-[#ff2daa] file:px-4 file:py-2 file:text-white file:font-medium @error('payment_receipt') border-red-500 @enderror">
-                <p class="mt-1 text-xs text-white/50">Formatos: JPG, PNG, etc. Máximo 5 MB.</p>
+                <p class="mt-1 text-xs text-white/50">Cualquier archivo. Máximo 15 MB.</p>
                 @error('payment_receipt')<p class="mt-1 text-sm text-red-400">{{ $message }}</p>@enderror
             </div>
 

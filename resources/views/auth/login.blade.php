@@ -6,7 +6,9 @@
 <div class="max-w-md mx-auto">
     <div class="rounded-2xl border border-purple-900/50 bg-black/60 backdrop-blur p-8 md:p-10">
         <h1 class="font-display text-3xl font-bold text-[#ff2daa] tracking-widest mb-2">INICIAR SESIÓN</h1>
-        <p class="text-white/80 mb-8">Ingresa tu correo y contraseña para acceder.</p>
+        <p class="text-white/80 mb-8">{{ filled(config('services.google.client_id')) && filled(config('services.google.client_secret')) ? 'Entra con Google o con tu correo y contraseña.' : 'Ingresa tu correo y contraseña para acceder.' }}</p>
+
+        @include('auth._google', ['divider' => true])
 
         <form method="POST" action="{{ route('login') }}" class="space-y-4">
             @csrf
@@ -27,6 +29,7 @@
                 @error('password')
                     <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
                 @enderror
+                <a href="{{ route('password.request') }}" class="mt-2 inline-block text-sm text-[#ff2daa] hover:text-[#39ff14]">¿Olvidaste tu contraseña?</a>
             </div>
 
             <div class="flex items-center">

@@ -93,17 +93,17 @@
             </div>
         @else
             <div class="rounded-2xl border border-purple-900/50 bg-purple-900/10 p-6">
-                <p class="text-white/80 font-medium">Realice el pago por el medio indicado por el organizador. Luego suba la captura o foto del comprobante abajo.</p>
+                <p class="text-white/80 font-medium">Realice el pago por el medio indicado por el organizador. Luego suba el comprobante abajo.</p>
             </div>
         @endif
 
         <form method="POST" action="{{ $confirmRoute }}" enctype="multipart/form-data" class="space-y-5 pt-2">
             @csrf
             <div class="p-4 rounded-xl border border-purple-900/50">
-                <label for="payment_receipt" class="block font-semibold text-white/80 mb-2">Comprobante de pago (captura o foto) <span class="text-[#a569ff]">*</span></label>
-                <input id="payment_receipt" type="file" name="payment_receipt" accept="image/*" required
+                <label for="payment_receipt" class="block font-semibold text-white/80 mb-2">Comprobante de pago <span class="text-[#a569ff]">*</span></label>
+                <input id="payment_receipt" type="file" name="payment_receipt" required
                        class="w-full rounded-xl border border-purple-900/50 bg-black/60 px-4 py-3 text-white file:mr-4 file:rounded-lg file:border-0 file:bg-[#ff2daa] file:px-4 file:py-2 file:text-white file:font-medium @error('payment_receipt') border-red-500 @enderror">
-                <p class="mt-1 text-xs text-white/50">Formatos: JPG, PNG, etc. Máximo 5 MB.</p>
+                <p class="mt-1 text-xs text-white/50">Cualquier archivo. Máximo 15 MB.</p>
                 @error('payment_receipt')<p class="mt-1 text-sm text-red-400">{{ $message }}</p>@enderror
             </div>
 

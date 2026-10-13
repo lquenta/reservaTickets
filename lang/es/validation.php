@@ -24,12 +24,17 @@ return [
     'integer' => 'El campo :attribute debe ser un número entero.',
     'image' => 'El campo :attribute debe ser una imagen.',
     'uploaded' => 'El :attribute no se pudo subir.',
+    'unique' => 'Este :attribute ya está registrado.',
+    'confirmed' => 'La confirmación de :attribute no coincide.',
+    'same' => 'El campo :attribute debe coincidir con :other.',
 
     'attributes' => [
         'holder_name' => 'nombre del titular',
         'email' => 'correo electrónico',
         'password' => 'contraseña',
         'name' => 'nombre',
+        'ci' => 'CI',
+        'phone' => 'teléfono',
         'guest_first_name' => 'nombre',
         'guest_last_name' => 'apellido',
         'guest_phone' => 'teléfono',

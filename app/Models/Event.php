@@ -53,8 +53,18 @@ class Event extends Model
     public function acceptsReservations(): bool
     {
         return $this->is_active
-            && ! $this->sales_paused
-            && $this->starts_at->isFuture();
+            && ! $this->sales_paused;
+    }
+
+    /**
+     * Catálogo público: los que aún no empiezan y los que ya empezaron pero siguen a la venta.
+     */
+    public function scopeListedPublicly(Builder $query): Builder
+    {
+        return $query->where(function (Builder $q) {
+            $q->where('starts_at', '>', now())
+                ->orWhere('is_active', true);
+        });
     }
 
     /**

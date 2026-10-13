@@ -367,6 +367,41 @@
                             Insertar matriz en el plano
                         </button>
                     </div>
+
+                    <div class="border-t border-violet-200/80 dark:border-violet-900/50 pt-3 mt-3 space-y-2">
+                        <h4 class="text-xs font-semibold text-slate-800 dark:text-slate-100">Pasillo central (pares e impares)</h4>
+                        <p class="text-[11px] text-slate-600 dark:text-slate-400">Impares a la izquierda, de mayor a menor hacia el pasillo. Pares a la derecha, de menor a mayor. El rótulo sigue siendo A-1. Los puestos de afuera que la fila no numera se dibujan como silla sin texto: no se venden y no entran en un rango de columnas.</p>
+                        <p class="text-[11px] text-slate-600 dark:text-slate-400">Los sectores se definen en el formulario de arriba. Platea VIP: filas 1–7 (A–G). Platea General: filas 8–16 (H–P). Deja las columnas vacías para tomar todas las butacas de esas filas. Galería: desmarca «con butacas» y pon la capacidad.</p>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label for="aisle-row-start" class="block text-[11px] font-medium text-slate-600 dark:text-slate-400 mb-0.5">Fila inicial</label>
+                                <input id="aisle-row-start" type="text" maxlength="3" value="A" class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 px-2 py-2 text-sm uppercase">
+                            </div>
+                            <div>
+                                <label for="aisle-row-end" class="block text-[11px] font-medium text-slate-600 dark:text-slate-400 mb-0.5">Fila final</label>
+                                <input id="aisle-row-end" type="text" maxlength="3" value="{{ $venue->seat_rows >= 1 && $venue->seat_rows <= 26 ? chr(64 + (int) $venue->seat_rows) : $venue->seat_rows }}" class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 px-2 py-2 text-sm uppercase">
+                            </div>
+                            <div>
+                                <label for="aisle-house-max" class="block text-[11px] font-medium text-slate-600 dark:text-slate-400 mb-0.5">Butaca máxima de la sala</label>
+                                <input id="aisle-house-max" type="number" min="1" max="50" value="{{ $venue->seat_columns }}" class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 px-2 py-2 text-sm">
+                            </div>
+                            <div>
+                                <label for="aisle-gap" class="block text-[11px] font-medium text-slate-600 dark:text-slate-400 mb-0.5">Ancho del pasillo (px)</label>
+                                <input id="aisle-gap" type="number" min="8" max="400" value="52" class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 px-2 py-2 text-sm">
+                            </div>
+                        </div>
+                        <div>
+                            <label for="aisle-row-limits" class="block text-[11px] font-medium text-slate-600 dark:text-slate-400 mb-0.5">Largo por fila (opcional)</label>
+                            <textarea id="aisle-row-limits" rows="2" placeholder="A:18, C:20, G:24" class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 px-2 py-2 text-sm uppercase"></textarea>
+                            <p class="mt-1 text-[11px] text-slate-500 dark:text-slate-400">Vacío = todas las filas llegan a la butaca máxima. Una fila más corta no crea esos números.</p>
+                        </div>
+                        <button id="layout-aisle-preset-btn" type="button" class="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-3 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:border-violet-500">
+                            Plantilla domingo 31 (A–P)
+                        </button>
+                        <button id="layout-aisle-insert-btn" type="button" class="w-full rounded-xl bg-violet-600 hover:bg-violet-500 px-3 py-2.5 text-sm font-semibold text-white shadow-sm">
+                            Insertar pasillo central
+                        </button>
+                    </div>
                 </div>
                     </details>
                     </div>
@@ -504,6 +539,8 @@
         (function() {
             const elements = {!! $layoutElementsJson !!};
             const seats = {!! $venueSeatsJson !!};
+            let seatRowLimits = {!! json_encode($venue->seat_row_limits ?: (object) []) !!};
+            const domingoRowLimits = {!! json_encode(\App\Support\OddEvenAislePlan::domingo31RowLimits()) !!};
             let sections = {!! $venueSectionsJson !!};
             const host = document.getElementById('layout-konva-host');
             const statusEl = document.getElementById('layout-status');
@@ -969,7 +1006,196 @@
                 setStatus(msg, picked.length < needed || maxX > sw || maxY > sh ? 'warn' : 'ok');
             }
 
+            function parseRowLimitText(raw) {
+                const map = {};
+                String(raw || '').toUpperCase().split(/[\s,;]+/).forEach(function(part) {
+                    const match = part.trim().match(/^([A-Z]|\d+)\s*[:=]\s*(\d+)$/);
+                    if (!match) return;
+                    const row = parseVenueRowIndex(match[1]);
+                    const max = parseInt(match[2], 10);
+                    if (row != null && Number.isFinite(max) && max >= 1) {
+                        map[row] = max;
+                    }
+                });
+                return map;
+            }
+
+            function domingoLimitText() {
+                return Object.keys(domingoRowLimits).sort(function(a, b) {
+                    return Number(a) - Number(b);
+                }).map(function(row) {
+                    const n = Number(row);
+                    const letter = n >= 1 && n <= 26 ? String.fromCharCode(64 + n) : String(row);
+                    return letter + ':' + domingoRowLimits[row];
+                }).join(', ');
+            }
+
+            function cellsForOddEvenRow(rowMax, houseMax) {
+                const cells = [];
+                const highestOdd = houseMax % 2 === 1 ? houseMax : houseMax - 1;
+                for (let n = highestOdd; n >= 1; n -= 2) {
+                    cells.push(n <= rowMax ? { kind: 'seat', number: n } : { kind: 'unavailable', number: null });
+                }
+                const leftCount = cells.length;
+                const highestEven = houseMax % 2 === 0 ? houseMax : houseMax - 1;
+                for (let n = 2; n <= highestEven; n += 2) {
+                    cells.push(n <= rowMax ? { kind: 'seat', number: n } : { kind: 'unavailable', number: null });
+                }
+                return { cells: cells, leftCount: leftCount };
+            }
+
+            function applyDomingoAislePreset() {
+                const startEl = document.getElementById('aisle-row-start');
+                const endEl = document.getElementById('aisle-row-end');
+                const houseEl = document.getElementById('aisle-house-max');
+                const limitsEl = document.getElementById('aisle-row-limits');
+                if (startEl) startEl.value = 'A';
+                if (endEl) endEl.value = 'P';
+                if (houseEl) houseEl.value = '24';
+                if (limitsEl) limitsEl.value = domingoLimitText();
+                setStatus('Plantilla domingo 31: filas A–P, pasillo central, largos del plano. El venue necesita 16 filas y 24 columnas.', 'ok');
+            }
+
+            function insertOddEvenAisle() {
+                if (!stage) {
+                    setStatus('El editor aún no está listo. Espera un momento o recarga.', 'error');
+                    return;
+                }
+                const startRaw = (document.getElementById('aisle-row-start') || {}).value || '';
+                const endRaw = (document.getElementById('aisle-row-end') || {}).value || '';
+                if (!normRowStr(startRaw) || !normRowStr(endRaw)) {
+                    setStatus('Indica fila inicial y fila final.', 'error');
+                    return;
+                }
+                const rowIndices = expandVenueRowIndices(startRaw, endRaw);
+                if (!rowIndices || rowIndices.length === 0) {
+                    setStatus('No se pudo interpretar el rango de filas.', 'error');
+                    return;
+                }
+                let houseMax = parseInt((document.getElementById('aisle-house-max') || {}).value, 10) || venueSeatColumns;
+                houseMax = Math.max(1, Math.min(50, houseMax));
+                if (houseMax > venueSeatColumns) {
+                    setStatus('La butaca máxima (' + houseMax + ') supera las columnas del venue (' + venueSeatColumns + '). Sube las columnas, guarda el lugar y vuelve a insertar.', 'error');
+                    return;
+                }
+                const limits = parseRowLimitText((document.getElementById('aisle-row-limits') || {}).value || '');
+                const { seatW, seatH, gapX, gapY, startX, startY } = readBulkLayoutParams();
+                const aisleGap = Math.max(8, Math.min(400, parseInt((document.getElementById('aisle-gap') || {}).value, 10) || seatW));
+                const rowSet = new Set(rowIndices);
+                for (let i = elements.length - 1; i >= 0; i--) {
+                    const el = elements[i];
+                    if (el.type === 'unavailable' && el.meta && el.meta.source === 'odd-even-aisle' && rowSet.has(Number(el.meta.row))) {
+                        elements.splice(i, 1);
+                        continue;
+                    }
+                    if (el.type === 'seat' && el.seat_id) {
+                        const placed = seats.find(function(s) { return Number(s.id) === Number(el.seat_id); });
+                        if (placed && rowSet.has(Number(placed.row))) {
+                            elements.splice(i, 1);
+                        }
+                    }
+                }
+                let maxZ = elements.reduce(function(m, x) { return Math.max(m, x.z_index || 0); }, 0);
+                let placedSeats = 0;
+                let placedFillers = 0;
+                let missingVenue = 0;
+                let trimmedRows = 0;
+                const sw = stage.width();
+                const sh = stage.height();
+                let maxX = 0;
+                let maxY = 0;
+
+                rowIndices.forEach(function(venueRow, rVisual) {
+                    let rowMax = Object.prototype.hasOwnProperty.call(limits, venueRow) ? limits[venueRow] : houseMax;
+                    rowMax = Math.max(1, Math.min(houseMax, rowMax, venueSeatColumns));
+                    if (rowMax < venueSeatColumns) {
+                        seatRowLimits[String(venueRow)] = rowMax;
+                        trimmedRows += 1;
+                    } else {
+                        delete seatRowLimits[String(venueRow)];
+                    }
+                    const plan = cellsForOddEvenRow(rowMax, houseMax);
+                    let cursor = startX;
+                    plan.cells.forEach(function(cell, index) {
+                        if (index === plan.leftCount) {
+                            cursor += aisleGap;
+                        } else if (index > 0) {
+                            cursor += gapX;
+                        }
+                        const x = snapPos(cursor);
+                        const y = snapPos(startY + rVisual * (seatH + gapY));
+                        cursor += seatW;
+                        maxX = Math.max(maxX, x + seatW);
+                        maxY = Math.max(maxY, y + seatH);
+                        maxZ += 1;
+                        if (cell.kind === 'unavailable') {
+                            placedFillers += 1;
+                            elements.push({
+                                id: localId--,
+                                type: 'unavailable',
+                                seat_id: null,
+                                x: x,
+                                y: y,
+                                w: seatW,
+                                h: seatH,
+                                rotation: 0,
+                                z_index: maxZ,
+                                meta: { source: 'odd-even-aisle', row: venueRow },
+                                seat: null,
+                            });
+                            return;
+                        }
+                        const seat = seats.find(function(s) {
+                            return Number(s.row) === venueRow && Number(s.number) === cell.number;
+                        });
+                        if (!seat) {
+                            missingVenue += 1;
+                            return;
+                        }
+                        placedSeats += 1;
+                        elements.push({
+                            id: localId--,
+                            type: 'seat',
+                            seat_id: seat.id,
+                            x: x,
+                            y: y,
+                            w: seatW,
+                            h: seatH,
+                            rotation: 0,
+                            z_index: maxZ,
+                            meta: { source: 'odd-even-aisle', row: venueRow },
+                            seat: { id: seat.id, label: seat.label, section_id: seat.section_id != null ? seat.section_id : null },
+                        });
+                    });
+                });
+
+                if (placedSeats === 0 && placedFillers === 0) {
+                    setStatus('No se colocó nada. Revisa las filas y que el venue ya tenga esas butacas.', 'error');
+                    return;
+                }
+                normalizeZ();
+                refreshSeatSelect();
+                rebuildScene();
+                markDirty('Pasillo central insertado.');
+                let msg = 'Pasillo central: ' + placedSeats + ' butaca(s)';
+                if (placedFillers) {
+                    msg += ' y ' + placedFillers + ' silla(s) sin número';
+                }
+                msg += '.';
+                if (trimmedRows) {
+                    msg += ' Guarda el layout para quitar del inventario los números que esas filas no venden.';
+                }
+                if (missingVenue) {
+                    msg += ' ' + missingVenue + ' número(s) no existen en el venue.';
+                }
+                if (maxX > sw || maxY > sh) {
+                    msg += ' Parte queda fuera del lienzo: reduce tamaño o huecos, o aleja el zoom.';
+                }
+                setStatus(msg, missingVenue || trimmedRows || maxX > sw || maxY > sh ? 'warn' : 'ok');
+            }
+
             function elementLabel(el) {
+                if (el.type === 'unavailable') return '';
                 if (el.type === 'seat') return el.seat?.label || ('Butaca #' + (el.seat_id ?? ''));
                 if (el.type === 'stage') return (el.meta && el.meta.label) ? el.meta.label : 'ESCENARIO';
                 if (el.type === 'speaker') return (el.meta && el.meta.label) ? el.meta.label : 'PARLANTE';
@@ -978,6 +1204,7 @@
 
             function colorsForType(type) {
                 if (type === 'seat') return { fill: '#059669', stroke: '#065f46', text: '#ffffff' };
+                if (type === 'unavailable') return { fill: '#1e293b', stroke: '#334155', text: '#1e293b' };
                 if (type === 'stage') return { fill: '#b91c1c', stroke: '#7f1d1d', text: '#ffffff' };
                 if (type === 'speaker') return { fill: '#d97706', stroke: '#92400e', text: '#ffffff' };
                 return { fill: '#78350f', stroke: '#451a03', text: '#ffffff' };
@@ -1129,7 +1356,7 @@
 
             function applyTransformerForType(type) {
                 if (!transformer) return;
-                if (type === 'seat') {
+                if (type === 'seat' || type === 'unavailable') {
                     transformer.keepRatio(true);
                     transformer.enabledAnchors(['top-left', 'top-right', 'bottom-left', 'bottom-right']);
                 } else {
@@ -1810,6 +2037,14 @@
             if (bulkMatrixBtn) {
                 bulkMatrixBtn.addEventListener('click', insertBulkSeatMatrix);
             }
+            const aislePresetBtn = document.getElementById('layout-aisle-preset-btn');
+            const aisleInsertBtn = document.getElementById('layout-aisle-insert-btn');
+            if (aislePresetBtn) {
+                aislePresetBtn.addEventListener('click', applyDomingoAislePreset);
+            }
+            if (aisleInsertBtn) {
+                aisleInsertBtn.addEventListener('click', insertOddEvenAisle);
+            }
 
             saveBtn.addEventListener('click', async function() {
                 const seatElems = elements.filter(e => e.type === 'seat');
@@ -1839,6 +2074,7 @@
                         })),
                         seat_sections: buildSeatSectionsPayload(),
                         section_colors: buildSectionColorsPayload(),
+                        seat_row_limits: seatRowLimits,
                         canvas_width: stage ? Math.round(stage.width()) : null,
                         canvas_height: stage ? Math.round(stage.height()) : null,
                     };
@@ -1861,6 +2097,9 @@
                     elements.splice(0, elements.length, ...(data.elements || []));
                     if (Array.isArray(data.seats)) {
                         seats.splice(0, seats.length, ...data.seats);
+                    }
+                    if (data.seat_row_limits && typeof data.seat_row_limits === 'object') {
+                        seatRowLimits = data.seat_row_limits;
                     }
                     if (Array.isArray(data.sections)) {
                         sections = data.sections.map(function(s) {

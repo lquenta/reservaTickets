@@ -78,6 +78,9 @@
                                 <span class="max-h-full overflow-hidden text-center text-[8px] font-semibold uppercase leading-tight sm:text-[10px]" x-text="(el.meta && el.meta.label) ? el.meta.label : 'MESA'"></span>
                             </div>
                         </template>
+                        <template x-if="layoutElType(el) === 'unavailable'">
+                            <div class="absolute inset-0 z-0 rounded-md border-2 border-slate-700 bg-slate-900 pointer-events-none" aria-hidden="true" title="No disponible"></div>
+                        </template>
                     </div>
                 </template>
             </div>
