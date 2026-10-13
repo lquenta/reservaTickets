@@ -220,7 +220,7 @@ class ReservationService
             'event_id' => $event->id,
             'status' => $adminSale?->initialStatus ?? Reservation::STATUS_INICIADO,
             'payment_code' => $code,
-            'expires_at' => now()->addMinutes($adminSale?->expiryMinutes ?? 10),
+            'expires_at' => now()->addMinutes($adminSale?->expiryMinutes ?? Reservation::HOLD_MINUTES),
             'sale_type' => $adminSale?->saleType ?? Reservation::SALE_TYPE_STANDARD,
         ];
 

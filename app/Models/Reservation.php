@@ -27,6 +27,9 @@ class Reservation extends Model
 
     public const SALE_TYPE_HONORED_GUEST = 'honored_guest';
 
+    /** Minutos de vigencia de una reserva en proceso (INICIADO) antes de cancelarse. */
+    public const HOLD_MINUTES = 20;
+
     protected $fillable = [
         'user_id',
         'sold_by_user_id',

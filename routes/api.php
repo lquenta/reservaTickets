@@ -13,8 +13,6 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-if (config('services.ticket_validator.enabled', true)) {
-    Route::prefix('v1')->middleware('ticket.api.key')->group(function () {
-        Route::post('tickets/validate', [TicketValidationController::class, 'validateTicket']);
-    });
-}
+Route::prefix('v1')->middleware('ticket.api.key')->group(function () {
+    Route::post('tickets/validate', [TicketValidationController::class, 'validateTicket']);
+});

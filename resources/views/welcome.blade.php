@@ -28,7 +28,7 @@
     <div class="rounded-2xl border-2 border-violet-200/60 dark:border-violet-700/50 bg-white dark:bg-slate-800/80 p-8 shadow-lg hover:shadow-violet-500/10 transition">
         <x-icon name="clock" class="w-10 h-10 mb-4 text-[#ff2daa]" />
         <h2 class="text-xl font-bold text-slate-800 dark:text-white mb-2">Reserva en minutos</h2>
-        <p class="text-slate-600 dark:text-slate-400">Reserva de 1 a 4 boletos con un código único de pago. Tienes 10 minutos para completar.</p>
+        <p class="text-slate-600 dark:text-slate-400">Reserva de 1 a 4 boletos con un código único de pago. Tienes 20 minutos para completar.</p>
     </div>
     <div class="rounded-2xl border-2 border-violet-200/60 dark:border-violet-700/50 bg-white dark:bg-slate-800/80 p-8 shadow-lg hover:shadow-violet-500/10 transition">
         <x-icon name="mail" class="w-10 h-10 mb-4 text-[#39ff14]" />

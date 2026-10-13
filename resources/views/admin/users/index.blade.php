@@ -12,7 +12,7 @@
 
     <h1 class="text-3xl font-bold text-slate-800 dark:text-white">Usuarios registrados</h1>
 
-    <p class="text-slate-600 dark:text-slate-400 mt-1">Gestiona roles de administrador, vendedor y usuario.</p>
+    <p class="text-slate-600 dark:text-slate-400 mt-1">Gestiona roles y consulta las reservas de cada usuario al buscarlo.</p>
 
 </div>
 
@@ -32,7 +32,7 @@
 
     <div class="overflow-x-auto">
 
-        <table class="w-full min-w-[640px]">
+        <table class="w-full min-w-[800px]">
 
             <thead class="bg-slate-100 dark:bg-slate-700/50">
 
@@ -48,6 +48,8 @@
 
                     <th class="text-left px-5 py-4 text-slate-700 dark:text-slate-300 font-semibold">Rol</th>
 
+                    <th class="text-left px-5 py-4 text-slate-700 dark:text-slate-300 font-semibold">Reservas</th>
+
                     <th class="text-right px-5 py-4 text-slate-700 dark:text-slate-300 font-semibold">Acciones</th>
 
                 </tr>
@@ -60,7 +62,7 @@
 
                     <tr class="border-t border-slate-200 dark:border-slate-700 hover:bg-slate-50/50 dark:hover:bg-slate-700/30 transition">
 
-                        <td class="px-5 py-4 font-medium text-slate-800 dark:text-white">{{ $u->name }}</td>
+                        <td class="px-5 py-4 align-top font-medium text-slate-800 dark:text-white">{{ $u->name }}</td>
 
                         <td class="px-5 py-4 text-slate-600 dark:text-slate-400">{{ $u->displayEmail() ?? '— (invitado temporal)' }}</td>
 
@@ -114,6 +116,14 @@
 
                             @endif
 
+                        </td>
+
+                        <td class="px-5 py-4 text-sm text-slate-600 dark:text-slate-400 whitespace-nowrap">
+                            @if(($u->reservations_count ?? 0) === 0)
+                                <span class="text-slate-400 dark:text-slate-500">Sin reservas</span>
+                            @else
+                                <span class="inline-flex rounded-full bg-violet-100 dark:bg-violet-900/40 text-violet-700 dark:text-violet-300 px-2.5 py-0.5 text-xs font-semibold">{{ $u->reservations_count }} {{ $u->reservations_count === 1 ? 'reserva' : 'reservas' }}</span>
+                            @endif
                         </td>
 
                         <td class="px-5 py-4 text-right">
@@ -170,12 +180,19 @@
                         </td>
 
                     </tr>
+                    @if(request()->filled('q'))
+                        <tr class="border-t border-slate-100 dark:border-slate-700/60 bg-slate-50/70 dark:bg-slate-900/20">
+                            <td colspan="7" class="px-5 py-4">
+                                @include('admin.users._reservations')
+                            </td>
+                        </tr>
+                    @endif
 
                 @empty
 
                     <tr>
 
-                        <td colspan="6" class="px-5 py-12 text-center text-slate-500 dark:text-slate-400">
+                        <td colspan="7" class="px-5 py-12 text-center text-slate-500 dark:text-slate-400">
                             @if(request()->filled('q'))
                                 No hay usuarios que coincidan con la búsqueda.
                             @else
