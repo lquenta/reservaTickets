@@ -108,6 +108,7 @@
                 <div class="rounded-2xl border border-purple-900/50 bg-black/60 backdrop-blur px-4 py-5 sm:p-6">
                     <p class="text-white/80 text-sm font-medium text-center">Elige tus butacas en el plano</p>
                     <p class="text-white/60 text-xs mt-1 text-center max-w-xl mx-auto">Cada color corresponde a una sección. Filtra con el selector para enfocar una zona (el resto se atenúa). Las entradas sin butaca se eligen más abajo.</p>
+                    @include('shared.section-color-legend')
                     <div class="mb-3 flex flex-wrap items-center justify-center gap-2 rounded-lg border border-purple-900/50 bg-black/50 px-2 py-2 text-white shadow-inner">
                         <span class="w-11 text-center font-mono text-xs tabular-nums text-white/90" x-text="layoutZoomPercent() + '%'"></span>
                         <button type="button" class="inline-flex h-9 min-w-[2.25rem] items-center justify-center rounded-lg border border-purple-800/60 bg-black/60 px-2 text-lg font-semibold text-white hover:bg-purple-950/50 active:scale-95" @click.prevent="layoutZoomOut()" title="Alejar plano" aria-label="Alejar plano">−</button>
@@ -1088,6 +1089,7 @@
             <template x-if="hasCustomLayout()">
                 <div class="rounded-2xl border border-purple-900/50 bg-black/60 backdrop-blur px-4 py-5 sm:p-6">
                     <p class="text-white/70 text-sm mb-3 text-center">Plano del venue</p>
+                    @include('shared.section-color-legend')
                     <div class="mb-3 flex flex-wrap items-center justify-center gap-2 rounded-lg border border-purple-900/50 bg-black/50 px-2 py-2 text-white shadow-inner">
                         <span class="w-11 text-center font-mono text-xs tabular-nums text-white/90" x-text="layoutZoomPercentSimple() + '%'"></span>
                         <button type="button" class="inline-flex h-9 min-w-[2.25rem] items-center justify-center rounded-lg border border-purple-800/60 bg-black/60 px-2 text-lg font-semibold text-white hover:bg-purple-950/50 active:scale-95" @click.prevent="layoutZoomOutSimple()" title="Alejar plano" aria-label="Alejar plano">−</button>

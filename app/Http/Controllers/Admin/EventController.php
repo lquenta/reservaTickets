@@ -47,6 +47,7 @@ class EventController extends Controller
             'reservations as pending_count' => fn ($q) => $q->where('status', Reservation::STATUS_PENDIENTE_PAGO),
             'reservations as refunded_count' => fn ($q) => $q->where('status', Reservation::STATUS_REEMBOLSADO),
         ]);
+        $event->load('media');
 
         $lastReschedule = EventReschedule::query()
             ->where('event_id', $event->id)

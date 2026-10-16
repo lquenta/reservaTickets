@@ -175,6 +175,28 @@ class Event extends Model
         return true;
     }
 
+    protected static function booted(): void
+    {
+        static::deleting(function (Event $event) {
+            $event->media()->get()->each->delete();
+        });
+    }
+
+    public function media(): HasMany
+    {
+        return $this->hasMany(EventMedia::class)->orderBy('sort_order')->orderBy('id');
+    }
+
+    public function isPast(): bool
+    {
+        return $this->starts_at !== null && $this->starts_at->lt(now());
+    }
+
+    public function scopePast(Builder $query): Builder
+    {
+        return $query->where('starts_at', '<', now());
+    }
+
     public function venue(): BelongsTo
     {
         return $this->belongsTo(Venue::class);

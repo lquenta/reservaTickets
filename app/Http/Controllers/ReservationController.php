@@ -69,6 +69,7 @@ class ReservationController extends Controller
         $sectionIdToName = [];
         $layoutCanvas = ['width' => null, 'height' => null];
         $sectionPalettesById = [];
+        $sectionLegend = [];
 
         if ($event->venue_id) {
             $venue = $event->getRelationValue('venue');
@@ -78,6 +79,7 @@ class ReservationController extends Controller
                     $t = SectionLayoutColors::tripletForSection($sec);
                     $sectionPalettesById[$sec->id] = ['fill' => $t['fill'], 'stroke' => $t['stroke'], 'text' => $t['text']];
                 }
+                $sectionLegend = SectionLayoutColors::legend($venue->sections);
                 $layoutCanvas = [
                     'width' => $venue->layout_canvas_width,
                     'height' => $venue->layout_canvas_height,
@@ -200,7 +202,7 @@ class ReservationController extends Controller
             }
         }
 
-        return view('reservations.create', compact('event', 'seats', 'seatsMap', 'availableSeatIds', 'sectionsData', 'seatIdToPrice', 'sectionIdToPrice', 'sectionIdToName', 'layoutElements', 'layoutCanvas', 'sectionPalettesById'));
+        return view('reservations.create', compact('event', 'seats', 'seatsMap', 'availableSeatIds', 'sectionsData', 'seatIdToPrice', 'sectionIdToPrice', 'sectionIdToName', 'layoutElements', 'layoutCanvas', 'sectionPalettesById', 'sectionLegend'));
     }
 
     public function store(StoreReservationRequest $request, ReservationService $service): RedirectResponse
