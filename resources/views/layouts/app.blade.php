@@ -74,7 +74,7 @@
     </div>
 
     <div x-data="{ scrolled: false }"
-         x-init="window.addEventListener('scroll', () => { scrolled = window.scrollY > 60; }); @if(request()->routeIs('home')) $nextTick(() => { const ids = ['hero', 'videos', 'quienes-somos', 'nuestros-eventos', 'contacto', 'boletin']; const observer = new IntersectionObserver((entries) => { const visible = entries.filter(e => e.isIntersecting).sort((a,b) => a.boundingClientRect.top - b.boundingClientRect.top); if (visible.length) Alpine.store('scrollSpy').activeSection = visible[0].target.id; }, { rootMargin: '-15% 0px -55% 0px', threshold: 0 }); ids.forEach(id => { const el = document.getElementById(id); if (el) observer.observe(el); }); }); @endif">
+         x-init="window.addEventListener('scroll', () => { scrolled = window.scrollY > 60; }); @if(request()->routeIs('home')) $nextTick(() => { const ids = ['hero', 'videos', 'quienes-somos', 'nuestros-eventos', 'eventos-pasados', 'contacto', 'boletin']; const observer = new IntersectionObserver((entries) => { const visible = entries.filter(e => e.isIntersecting).sort((a,b) => a.boundingClientRect.top - b.boundingClientRect.top); if (visible.length) Alpine.store('scrollSpy').activeSection = visible[0].target.id; }, { rootMargin: '-15% 0px -55% 0px', threshold: 0 }); ids.forEach(id => { const el = document.getElementById(id); if (el) observer.observe(el); }); }); @endif">
     <header class="fixed top-0 left-0 right-0 z-40 transition-all duration-300">
         <nav class="px-3 sm:px-6 lg:px-8 py-3 sm:py-4" :class="scrolled ? 'bg-black/95 backdrop-blur border-b border-purple-900/50' : 'bg-transparent'">
             <div class="max-w-7xl mx-auto flex justify-between items-center gap-2">
@@ -87,6 +87,9 @@
                     @endif
                     <a href="{{ route('home') }}#quienes-somos" class="text-sm transition tracking-wide hidden sm:inline" :class="$store.scrollSpy.activeSection === 'quienes-somos' ? 'text-[#ff2daa] font-semibold' : 'text-white/80 hover:text-[#39ff14]'">Quiénes somos</a>
                     <a href="{{ route('home') }}#nuestros-eventos" class="text-sm transition tracking-wide hidden sm:inline" :class="$store.scrollSpy.activeSection === 'nuestros-eventos' ? 'text-[#ff2daa] font-semibold' : 'text-white/80 hover:text-[#39ff14]'">Eventos</a>
+                    @if(request()->routeIs('home') && isset($past_events) && $past_events->isNotEmpty())
+                    <a href="{{ route('home') }}#eventos-pasados" class="text-sm transition tracking-wide hidden sm:inline" :class="$store.scrollSpy.activeSection === 'eventos-pasados' ? 'text-[#ff2daa] font-semibold' : 'text-white/80 hover:text-[#39ff14]'">Pasados</a>
+                    @endif
                     <a href="{{ route('home') }}#contacto" class="text-sm transition tracking-wide hidden sm:inline" :class="$store.scrollSpy.activeSection === 'contacto' ? 'text-[#ff2daa] font-semibold' : 'text-white/80 hover:text-[#39ff14]'">Contacto</a>
                     <a href="{{ route('home') }}#boletin" class="text-sm transition tracking-wide hidden sm:inline" :class="$store.scrollSpy.activeSection === 'boletin' ? 'text-[#ff2daa] font-semibold' : 'text-white/80 hover:text-[#39ff14]'">Boletín</a>
                     <a href="{{ route('events.index') }}" class="text-xs sm:text-sm font-semibold px-2.5 py-1.5 sm:px-4 sm:py-2 rounded transition btn-nova-secondary shrink-0">Eventos</a>

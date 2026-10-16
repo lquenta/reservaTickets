@@ -281,6 +281,61 @@
         </div>
     </section>
 
+    @if(isset($past_events) && $past_events->isNotEmpty())
+    <section id="eventos-pasados" class="relative py-20 px-4 section-stranger-bg"
+             x-data="{
+                visible: false,
+                scroll(dir) {
+                    const el = this.$refs.track;
+                    const card = el && el.querySelector('article');
+                    const step = card ? card.getBoundingClientRect().width + 32 : 320;
+                    el.scrollBy({ left: dir * step, behavior: 'smooth' });
+                }
+             }"
+             x-init="const o = new IntersectionObserver(([e]) => { if (e.isIntersecting) visible = true }, { threshold: 0.08 }); o.observe($el)">
+        <div class="section-stranger-bg__inner"></div>
+        <div class="relative z-10 w-full max-w-6xl mx-auto" x-show="visible" x-transition:enter="transition ease-out duration-700" x-transition:enter-start="opacity-0 translate-y-8" x-transition:enter-end="opacity-100 translate-y-0">
+            <h2 class="font-display text-4xl sm:text-5xl md:text-6xl tracking-widest text-[#ff2daa] text-center mb-4 st-glow-title">
+                EVENTOS PASADOS
+            </h2>
+            <p class="text-white/70 text-center mb-8 max-w-xl mx-auto">Recuerdos del más reciente al más antiguo.</p>
+            <div class="flex justify-end gap-2 mb-4">
+                <button type="button" @click="scroll(-1)" class="w-10 h-10 rounded-full border border-[#ff2daa]/50 bg-black/50 text-white hover:border-[#39ff14] hover:text-[#39ff14] transition" aria-label="Anterior">‹</button>
+                <button type="button" @click="scroll(1)" class="w-10 h-10 rounded-full border border-[#ff2daa]/50 bg-black/50 text-white hover:border-[#39ff14] hover:text-[#39ff14] transition" aria-label="Siguiente">›</button>
+            </div>
+            <div x-ref="track" class="flex gap-8 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                @foreach($past_events as $event)
+                    @php
+                        $photos = (int) ($event->photos_count ?? 0);
+                        $videos = (int) ($event->videos_count ?? 0);
+                    @endphp
+                    <article class="snap-start shrink-0 w-[85%] sm:w-[calc(50%-16px)] lg:w-[calc(33.333%-22px)] group relative overflow-hidden rounded-lg border border-purple-900/50 bg-black/80 backdrop-blur hover:border-[#39ff14]/50 transition-all duration-300">
+                        <a href="{{ route('events.gallery', $event) }}" class="block">
+                            <div class="aspect-[4/3] bg-cover bg-center relative @if(!$event->cover_image_path) bg-gradient-to-br from-[#180a2e] to-[#ff2daa]/20 @endif"
+                                @if($event->cover_image_path) style="background-image: url('{{ asset('storage/'.$event->cover_image_path) }}');" @endif>
+                                <div class="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent"></div>
+                                <span class="absolute top-3 left-3 z-[1] rounded border border-[#39ff14]/50 bg-black/60 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#39ff14]">Archivo</span>
+                            </div>
+                            <div class="p-5">
+                                <h3 class="text-xl font-bold text-white mb-2">{{ $event->name }}</h3>
+                                <p class="text-white/70 text-sm mb-2">{{ $event->starts_at->translatedFormat('l d F Y, H:i') }}</p>
+                                <p class="text-white/60 text-sm mb-4">{{ $event->venue }}</p>
+                                <span class="inline-block text-sm font-semibold text-[#ff2daa] group-hover:text-[#39ff14] transition">
+                                    @if($photos === 0 && $videos === 0)
+                                        Ver galería →
+                                    @else
+                                        {{ $photos }} {{ $photos === 1 ? 'foto' : 'fotos' }} · {{ $videos }} {{ $videos === 1 ? 'video' : 'videos' }} →
+                                    @endif
+                                </span>
+                            </div>
+                        </a>
+                    </article>
+                @endforeach
+            </div>
+        </div>
+    </section>
+    @endif
+
     {{-- Contáctenos --}}
     <section id="contacto" class="relative min-h-screen flex items-center justify-center py-20 px-4 section-stranger-bg" x-data="{ visible: false }" x-init="const o = new IntersectionObserver(([e]) => { if (e.isIntersecting) visible = true }, { threshold: 0.1 }); o.observe($el)">
         <div class="section-stranger-bg__inner"></div>

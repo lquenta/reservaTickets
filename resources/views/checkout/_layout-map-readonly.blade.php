@@ -43,6 +43,7 @@
      x-data="checkoutLayoutMapReadonly(@js($map))">
     <h2 class="font-display text-lg font-bold text-[#ff2daa] tracking-wider mb-1 text-center">Plano — butacas elegidas</h2>
     <p class="text-white/60 text-xs text-center mb-4">Resaltadas en rojo las butacas de esta reserva.</p>
+    @include('shared.section-color-legend', ['sectionLegend' => $map['sectionLegend'] ?? []])
     <div class="mb-3 flex flex-wrap items-center justify-center gap-2 rounded-lg border border-purple-900/50 bg-black/50 px-2 py-2 text-white shadow-inner">
         <span class="w-11 text-center font-mono text-xs tabular-nums text-white/90" x-text="layoutZoomPercent() + '%'"></span>
         <button type="button" class="inline-flex h-9 min-w-[2.25rem] items-center justify-center rounded-lg border border-purple-800/60 bg-black/60 px-2 text-lg font-semibold text-white hover:bg-purple-950/50 active:scale-95" @click.prevent="layoutZoomOut()" title="Alejar plano" aria-label="Alejar plano">−</button>

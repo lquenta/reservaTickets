@@ -111,6 +111,30 @@ final class SectionLayoutColors
         return self::fallbackTripletForSectionId((int) $section->id);
     }
 
+    /**
+     * Sectores con butacas, en el orden del lugar, para la leyenda del plano.
+     *
+     * @param  iterable<int, Section>  $sections
+     * @return list<array{name: string, fill: string, stroke: string}>
+     */
+    public static function legend(iterable $sections): array
+    {
+        $items = [];
+        foreach ($sections as $section) {
+            if (! $section->has_seats) {
+                continue;
+            }
+            $triplet = self::tripletForSection($section);
+            $items[] = [
+                'name' => $section->name,
+                'fill' => $triplet['fill'],
+                'stroke' => $triplet['stroke'],
+            ];
+        }
+
+        return $items;
+    }
+
     private static function darkenHex(int $r, int $g, int $b, float $factor): string
     {
         $r2 = (int) max(0, min(255, round($r * $factor)));

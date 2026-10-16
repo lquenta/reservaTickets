@@ -377,6 +377,50 @@ class VenueLayoutWysiwygTest extends TestCase
             ->assertSee('Navegación del mapa de butacas', false);
     }
 
+    public function test_seat_maps_show_section_color_legend(): void
+    {
+        $admin = User::factory()->create(['role' => User::ROLE_ADMIN]);
+        $seller = User::factory()->create(['role' => User::ROLE_VENDEDOR]);
+        $client = User::factory()->create(['role' => 'user']);
+        [$venue, $seat] = $this->createVenueWithSeat();
+        Section::create([
+            'venue_id' => $venue->id,
+            'name' => 'Platea VIP',
+            'slug' => 'platea-vip',
+            'sort_order' => 1,
+            'has_seats' => true,
+            'layout_color' => '#2563EB',
+        ]);
+        Section::create([
+            'venue_id' => $venue->id,
+            'name' => 'Galería sin butacas',
+            'slug' => 'galeria',
+            'sort_order' => 2,
+            'has_seats' => false,
+            'capacity' => 20,
+        ]);
+        $event = $this->createEventForVenue($venue);
+
+        $this->actingAs($admin)
+            ->get(route('admin.events.seats', $event))
+            ->assertOk()
+            ->assertSee('Platea VIP')
+            ->assertSee('#2563EB', false)
+            ->assertDontSee('Galería sin butacas');
+
+        $this->actingAs($seller)
+            ->get(route('seller.events.seats', $event))
+            ->assertOk()
+            ->assertSee('Platea VIP')
+            ->assertDontSee('Galería sin butacas');
+
+        $this->actingAs($client)
+            ->get(route('reservations.create', $event))
+            ->assertOk()
+            ->assertSee('Platea VIP')
+            ->assertDontSee('Galería sin butacas');
+    }
+
     public function test_seller_seat_map_requires_seller_role(): void
     {
         $client = User::factory()->create(['role' => 'user']);

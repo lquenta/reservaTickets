@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Event;
+use App\Models\EventMedia;
 use App\Models\FeaturedVideo;
 use App\Models\HeroSetting;
 use App\Models\HeroSlide;
@@ -45,6 +46,16 @@ class HomeController extends Controller
             ->filter(fn (FeaturedVideo $video) => $video->embedUrl())
             ->values();
 
-        return view('home', compact('featured_events', 'hero_video_url', 'hero_slides', 'quienes_somos', 'hero_content', 'team_members', 'featured_videos'));
+        $past_events = Event::query()
+            ->past()
+            ->withCount([
+                'media as photos_count' => fn ($query) => $query->where('kind', EventMedia::KIND_PHOTO),
+                'media as videos_count' => fn ($query) => $query->where('kind', EventMedia::KIND_VIDEO),
+            ])
+            ->orderByDesc('starts_at')
+            ->orderByDesc('id')
+            ->get();
+
+        return view('home', compact('featured_events', 'hero_video_url', 'hero_slides', 'quienes_somos', 'hero_content', 'team_members', 'featured_videos', 'past_events'));
     }
 }

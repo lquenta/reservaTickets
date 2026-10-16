@@ -11,6 +11,7 @@ use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Auth\VerifyEmailController;
 use App\Http\Controllers\Auth\VerifyEmailTokenController;
 use App\Http\Controllers\EventController;
+use App\Http\Controllers\EventGalleryController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\NewsletterController;
 use Illuminate\Support\Facades\Route;
@@ -26,6 +27,7 @@ Route::get('politica-de-privacidad', function () {
 })->name('privacy');
 
 Route::get('events', [EventController::class, 'index'])->name('events.index');
+Route::get('events/{event}/galeria', [EventGalleryController::class, 'show'])->name('events.gallery');
 
 Route::post('newsletter', [NewsletterController::class, 'subscribe'])->name('newsletter.subscribe')->middleware('throttle:5,1');
 Route::post('analytics/events', [AnalyticsEventController::class, 'store'])->name('analytics.events.store')->middleware('throttle:120,1');
@@ -126,6 +128,8 @@ Route::prefix('admin')->middleware(['auth', 'admin'])->name('admin.')->group(fun
     Route::post('events/{event}/reschedule', [\App\Http\Controllers\Admin\EventRescheduleController::class, 'store'])->name('events.reschedule.store');
     Route::get('refunds', [\App\Http\Controllers\Admin\RefundController::class, 'index'])->name('refunds.index');
     Route::post('refunds/{reservation}/refund', [\App\Http\Controllers\Admin\RefundController::class, 'refund'])->name('refunds.refund');
+    Route::post('events/{event}/media', [\App\Http\Controllers\Admin\EventMediaController::class, 'store'])->name('events.media.store');
+    Route::delete('events/{event}/media/{event_media}', [\App\Http\Controllers\Admin\EventMediaController::class, 'destroy'])->name('events.media.destroy');
     Route::resource('events', \App\Http\Controllers\Admin\EventController::class);
     Route::get('events/{event}/surrogate-sale', [\App\Http\Controllers\Admin\SurrogateSaleController::class, 'create'])->name('events.surrogate-sale.create');
     Route::post('events/{event}/surrogate-sale/lookup', [\App\Http\Controllers\Admin\SurrogateSaleController::class, 'lookup'])->name('events.surrogate-sale.lookup');

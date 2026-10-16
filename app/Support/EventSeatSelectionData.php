@@ -23,6 +23,7 @@ class EventSeatSelectionData
         $sectionIdToName = [];
         $layoutCanvas = ['width' => null, 'height' => null];
         $sectionPalettesById = [];
+        $sectionLegend = [];
 
         if ($event->venue_id) {
             $venue = $event->getRelationValue('venue');
@@ -32,6 +33,7 @@ class EventSeatSelectionData
                     $t = SectionLayoutColors::tripletForSection($sec);
                     $sectionPalettesById[$sec->id] = ['fill' => $t['fill'], 'stroke' => $t['stroke'], 'text' => $t['text']];
                 }
+                $sectionLegend = SectionLayoutColors::legend($venue->sections);
                 $layoutCanvas = [
                     'width' => $venue->layout_canvas_width,
                     'height' => $venue->layout_canvas_height,
@@ -162,7 +164,8 @@ class EventSeatSelectionData
             'sectionIdToPrice',
             'sectionIdToName',
             'layoutCanvas',
-            'sectionPalettesById'
+            'sectionPalettesById',
+            'sectionLegend'
         );
     }
 

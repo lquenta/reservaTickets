@@ -42,6 +42,7 @@ class ReservationCheckoutMapData
             'layoutElements' => $layoutElements,
             'layoutCanvas' => $selection['layoutCanvas'] ?? ['width' => null, 'height' => null],
             'sectionPalettesById' => $selection['sectionPalettesById'] ?? [],
+            'sectionLegend' => $selection['sectionLegend'] ?? [],
             'selectedSeatIds' => $selectedSeatIds,
         ];
     }

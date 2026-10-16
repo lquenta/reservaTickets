@@ -78,6 +78,7 @@ class EventSeatOverviewMapData
             $sectionPaletteById[$sec->id] = ['bg' => $t['fill'], 'border' => $t['stroke'], 'text' => $t['text']];
             $sectionPalettesById[$sec->id] = ['fill' => $t['fill'], 'stroke' => $t['stroke'], 'text' => $t['text']];
         }
+        $sectionLegend = SectionLayoutColors::legend($venue->sections);
         $legendSampleSeatStyle = $venue->sections->isNotEmpty()
             ? $sectionPaletteById[$venue->sections->first()->id]
             : ['bg' => '#2563eb', 'border' => '#1e40af', 'text' => '#ffffff'];
@@ -97,6 +98,7 @@ class EventSeatOverviewMapData
             'hasCustomLayout',
             'sectionPaletteById',
             'sectionPalettesById',
+            'sectionLegend',
             'legendSampleSeatStyle',
             'layoutCanvas',
         );

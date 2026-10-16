@@ -43,6 +43,7 @@
                 </span>
             @endif
         </div>
+        @include('shared.section-color-legend')
         @if(!$readonly)
             <p class="text-white/50 text-xs text-center mb-4">Clic en una butaca disponible para bloquearla solo en este evento.</p>
         @endif
