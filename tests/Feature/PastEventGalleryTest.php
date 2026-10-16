@@ -64,7 +64,7 @@ class PastEventGalleryTest extends TestCase
         $this->actingAs($admin)
             ->post(route('admin.events.media.store', $event), [
                 'mode' => 'photo',
-                'file' => UploadedFile::fake()->image('escena.jpg'),
+                'files' => [UploadedFile::fake()->image('escena.jpg')],
             ])
             ->assertRedirect(route('admin.events.show', $event));
 
@@ -101,9 +101,38 @@ class PastEventGalleryTest extends TestCase
                 'external_url' => 'https://www.facebook.com/share/abc123/',
             ])
             ->assertRedirect(route('admin.events.show', $event))
-            ->assertSessionHasErrors('external_url');
+            ->assertSessionHasErrors('facebook_links.0');
 
         $this->assertDatabaseCount('event_media', 0);
+    }
+
+    public function test_admin_can_add_several_photos_and_facebook_links_at_once(): void
+    {
+        Storage::fake('public');
+        $admin = User::factory()->create(['role' => User::ROLE_ADMIN]);
+        $event = $this->event('Neón Ritual', now()->subDays(3));
+
+        $this->actingAs($admin)
+            ->post(route('admin.events.media.store', $event), [
+                'mode' => 'photo',
+                'files' => [
+                    UploadedFile::fake()->image('uno.jpg'),
+                    UploadedFile::fake()->image('dos.jpg'),
+                    UploadedFile::fake()->image('tres.jpg'),
+                ],
+            ])
+            ->assertRedirect(route('admin.events.show', $event));
+
+        $this->actingAs($admin)
+            ->post(route('admin.events.media.store', $event), [
+                'mode' => 'facebook',
+                'external_urls' => "https://www.facebook.com/reel/11\nhttps://www.facebook.com/nova/photos/a.10/20/?type=3",
+            ])
+            ->assertRedirect(route('admin.events.show', $event));
+
+        $this->assertSame(5, $event->media()->count());
+        $this->assertSame(4, $event->media()->where('kind', EventMedia::KIND_PHOTO)->count());
+        $this->assertSame(1, $event->media()->where('kind', EventMedia::KIND_VIDEO)->count());
     }
 
     public function test_photo_links_are_classified_apart_from_reels(): void
