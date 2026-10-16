@@ -41,42 +41,62 @@ class EventMediaController extends Controller
 
     private function storeUpload(Request $request, Event $event, string $kind): RedirectResponse
     {
-        $rules = $kind === EventMedia::KIND_PHOTO
+        $isPhoto = $kind === EventMedia::KIND_PHOTO;
+        $maxCount = $isPhoto ? 30 : 8;
+        $fileRules = $isPhoto
             ? ['required', 'file', 'image', 'mimes:jpeg,jpg,png,webp', 'max:5120']
             : ['required', 'file', 'mimetypes:video/mp4,video/webm', 'max:20480'];
 
         $request->validate([
-            'file' => $rules,
+            'files' => ['required', 'array', 'min:1', 'max:'.$maxCount],
+            'files.*' => $fileRules,
         ], [
-            'file.required' => $kind === EventMedia::KIND_PHOTO ? 'Selecciona una foto.' : 'Selecciona un video.',
-            'file.image' => 'El archivo debe ser una imagen (JPG, PNG o WebP).',
-            'file.mimes' => 'Formato no válido. Usa JPG, PNG o WebP.',
-            'file.mimetypes' => 'El video debe ser MP4 o WebM.',
-            'file.max' => $kind === EventMedia::KIND_PHOTO
-                ? 'La foto no puede superar 5 MB.'
-                : 'El video no puede superar 20 MB.',
+            'files.required' => $isPhoto ? 'Selecciona al menos una foto.' : 'Selecciona al menos un video.',
+            'files.max' => $isPhoto
+                ? 'Puedes subir hasta 30 fotos a la vez.'
+                : 'Puedes subir hasta 8 videos a la vez.',
+            'files.*.image' => 'Cada archivo debe ser una imagen (JPG, PNG o WebP).',
+            'files.*.mimes' => 'Formato no válido. Usa JPG, PNG o WebP.',
+            'files.*.mimetypes' => 'Cada video debe ser MP4 o WebM.',
+            'files.*.max' => $isPhoto
+                ? 'Cada foto no puede superar 5 MB.'
+                : 'Cada video no puede superar 20 MB.',
         ]);
 
         $directory = 'event-media/'.$event->id;
         Storage::disk('public')->makeDirectory($directory);
-        $path = $request->file('file')->store($directory, 'public');
+        $order = $this->nextSortOrder($event);
+        $count = 0;
 
-        $event->media()->create([
-            'kind' => $kind,
-            'source' => EventMedia::SOURCE_UPLOAD,
-            'file_path' => $path,
-            'sort_order' => $this->nextSortOrder($event),
-        ]);
+        foreach ($request->file('files', []) as $file) {
+            $event->media()->create([
+                'kind' => $kind,
+                'source' => EventMedia::SOURCE_UPLOAD,
+                'file_path' => $file->store($directory, 'public'),
+                'sort_order' => $order + $count,
+            ]);
+            $count++;
+        }
 
-        $label = $kind === EventMedia::KIND_PHOTO ? 'Foto añadida a la galería.' : 'Video añadido a la galería.';
+        $label = $isPhoto
+            ? ($count === 1 ? 'Foto añadida a la galería.' : $count.' fotos añadidas a la galería.')
+            : ($count === 1 ? 'Video añadido a la galería.' : $count.' videos añadidos a la galería.');
 
         return redirect()->route('admin.events.show', $event)->with('message', $label);
     }
 
     private function storeFacebook(Request $request, Event $event): RedirectResponse
     {
-        $validated = $request->validate([
-            'external_url' => [
+        $raw = (string) $request->input('external_urls', $request->input('external_url', ''));
+        $urls = array_values(array_filter(array_map(
+            trim(...),
+            preg_split('/\r\n|\r|\n/', $raw) ?: []
+        ), fn (string $line) => $line !== ''));
+        $request->merge(['facebook_links' => $urls]);
+
+        $request->validate([
+            'facebook_links' => ['required', 'array', 'min:1', 'max:20'],
+            'facebook_links.*' => [
                 'required',
                 'string',
                 'max:500',
@@ -88,35 +108,44 @@ class EventMediaController extends Controller
                         return;
                     }
                     if (! EventMedia::classifyFacebookUrl(is_string($value) ? $value : null)) {
-                        $fail('La URL debe ser un reel, un video o una foto pública de Facebook.');
+                        $fail('Cada URL debe ser un reel, un video o una foto pública de Facebook.');
                     }
                 },
             ],
             'thumbnail' => ['nullable', 'file', 'image', 'mimes:jpeg,jpg,png,webp', 'max:5120'],
         ], [
-            'external_url.required' => 'Pega el enlace de Facebook.',
-            'external_url.url' => 'La URL no es válida.',
+            'facebook_links.required' => 'Pega al menos un enlace de Facebook.',
+            'facebook_links.max' => 'Puedes añadir hasta 20 enlaces a la vez.',
+            'facebook_links.*.url' => 'Hay una URL que no es válida.',
             'thumbnail.image' => 'La miniatura debe ser una imagen (JPG, PNG o WebP).',
             'thumbnail.max' => 'La miniatura no puede superar 5 MB.',
         ]);
 
-        $classified = EventMedia::classifyFacebookUrl($validated['external_url']);
         $thumbnail = null;
-        if ($request->hasFile('thumbnail') && $request->file('thumbnail')->isValid()) {
+        if (count($urls) === 1 && $request->hasFile('thumbnail') && $request->file('thumbnail')->isValid()) {
             $directory = 'event-media/'.$event->id;
             Storage::disk('public')->makeDirectory($directory);
             $thumbnail = $request->file('thumbnail')->store($directory, 'public');
         }
 
-        $event->media()->create([
-            'kind' => $classified['kind'],
-            'source' => EventMedia::SOURCE_FACEBOOK,
-            'external_url' => $classified['url'],
-            'thumbnail_path' => $thumbnail,
-            'sort_order' => $this->nextSortOrder($event),
-        ]);
+        $order = $this->nextSortOrder($event);
+        foreach ($urls as $index => $url) {
+            $classified = EventMedia::classifyFacebookUrl($url);
+            $event->media()->create([
+                'kind' => $classified['kind'],
+                'source' => EventMedia::SOURCE_FACEBOOK,
+                'external_url' => $classified['url'],
+                'thumbnail_path' => $index === 0 ? $thumbnail : null,
+                'sort_order' => $order + $index,
+            ]);
+        }
 
-        return redirect()->route('admin.events.show', $event)->with('message', 'Enlace de Facebook añadido a la galería.');
+        $count = count($urls);
+        $label = $count === 1
+            ? 'Enlace de Facebook añadido a la galería.'
+            : $count.' enlaces de Facebook añadidos a la galería.';
+
+        return redirect()->route('admin.events.show', $event)->with('message', $label);
     }
 
     private function nextSortOrder(Event $event): int
