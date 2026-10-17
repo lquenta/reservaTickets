@@ -39,24 +39,43 @@
             <p class="text-white/80">Todavía no hay fotos ni videos de este evento.</p>
         </div>
     @else
-        <div class="mt-8 columns-1 sm:columns-2 lg:columns-3 gap-4">
+        <div class="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             @foreach($event->media as $item)
-                <button type="button" x-show="visible('{{ $item->kind }}')" @click="open({{ $item->id }})"
-                        class="mb-4 block w-full break-inside-avoid overflow-hidden rounded-xl border border-purple-900/50 bg-black text-left hover:border-[#39ff14]/50 transition">
-                    <div class="relative bg-gradient-to-br from-[#180a2e] to-[#ff2daa]/20 {{ $item->isVideo() ? 'aspect-[9/16]' : 'aspect-[4/3]' }}">
-                        @if($item->thumbnailUrl())
-                            <img src="{{ $item->thumbnailUrl() }}" alt="{{ $item->sourceLabel() }}" class="absolute inset-0 h-full w-full object-cover">
-                        @endif
-                        <span class="absolute left-3 top-3 rounded-full border border-white/30 bg-black/60 px-2 py-0.5 text-[10px] font-bold tracking-wide">{{ $item->sourceLabel() }}</span>
-                        @if($item->isVideo())
+                @php $embed = $item->embedUrl($item->isVideo() ? 360 : 500, $item->isVideo() ? 640 : null); @endphp
+                <article x-show="visible('{{ $item->kind }}')" class="overflow-hidden rounded-xl border border-purple-900/50 bg-black">
+                    @if($embed)
+                        <div class="relative bg-black {{ $item->isVideo() ? 'aspect-[9/16]' : 'min-h-[420px]' }}">
+                            <iframe src="{{ $embed }}"
+                                    title="{{ $item->sourceLabel() }}"
+                                    class="absolute inset-0 h-full w-full border-0"
+                                    scrolling="no"
+                                    loading="lazy"
+                                    allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
+                                    allowfullscreen></iframe>
+                        </div>
+                    @elseif($item->isVideo() && $item->fileUrl())
+                        <button type="button" @click="open({{ $item->id }})" class="relative block w-full aspect-[9/16] bg-black text-left">
+                            <video src="{{ $item->fileUrl() }}" preload="metadata" muted playsinline class="absolute inset-0 h-full w-full object-cover"></video>
                             <span class="absolute inset-0 flex items-center justify-center">
                                 <span class="flex h-12 w-12 items-center justify-center rounded-full border-2 border-white bg-black/50 text-white">
                                     <svg class="w-5 h-5 ml-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
                                 </span>
                             </span>
+                        </button>
+                    @else
+                        <button type="button" @click="open({{ $item->id }})" class="relative block w-full aspect-[4/3] bg-gradient-to-br from-[#180a2e] to-[#ff2daa]/20 text-left">
+                            @if($item->thumbnailUrl())
+                                <img src="{{ $item->thumbnailUrl() }}" alt="{{ $item->sourceLabel() }}" class="absolute inset-0 h-full w-full object-cover">
+                            @endif
+                        </button>
+                    @endif
+                    <div class="px-3 py-2">
+                        <p class="text-[10px] font-bold tracking-wide text-[#ff2daa]">{{ $item->sourceLabel() }}</p>
+                        @if($item->external_url)
+                            <p class="truncate text-xs text-white/60">{{ $item->external_url }}</p>
                         @endif
                     </div>
-                </button>
+                </article>
             @endforeach
         </div>
     @endif

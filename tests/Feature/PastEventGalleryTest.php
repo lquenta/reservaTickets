@@ -49,7 +49,8 @@ class PastEventGalleryTest extends TestCase
             ->assertSee('Eclipse Nocturno')
             ->assertSee('Foto subida')
             ->assertSee('Reel de Facebook')
-            ->assertSee('1051618684397981', false);
+            ->assertSee('plugins/video.php', false)
+            ->assertSee('https://www.facebook.com/reel/1051618684397981', false);
 
         $upcoming = $this->event('Todavía no', now()->addDay());
         $this->get(route('events.gallery', $upcoming))->assertNotFound();
