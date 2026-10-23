@@ -166,7 +166,9 @@ class PublicGuestCheckoutTest extends TestCase
                 'guest_email_confirmation' => 'admin@example.com',
             ])
             ->assertRedirect(route('reservations.create', $event))
-            ->assertSessionHasErrors('guest_email');
+            ->assertSessionHasErrors([
+                'guest_email' => 'Utiliza otra cuenta de correo.',
+            ]);
     }
 
     public function test_checkout_accepts_any_receipt_up_to_15_mb(): void

@@ -10,6 +10,9 @@ use Illuminate\Validation\ValidationException;
 
 class ClientProvisioningService
 {
+    /** No revela si el correo pertenece a un administrador o vendedor. */
+    private const UNUSABLE_EMAIL_MESSAGE = 'Utiliza otra cuenta de correo.';
+
     public function resolveForAdminSale(
         string $name,
         ?string $email,
@@ -30,7 +33,7 @@ class ClientProvisioningService
         if ($existing) {
             if ($existing->isAdmin() || $existing->isVendedor()) {
                 throw ValidationException::withMessages([
-                    'client_email' => ['No se puede usar la cuenta de un administrador o vendedor como cliente.'],
+                    'client_email' => [self::UNUSABLE_EMAIL_MESSAGE],
                 ]);
             }
 
@@ -121,7 +124,7 @@ class ClientProvisioningService
         $existing = User::where('email', $email)->first();
         if ($existing && ($existing->isAdmin() || $existing->isVendedor())) {
             throw ValidationException::withMessages([
-                'guest_email' => ['No se puede usar la cuenta de un administrador o vendedor.'],
+                'guest_email' => [self::UNUSABLE_EMAIL_MESSAGE],
             ]);
         }
 
