@@ -171,7 +171,34 @@ class PublicGuestCheckoutTest extends TestCase
             ]);
     }
 
-    public function test_checkout_accepts_any_receipt_up_to_15_mb(): void
+    public function test_purchase_does_not_require_security_check(): void
+    {
+        config([
+            'services.recaptcha.site_key' => 'site-key',
+            'services.recaptcha.secret_key' => 'secret-key',
+        ]);
+
+        $event = $this->createEvent();
+        $user = User::factory()->create(['role' => User::ROLE_USER]);
+
+        $this->actingAs($user)
+            ->get(route('reservations.create', $event))
+            ->assertOk()
+            ->assertDontSee('g-recaptcha', false)
+            ->assertDontSee('verificación de seguridad', false);
+
+        $this->actingAs($user)
+            ->post(route('reservations.store'), [
+                'event_id' => $event->id,
+                'quantity' => 1,
+                'single_name' => 1,
+                'holder_name' => 'Titular Uno',
+            ])
+            ->assertRedirect()
+            ->assertSessionDoesntHaveErrors();
+    }
+
+    public function test_checkout_accepts_any_image_or_pdf_up_to_15_mb(): void
     {
         Storage::fake('public');
         $event = $this->createEvent();
@@ -190,6 +217,11 @@ class PublicGuestCheckoutTest extends TestCase
 
         $reservation = Reservation::query()->firstOrFail();
 
+        $this->get(route('checkout.show', $reservation))
+            ->assertOk()
+            ->assertSee('accept="image/*', false)
+            ->assertSee('application/pdf', false);
+
         $this->post(route('checkout.confirm', $reservation), [
             'accept_terms' => '1',
             'payment_receipt' => UploadedFile::fake()->create('comprobante.pdf', 15361, 'application/pdf'),
@@ -199,11 +231,31 @@ class PublicGuestCheckoutTest extends TestCase
 
         $this->post(route('checkout.confirm', $reservation), [
             'accept_terms' => '1',
-            'payment_receipt' => UploadedFile::fake()->create('comprobante.pdf', 100, 'application/pdf'),
-        ])->assertRedirect(route('home'));
+            'payment_receipt' => UploadedFile::fake()->create('notas.txt', 10, 'text/plain'),
+        ])->assertSessionHasErrors('payment_receipt');
 
-        $this->assertSame(Reservation::STATUS_PENDIENTE_PAGO, $reservation->fresh()->status);
-        $this->assertNotNull($reservation->fresh()->payment_receipt_path);
+        $accepted = [
+            UploadedFile::fake()->image('comprobante.jpg'),
+            UploadedFile::fake()->image('comprobante.png'),
+            UploadedFile::fake()->image('comprobante.webp'),
+            UploadedFile::fake()->image('comprobante.gif'),
+            UploadedFile::fake()->create('foto.heic', 80, 'image/heic'),
+            UploadedFile::fake()->create('foto-iphone.heic', 80, 'application/octet-stream'),
+            UploadedFile::fake()->create('comprobante.pdf', 100, 'application/pdf'),
+            UploadedFile::fake()->create('banco.pdf', 100, 'application/octet-stream'),
+        ];
+
+        foreach ($accepted as $file) {
+            $reservation->update(['status' => Reservation::STATUS_INICIADO]);
+
+            $this->post(route('checkout.confirm', $reservation), [
+                'accept_terms' => '1',
+                'payment_receipt' => $file,
+            ])->assertRedirect(route('home'));
+
+            $this->assertSame(Reservation::STATUS_PENDIENTE_PAGO, $reservation->fresh()->status);
+            $this->assertNotNull($reservation->fresh()->payment_receipt_path);
+        }
     }
 
     public function test_started_event_stays_on_sale_online(): void

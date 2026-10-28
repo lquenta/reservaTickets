@@ -102,8 +102,9 @@
             <div class="p-4 rounded-xl border border-purple-900/50">
                 <label for="payment_receipt" class="block font-semibold text-white/80 mb-2">Comprobante de pago <span class="text-[#a569ff]">*</span></label>
                 <input id="payment_receipt" type="file" name="payment_receipt" required
+                       accept="image/*,.heic,.heif,.jpg,.jpeg,.png,.gif,.webp,.bmp,.tif,.tiff,.avif,.pdf,application/pdf"
                        class="w-full rounded-xl border border-purple-900/50 bg-black/60 px-4 py-3 text-white file:mr-4 file:rounded-lg file:border-0 file:bg-[#ff2daa] file:px-4 file:py-2 file:text-white file:font-medium @error('payment_receipt') border-red-500 @enderror">
-                <p class="mt-1 text-xs text-white/50">Cualquier archivo. Máximo 15 MB.</p>
+                <p class="mt-1 text-xs text-white/50">Cualquier imagen (JPG, PNG, WEBP, HEIC, GIF…) o PDF. Máximo 15 MB.</p>
                 @error('payment_receipt')<p class="mt-1 text-sm text-red-400">{{ $message }}</p>@enderror
             </div>
 

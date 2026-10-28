@@ -26,7 +26,7 @@
                     <li>La confirmación de que Google ya verificó ese correo.</li>
                 </ul>
                 <p class="mt-2">No pedimos acceso a Gmail, Drive, Calendar, contactos, fotos ni a ningún otro dato de tu cuenta de Google. No guardamos tu contraseña de Google. No conservamos el token de acceso ni el token de actualización de Google después de iniciar la sesión.</p>
-                <p class="mt-2">En el inicio de sesión, el registro y algunas reservas, el sitio puede mostrar Google reCAPTCHA. En ese caso Google recibe la respuesta del verificador y la dirección IP de la solicitud para distinguir personas de intentos automáticos. NOVA no guarda ese resultado. El tratamiento que hace Google se rige por la política de Google.</p>
+                <p class="mt-2">En el inicio de sesión y el registro, el sitio puede mostrar Google reCAPTCHA. En ese caso Google recibe la respuesta del verificador y la dirección IP de la solicitud para distinguir personas de intentos automáticos. NOVA no guarda ese resultado. El tratamiento que hace Google se rige por la política de Google.</p>
             </section>
 
             <section>

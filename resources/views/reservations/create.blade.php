@@ -331,11 +331,6 @@
                 @include('reservations._guest-contact-fields')
             @endif
 
-            @if(config('services.recaptcha.site_key') && !$isAdminSale)
-            <div class="g-recaptcha" data-sitekey="{{ config('services.recaptcha.site_key') }}"></div>
-            @endif
-            @error('g-recaptcha-response')<p class="text-sm text-red-400">{{ $message }}</p>@enderror
-
             <p class="text-amber-200/90 text-sm" x-show="totalTickets < 1">Elige al menos una entrada (butaca o cantidad en sección) para continuar.</p>
             <button type="submit"
                     class="w-full rounded-xl bg-[#ff2daa] px-5 py-4 text-white font-bold hover:bg-pink-600 transition disabled:opacity-50"
@@ -781,13 +776,6 @@
             @if(!$isAdminSale)
                 @include('reservations._guest-contact-fields')
             @endif
-
-            @if(config('services.recaptcha.site_key') && !$isAdminSale)
-            <div class="g-recaptcha" data-sitekey="{{ config('services.recaptcha.site_key') }}"></div>
-            @endif
-            @error('g-recaptcha-response')
-                <p class="text-sm text-red-400">{{ $message }}</p>
-            @enderror
 
             <button type="submit" class="w-full rounded-xl bg-[#ff2daa] px-5 py-4 text-white font-bold hover:bg-pink-600 transition">
                 Continuar al paso 2 — Comprobante de pago
@@ -1257,13 +1245,6 @@
             @if(!$isAdminSale)
                 @include('reservations._guest-contact-fields')
             @endif
-
-            @if(config('services.recaptcha.site_key') && !$isAdminSale)
-            <div class="g-recaptcha" data-sitekey="{{ config('services.recaptcha.site_key') }}"></div>
-            @endif
-            @error('g-recaptcha-response')
-                <p class="text-sm text-red-400">{{ $message }}</p>
-            @enderror
 
             <button type="submit" class="w-full rounded-xl bg-[#ff2daa] px-5 py-4 text-white font-bold hover:bg-pink-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
                     :disabled="!Array.isArray(selectedIds) || selectedIds.length === 0">

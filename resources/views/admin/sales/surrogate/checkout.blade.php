@@ -64,8 +64,9 @@
         <div>
             <label for="payment_receipt" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Comprobante de pago</label>
             <input type="file" name="payment_receipt" id="payment_receipt" required
+                   accept="image/*,.heic,.heif,.jpg,.jpeg,.png,.gif,.webp,.bmp,.tif,.tiff,.avif,.pdf,application/pdf"
                    class="w-full text-sm text-slate-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-violet-600 file:text-white">
-            <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">Cualquier archivo. Máximo 15 MB.</p>
+            <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">Cualquier imagen (JPG, PNG, WEBP, HEIC, GIF…) o PDF. Máximo 15 MB.</p>
             @error('payment_receipt')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
         </div>
         <label class="inline-flex items-start gap-2 text-sm text-slate-700 dark:text-slate-300">

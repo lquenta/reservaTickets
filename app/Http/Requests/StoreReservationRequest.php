@@ -3,12 +3,10 @@
 namespace App\Http\Requests;
 
 use App\Models\Event;
-use App\Services\RecaptchaService;
 use App\Services\ReservationAuditService;
 use App\Services\ReservationService;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\ValidationException;
 use Illuminate\Validation\Validator as ValidationValidator;
 
 class StoreReservationRequest extends FormRequest
@@ -35,7 +33,6 @@ class StoreReservationRequest extends FormRequest
         $rules = [
             'event_id' => ['required', 'exists:events,id'],
             'single_name' => ['nullable', 'boolean'],
-            'g-recaptcha-response' => [config('services.recaptcha.secret_key') ? 'required' : 'nullable', 'string'],
         ];
 
         if (! $this->user()) {
@@ -208,29 +205,6 @@ class StoreReservationRequest extends FormRequest
         });
     }
 
-    protected function passedValidation(): void
-    {
-        if (! config('services.recaptcha.secret_key')) {
-            return;
-        }
-        $recaptcha = app(RecaptchaService::class);
-        if (! $recaptcha->verify($this->input('g-recaptcha-response', ''))) {
-            $event = Event::find($this->input('event_id'));
-            app(ReservationAuditService::class)->log(
-                \App\Models\ReservationAuditLog::ACTION_RESERVATION_ATTEMPT,
-                \App\Models\ReservationAuditLog::RESULT_FAILED,
-                auth()->user(),
-                $event,
-                null,
-                auth()->user(),
-                'Verificación reCAPTCHA fallida'
-            );
-            throw ValidationException::withMessages([
-                'g-recaptcha-response' => ['La verificación de seguridad ha fallado. Intente de nuevo.'],
-            ]);
-        }
-    }
-
     protected function failedValidation(Validator $validator): void
     {
         $eventId = $this->input('event_id');
@@ -252,7 +226,6 @@ class StoreReservationRequest extends FormRequest
     {
         $messages = [
             'holder_name.regex' => 'El nombre solo puede contener letras, espacios, guiones, comas y apóstrofos.',
-            'g-recaptcha-response.required' => 'Debe completar la verificación de seguridad.',
             'guest_first_name.regex' => 'El nombre solo puede contener letras, espacios y guiones.',
             'guest_last_name.regex' => 'El apellido solo puede contener letras, espacios y guiones.',
             'guest_phone.regex' => 'El teléfono solo puede contener números, espacios, + y -.',

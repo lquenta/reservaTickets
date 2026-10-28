@@ -6,6 +6,7 @@ use App\Jobs\NotifyAdminNewReservationJob;
 use App\Models\Event;
 use App\Models\Reservation;
 use App\Models\ReservationAuditLog;
+use App\Rules\PaymentReceiptFile;
 use App\Services\ReservationAuditService;
 use App\Services\ReservationPricingService;
 use Illuminate\Http\RedirectResponse;
@@ -68,7 +69,7 @@ class CheckoutController extends Controller
 
         $request->validate([
             'accept_terms' => ['required', 'accepted'],
-            'payment_receipt' => ['required', 'file', 'max:15360'],
+            'payment_receipt' => ['required', 'file', 'max:15360', new PaymentReceiptFile],
         ], [
             'payment_receipt.required' => 'Debe subir el comprobante de pago.',
             'payment_receipt.max' => 'El comprobante no debe superar 15 MB.',

@@ -147,7 +147,7 @@
                         @if($reservation->payment_receipt_path)
                             @php
                                 $receiptExt = strtolower(pathinfo($reservation->payment_receipt_path, PATHINFO_EXTENSION));
-                                $receiptIsImage = in_array($receiptExt, ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp'], true);
+                                $receiptIsImage = in_array($receiptExt, ['jpg', 'jpeg', 'jpe', 'jfif', 'png', 'gif', 'webp', 'bmp', 'avif', 'tif', 'tiff', 'svg'], true);
                             @endphp
                             <a href="{{ asset('storage/'.$reservation->payment_receipt_path) }}" target="_blank" rel="noopener"
                                class="block rounded-xl border border-slate-200 dark:border-slate-600 overflow-hidden bg-slate-100 dark:bg-slate-900/50">

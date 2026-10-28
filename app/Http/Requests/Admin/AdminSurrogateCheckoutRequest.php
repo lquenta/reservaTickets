@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Rules\PaymentReceiptFile;
 use Illuminate\Foundation\Http\FormRequest;
 
 class AdminSurrogateCheckoutRequest extends FormRequest
@@ -15,7 +16,7 @@ class AdminSurrogateCheckoutRequest extends FormRequest
     {
         $rules = [
             'accept_terms' => ['required', 'accepted'],
-            'payment_receipt' => ['required', 'file', 'max:15360'],
+            'payment_receipt' => ['required', 'file', 'max:15360', new PaymentReceiptFile],
         ];
 
         $reservation = $this->route('reservation');
