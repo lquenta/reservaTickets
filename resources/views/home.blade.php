@@ -46,7 +46,7 @@
         <div class="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_0%,rgba(255,45,170,0.15),transparent),radial-gradient(ellipse_50%_40%_at_80%_20%,rgba(57,255,20,0.08),transparent)] z-[1]" aria-hidden="true"></div>
 
         <div class="relative z-10 flex min-h-[100svh] flex-col justify-end px-4 sm:px-8 lg:px-16 pb-8 pt-28" aria-live="polite">
-            <div class="w-full max-w-6xl">
+            <div class="w-full max-w-6xl min-w-0">
             <div class="w-full max-w-xl">
                 <p class="inline-flex items-center rounded-full border border-[#39ff14]/50 bg-black/50 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.22em] text-[#39ff14]" x-text="current ? current.badge : ''">{{ $opening['badge'] }}</p>
                 <h1 class="mt-3 text-[#ff2daa] leading-tight"
@@ -78,12 +78,12 @@
             </div>
 
                 @if(count($showcase ?? []) > 1)
-                <div class="mt-8 flex items-center gap-3">
+                <div class="mt-8 flex w-full min-w-0 items-center gap-3">
                     <button type="button" @click="prev()" class="shrink-0 w-11 h-11 rounded-full border border-[#ff2daa]/50 bg-black/60 text-white text-2xl leading-none hover:border-[#39ff14] hover:text-[#39ff14] transition" aria-label="Anterior">‹</button>
-                    <div class="flex gap-3 overflow-x-auto flex-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                    <div x-ref="thumbs" class="flex min-w-0 flex-1 gap-3 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-1">
                         @foreach($showcase as $i => $slide)
                             <button type="button" @click="go({{ $i }})"
-                                    class="shrink-0 w-28 sm:w-36 text-left rounded-lg border overflow-hidden bg-black/70 transition"
+                                    class="snap-start shrink-0 w-32 sm:w-40 text-left rounded-lg border overflow-hidden bg-black/70 transition"
                                     :class="active === {{ $i }} ? 'border-[#ff2daa] shadow-[0_0_16px_rgba(255,45,170,0.35)]' : 'border-white/15 hover:border-[#39ff14]/60'"
                                     aria-label="{{ $slide['badge'] }}: {{ ($slide['kind'] ?? '') === 'intro' ? 'NOVA' : $slide['title'] }}">
                                 <span class="relative block h-16 sm:h-20 bg-[#180a2e]">
@@ -98,7 +98,7 @@
                                     @endif
                                 </span>
                                 <span class="block px-2 pt-1 text-[10px] font-bold uppercase tracking-wider text-[#39ff14] truncate">{{ $slide['badge'] }}</span>
-                                <span class="block px-2 pb-2 text-xs text-white/85 truncate">{{ ($slide['kind'] ?? '') === 'intro' ? 'NOVA' : $slide['title'] }}</span>
+                                <span class="block px-2 pb-2 text-xs leading-snug text-white/85 line-clamp-2 min-h-8">{{ ($slide['kind'] ?? '') === 'intro' ? 'NOVA' : $slide['title'] }}</span>
                             </button>
                         @endforeach
                     </div>
@@ -546,6 +546,7 @@ function showcaseSlider(slides) {
         start() {
             this.reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
             this.queue();
+            this.$nextTick(() => this.scrollThumb());
         },
         queue() {
             this.clear();
@@ -567,6 +568,14 @@ function showcaseSlider(slides) {
             if (!total) return;
             this.active = ((i % total) + total) % total;
             this.queue();
+            this.$nextTick(() => this.scrollThumb());
+        },
+        scrollThumb() {
+            const track = this.$refs.thumbs;
+            const card = track && track.children[this.active];
+            if (!track || !card) return;
+            const left = card.offsetLeft - track.offsetLeft - 8;
+            track.scrollTo({ left: Math.max(0, left), behavior: this.reduced ? 'auto' : 'smooth' });
         },
         next() { this.go(this.active + 1); },
         prev() { this.go(this.active - 1); },
