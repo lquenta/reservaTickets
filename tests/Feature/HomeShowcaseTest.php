@@ -97,6 +97,21 @@ class HomeShowcaseTest extends TestCase
         $this->assertStringContainsString('hero-slides/promo.jpg', $html);
     }
 
+    public function test_long_event_copy_stops_on_a_word(): void
+    {
+        $this->event(
+            'Upside Down',
+            now()->subDay(),
+            'NOVA te invita a sumergirte en una experiencia sonora inspirada en el soundtrack de todas las temporadas de Stranger Things. Prepárate para viajar entre sintetizadores y luces.'
+        );
+
+        $text = collect(HomeShowcase::slides())->firstWhere('title', 'Upside Down')['text'];
+
+        $this->assertStringEndsWith('…', $text);
+        $this->assertStringNotContainsString('sintet', $text);
+        $this->assertLessThanOrEqual(141, mb_strlen($text));
+    }
+
     private function event(string $name, \DateTimeInterface $startsAt, ?string $description = null): Event
     {
         return Event::create([

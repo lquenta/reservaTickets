@@ -41,20 +41,21 @@
                      :style="slide.image ? 'background-image:url(' + JSON.stringify(slide.image) + ')' : ''"></div>
             </div>
         </template>
-        <div class="absolute inset-0 bg-gradient-to-r from-black/88 via-black/62 to-black/30 z-[1]" aria-hidden="true"></div>
-        <div class="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-black/50 z-[1]" aria-hidden="true"></div>
+        <div class="absolute inset-y-0 left-0 w-full sm:w-[min(100%,46rem)] bg-gradient-to-r from-black/90 via-black/75 to-transparent z-[1]" aria-hidden="true"></div>
+        <div class="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-black via-black/70 to-transparent z-[1]" aria-hidden="true"></div>
         <div class="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_0%,rgba(255,45,170,0.15),transparent),radial-gradient(ellipse_50%_40%_at_80%_20%,rgba(57,255,20,0.08),transparent)] z-[1]" aria-hidden="true"></div>
 
         <div class="relative z-10 flex min-h-[100svh] flex-col justify-end px-4 sm:px-8 lg:px-16 pb-8 pt-28" aria-live="polite">
             <div class="w-full max-w-6xl">
-            <div class="w-full max-w-3xl">
+            <div class="w-full max-w-xl">
                 <p class="inline-flex items-center rounded-full border border-[#39ff14]/50 bg-black/50 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.22em] text-[#39ff14]" x-text="current ? current.badge : ''">{{ $opening['badge'] }}</p>
-                <h1 class="font-display text-5xl sm:text-6xl md:text-7xl tracking-widest text-[#ff2daa] st-glow-title mt-4 leading-none"
+                <h1 class="mt-3 text-[#ff2daa] leading-tight"
+                    :class="!current || current.kind === 'intro' ? 'font-display text-5xl sm:text-6xl md:text-7xl tracking-widest st-glow-title' : 'text-2xl sm:text-3xl md:text-4xl font-extrabold line-clamp-3'"
                     x-text="current ? (current.kind === 'intro' ? 'NOVA' : current.title) : 'NOVA'">{{ ($opening['kind'] ?? '') === 'intro' ? 'NOVA' : $opening['title'] }}</h1>
-                <p class="mt-4 text-lg sm:text-2xl text-white/90 tracking-wide"
+                <p class="mt-3 text-lg sm:text-2xl text-white/90 tracking-wide"
                    x-show="!current || current.kind === 'intro'" x-text="current ? current.title : ''">{{ ($opening['kind'] ?? '') === 'intro' ? $opening['title'] : '' }}</p>
-                <p class="mt-3 text-sm sm:text-base text-[#ff2daa]/90" x-show="current && current.meta" x-cloak x-text="current ? current.meta : ''"></p>
-                <p class="mt-4 max-w-xl text-base sm:text-lg leading-relaxed text-white/80" x-text="current ? current.text : ''">{{ $opening['text'] }}</p>
+                <p class="mt-3 max-w-xl text-sm sm:text-base leading-snug text-white/75 line-clamp-2" x-show="current && current.meta" x-cloak x-text="current ? current.meta : ''"></p>
+                <p class="mt-3 max-w-xl text-sm sm:text-base leading-relaxed text-white/80 line-clamp-3" x-text="current ? current.text : ''">{{ $opening['text'] }}</p>
                 <div class="mt-8 flex flex-wrap items-center gap-3">
                     <a :href="current ? current.href : ''"
                        href="{{ $opening['href'] }}"

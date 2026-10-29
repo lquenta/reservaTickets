@@ -8,7 +8,6 @@ use App\Models\FeaturedVideo;
 use App\Models\HeroSetting;
 use App\Models\HeroSlide;
 use App\Models\SiteContent;
-use Illuminate\Support\Str;
 
 class HomeShowcase
 {
@@ -321,8 +320,22 @@ class HomeShowcase
     private static function blurb(mixed $description, string $fallback): string
     {
         $text = trim(preg_replace('/\s+/', ' ', strip_tags((string) $description)) ?? '');
+        if ($text === '') {
+            return $fallback;
+        }
 
-        return $text !== '' ? Str::limit($text, 160) : $fallback;
+        $limit = 140;
+        if (mb_strlen($text) <= $limit) {
+            return $text;
+        }
+
+        $cut = mb_substr($text, 0, $limit);
+        $space = mb_strrpos($cut, ' ');
+        if ($space !== false && $space > 80) {
+            $cut = mb_substr($cut, 0, $space);
+        }
+
+        return rtrim($cut, " \t,.;:-").'…';
     }
 
     private static function eventImage(Event $event): ?string
