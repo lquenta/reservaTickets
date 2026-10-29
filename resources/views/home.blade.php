@@ -80,7 +80,7 @@
                 @if(count($showcase ?? []) > 1)
                 <div class="mt-8 flex w-full min-w-0 items-center gap-3">
                     <button type="button" @click="prev()" class="shrink-0 w-11 h-11 rounded-full border border-[#ff2daa]/50 bg-black/60 text-white text-2xl leading-none hover:border-[#39ff14] hover:text-[#39ff14] transition" aria-label="Anterior">‹</button>
-                    <div x-ref="thumbs" class="flex min-w-0 flex-1 gap-3 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-1">
+                    <div x-ref="thumbs" class="flex min-w-0 flex-1 gap-3 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                         @foreach($showcase as $i => $slide)
                             <button type="button" @click="go({{ $i }})"
                                     class="snap-start shrink-0 w-32 sm:w-40 text-left rounded-lg border overflow-hidden bg-black/70 transition"
