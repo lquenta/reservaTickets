@@ -5,7 +5,7 @@
 @section('admin')
 <div class="mb-8">
     <h1 class="text-3xl font-bold text-slate-800 dark:text-white">Texto del Hero</h1>
-    <p class="text-slate-600 dark:text-slate-400 mt-1">Frase y botón de la sección inicial de la portada (debajo de NOVA).</p>
+    <p class="text-slate-600 dark:text-slate-400 mt-1">Frase y botón de la primera diapositiva de la portada, la que explica qué es NOVA.</p>
 </div>
 
 <div class="rounded-2xl border-2 border-violet-200/60 dark:border-violet-700/50 bg-white dark:bg-slate-800/80 p-6 shadow-lg">

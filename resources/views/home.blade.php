@@ -7,51 +7,149 @@
 @section('content')
 {{-- Global section reveal state --}}
 <div x-data="homeReveal()" x-init="init()">
-    {{-- Hero: pull up so it’s full viewport under fixed nav --}}
-    <section class="relative min-h-screen flex items-center justify-center homepage-scanlines -mt-24 pt-24 overflow-hidden" id="hero"
-             x-data="heroSlider({{ count($hero_slides ?? []) }}, {{ json_encode($hero_slides ?? []) }})"
-             x-init="start()">
-        @if(!empty($hero_video_url))
-            <div class="absolute inset-0 z-0">
-                <video class="absolute inset-0 w-full h-full object-cover" autoplay muted loop playsinline aria-hidden="true"
-                       src="{{ $hero_video_url }}"></video>
+    {{-- Portada: carrusel de qué es NOVA, cartelera, videos, fotos y archivo --}}
+    @php
+        $opening = $showcase[0] ?? [
+            'kind' => 'intro',
+            'badge' => 'Qué es NOVA',
+            'title' => 'Tus entradas. Tu experiencia.',
+            'text' => 'Reserva entradas para los eventos: eliges el show, apartas de 1 a 10 lugares y recibes tus tickets por correo.',
+            'cta' => 'VER EVENTOS',
+            'href' => route('events.index'),
+            'secondary' => 'Cómo funciona',
+            'secondary_href' => route('home').'#como-funciona',
+        ];
+    @endphp
+    <section class="relative min-h-[100svh] homepage-scanlines -mt-24 overflow-hidden" id="hero"
+             x-data="showcaseSlider({{ \Illuminate\Support\Js::from($showcase ?? []) }})"
+             x-init="start()"
+             @mouseenter="hold()"
+             @mouseleave="release()"
+             aria-roledescription="carrusel"
+             aria-label="Qué es NOVA, eventos y videos">
+        <template x-for="(slide, i) in slides" :key="'bg-' + i">
+            <div class="absolute inset-0 transition-opacity duration-1000"
+                 :class="active === i ? 'opacity-100' : 'opacity-0'"
+                 aria-hidden="true">
+                <video x-show="slide.video && active === i"
+                       class="absolute inset-0 w-full h-full object-cover"
+                       :src="active === i && slide.video ? slide.video : null"
+                       autoplay muted loop playsinline></video>
+                <div class="absolute inset-0 bg-cover bg-center"
+                     x-show="!(slide.video && active === i)"
+                     :class="slide.image ? '' : 'bg-gradient-to-b from-black via-[#180a2e] to-black'"
+                     :style="slide.image ? 'background-image:url(' + JSON.stringify(slide.image) + ')' : ''"></div>
             </div>
-            <div class="absolute inset-0 bg-black/50 z-[1]" aria-hidden="true"></div>
-        @elseif(!empty($hero_slides))
-            <template x-for="(url, i) in slides" :key="i">
-                <div class="absolute inset-0 bg-cover bg-center transition-opacity duration-1000"
-                     :style="'background-image: url(\'' + url + '\')'"
-                     :class="{ 'opacity-100 z-0': activeIndex === i, 'opacity-0 z-0': activeIndex !== i }"
-                     aria-hidden="true"></div>
-            </template>
-            <div class="absolute inset-0 bg-black/50 z-[1]" aria-hidden="true"></div>
-        @else
-            <div class="absolute inset-0 bg-gradient-to-b from-black via-[#180a2e] to-black z-0"></div>
-        @endif
+        </template>
+        <div class="absolute inset-0 bg-gradient-to-r from-black/88 via-black/62 to-black/30 z-[1]" aria-hidden="true"></div>
+        <div class="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-black/50 z-[1]" aria-hidden="true"></div>
         <div class="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_0%,rgba(255,45,170,0.15),transparent),radial-gradient(ellipse_50%_40%_at_80%_20%,rgba(57,255,20,0.08),transparent)] z-[1]" aria-hidden="true"></div>
-        <div class="relative z-10 text-center px-4 max-w-4xl mx-auto" x-data="{ visible: false }" x-init="const o = new IntersectionObserver(([e]) => { if (e.isIntersecting) { visible = true; o.disconnect() } }, { threshold: 0.1 }); o.observe($el)">
-            <h1 class="font-display text-5xl sm:text-7xl md:text-8xl lg:text-9xl tracking-widest text-[#ff2daa] animate-flicker text-glow st-glow-title mb-6"
-                x-show="visible"
-                x-transition:enter="transition ease-out duration-1000"
-                x-transition:enter-start="opacity-0 scale-95"
-                x-transition:enter-end="opacity-100 scale-100">
-                NOVA
-            </h1>
-            <p class="text-xl sm:text-2xl text-white/80 tracking-widest uppercase mb-4"
-                x-show="visible"
-                x-transition:enter="transition ease-out duration-700 delay-200"
-                x-transition:enter-start="opacity-0 translate-y-4"
-                x-transition:enter-end="opacity-100 translate-y-0">
-                {{ $hero_content?->title ?? 'Tus entradas. Tu experiencia.' }}
-            </p>
-            <a href="{{ route('events.index') }}"
-                class="inline-block mt-8 px-10 py-4 font-bold tracking-widest text-lg rounded border-2 border-transparent btn-nova-primary st-glow-btn transition-all duration-300"
-                x-show="visible"
-                x-transition:enter="transition ease-out duration-700 delay-300"
-                x-transition:enter-start="opacity-0 translate-y-4"
-                x-transition:enter-end="opacity-100 translate-y-0">
-                {{ $hero_content?->content ?? 'ENTRAR' }}
-            </a>
+
+        <div class="relative z-10 flex min-h-[100svh] flex-col justify-end px-4 sm:px-8 lg:px-16 pb-8 pt-28" aria-live="polite">
+            <div class="w-full max-w-6xl">
+            <div class="w-full max-w-3xl">
+                <p class="inline-flex items-center rounded-full border border-[#39ff14]/50 bg-black/50 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.22em] text-[#39ff14]" x-text="current ? current.badge : ''">{{ $opening['badge'] }}</p>
+                <h1 class="font-display text-5xl sm:text-6xl md:text-7xl tracking-widest text-[#ff2daa] st-glow-title mt-4 leading-none"
+                    x-text="current ? (current.kind === 'intro' ? 'NOVA' : current.title) : 'NOVA'">{{ ($opening['kind'] ?? '') === 'intro' ? 'NOVA' : $opening['title'] }}</h1>
+                <p class="mt-4 text-lg sm:text-2xl text-white/90 tracking-wide"
+                   x-show="!current || current.kind === 'intro'" x-text="current ? current.title : ''">{{ ($opening['kind'] ?? '') === 'intro' ? $opening['title'] : '' }}</p>
+                <p class="mt-3 text-sm sm:text-base text-[#ff2daa]/90" x-show="current && current.meta" x-cloak x-text="current ? current.meta : ''"></p>
+                <p class="mt-4 max-w-xl text-base sm:text-lg leading-relaxed text-white/80" x-text="current ? current.text : ''">{{ $opening['text'] }}</p>
+                <div class="mt-8 flex flex-wrap items-center gap-3">
+                    <a :href="current ? current.href : ''"
+                       href="{{ $opening['href'] }}"
+                       class="inline-block px-8 py-3 font-bold tracking-widest rounded border-2 border-transparent btn-nova-primary st-glow-btn transition"
+                       :target="current && current.blank ? '_blank' : null"
+                       :rel="current && current.blank ? 'noopener noreferrer' : null"
+                       x-text="current ? current.cta : ''">{{ $opening['cta'] }}</a>
+                    <button type="button"
+                            x-show="current && current.embed"
+                            x-cloak
+                            @click="playEmbed()"
+                            class="inline-flex items-center gap-2 px-5 py-3 font-bold tracking-widest rounded border border-white/30 text-white hover:border-[#39ff14] hover:text-[#39ff14] transition">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+                        Reproducir
+                    </button>
+                    @if(!empty($opening['secondary']))
+                    <a x-show="!current || current.secondary" :href="current ? current.secondary_href : ''" href="{{ $opening['secondary_href'] }}" class="inline-block px-5 py-3 font-semibold tracking-wide text-white/80 hover:text-[#39ff14] transition" x-text="current && current.secondary ? current.secondary : ''">{{ $opening['secondary'] }}</a>
+                    @endif
+                </div>
+            </div>
+
+                @if(count($showcase ?? []) > 1)
+                <div class="mt-8 flex items-center gap-3">
+                    <button type="button" @click="prev()" class="shrink-0 w-11 h-11 rounded-full border border-[#ff2daa]/50 bg-black/60 text-white text-2xl leading-none hover:border-[#39ff14] hover:text-[#39ff14] transition" aria-label="Anterior">‹</button>
+                    <div class="flex gap-3 overflow-x-auto flex-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                        @foreach($showcase as $i => $slide)
+                            <button type="button" @click="go({{ $i }})"
+                                    class="shrink-0 w-28 sm:w-36 text-left rounded-lg border overflow-hidden bg-black/70 transition"
+                                    :class="active === {{ $i }} ? 'border-[#ff2daa] shadow-[0_0_16px_rgba(255,45,170,0.35)]' : 'border-white/15 hover:border-[#39ff14]/60'"
+                                    aria-label="{{ $slide['badge'] }}: {{ ($slide['kind'] ?? '') === 'intro' ? 'NOVA' : $slide['title'] }}">
+                                <span class="relative block h-16 sm:h-20 bg-[#180a2e]">
+                                    @if(!empty($slide['image']))
+                                        <img src="{{ $slide['image'] }}" alt="" class="absolute inset-0 h-full w-full object-cover">
+                                    @elseif(!empty($slide['video']) || !empty($slide['embed']))
+                                        <span class="absolute inset-0 flex items-center justify-center text-[#ff2daa]">
+                                            <svg class="w-7 h-7" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+                                        </span>
+                                    @else
+                                        <span class="absolute inset-0 bg-gradient-to-br from-[#180a2e] to-[#ff2daa]/40"></span>
+                                    @endif
+                                </span>
+                                <span class="block px-2 pt-1 text-[10px] font-bold uppercase tracking-wider text-[#39ff14] truncate">{{ $slide['badge'] }}</span>
+                                <span class="block px-2 pb-2 text-xs text-white/85 truncate">{{ ($slide['kind'] ?? '') === 'intro' ? 'NOVA' : $slide['title'] }}</span>
+                            </button>
+                        @endforeach
+                    </div>
+                    <button type="button" @click="toggle()" class="hidden md:inline shrink-0 text-xs uppercase tracking-widest text-white/70 hover:text-[#39ff14]" x-text="userPaused ? 'Reanudar' : 'Pausar'">Pausar</button>
+                    <button type="button" @click="next()" class="shrink-0 w-11 h-11 rounded-full border border-[#ff2daa]/50 bg-black/60 text-white text-2xl leading-none hover:border-[#39ff14] hover:text-[#39ff14] transition" aria-label="Siguiente">›</button>
+                </div>
+                @endif
+            </div>
+        </div>
+
+        <div x-show="embedOn && current && current.embed"
+             x-cloak
+             class="absolute inset-0 z-30 flex items-center justify-center bg-black/85 p-4"
+             @click.self="stopEmbed()">
+            <button type="button" @click="stopEmbed()" class="absolute top-24 right-4 z-10 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center" aria-label="Cerrar video">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+            <div class="relative h-[min(70vh,640px)] aspect-[9/16] max-w-[92vw] bg-black rounded-lg overflow-hidden border border-[#ff2daa]/40 shadow-[0_0_40px_rgba(255,45,170,0.25)]">
+                <iframe x-show="embedOn" :src="embedSrc()" class="absolute inset-0 w-full h-full border-0" scrolling="no"
+                        allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
+                        allowfullscreen
+                        title="Video promocional"></iframe>
+            </div>
+        </div>
+
+    </section>
+
+    <section id="como-funciona" class="relative py-16 px-4 section-stranger-bg">
+        <div class="section-stranger-bg__inner"></div>
+        <div class="relative z-10 w-full max-w-6xl mx-auto">
+            <h2 class="font-display text-3xl sm:text-5xl tracking-widest text-[#ff2daa] text-center mb-3 st-glow-title">CÓMO FUNCIONA</h2>
+            <p class="text-white/70 text-center mb-10 max-w-2xl mx-auto">NOVA es la boletería: eliges el evento, apartas tus entradas y te llegan por correo.</p>
+            <ol class="grid gap-4 md:grid-cols-3">
+                <li class="rounded-lg border border-purple-900/50 bg-black/70 p-6">
+                    <p class="text-[#39ff14] text-xs font-bold tracking-[0.2em] uppercase mb-2">Paso 1</p>
+                    <h3 class="text-xl font-bold text-white mb-2">Elige el evento</h3>
+                    <p class="text-white/70 text-sm leading-relaxed">Mira la cartelera, los que ya pasaron y los videos. Entra al show que quieres.</p>
+                </li>
+                <li class="rounded-lg border border-purple-900/50 bg-black/70 p-6">
+                    <p class="text-[#39ff14] text-xs font-bold tracking-[0.2em] uppercase mb-2">Paso 2</p>
+                    <h3 class="text-xl font-bold text-white mb-2">Aparta tus lugares</h3>
+                    <p class="text-white/70 text-sm leading-relaxed">Reserva de 1 a 10 entradas. Si el evento tiene plano, eliges la butaca.</p>
+                </li>
+                <li class="rounded-lg border border-purple-900/50 bg-black/70 p-6">
+                    <p class="text-[#39ff14] text-xs font-bold tracking-[0.2em] uppercase mb-2">Paso 3</p>
+                    <h3 class="text-xl font-bold text-white mb-2">Paga y recibe el ticket</h3>
+                    <p class="text-white/70 text-sm leading-relaxed">Usas tu código de pago y las entradas llegan a tu correo.</p>
+                </li>
+            </ol>
+            <div class="text-center mt-10">
+                <a href="{{ route('events.index') }}" class="inline-block px-8 py-3 font-bold tracking-widest rounded transition st-glow-btn btn-nova-primary">VER LA CARTELERA</a>
+            </div>
         </div>
     </section>
 
@@ -431,16 +529,60 @@ function facebookVideoPlayer(videos) {
         }
     };
 }
-function heroSlider(count, slides) {
+function showcaseSlider(slides) {
     return {
         slides: Array.isArray(slides) ? slides : [],
-        activeIndex: 0,
-        interval: null,
+        active: 0,
+        userPaused: false,
+        hovering: false,
+        embedOn: false,
+        timer: null,
+        delay: 7000,
+        reduced: false,
+        get current() {
+            return this.slides[this.active] || null;
+        },
         start() {
-            if (this.slides.length <= 1) return;
-            this.interval = setInterval(() => {
-                this.activeIndex = (this.activeIndex + 1) % this.slides.length;
-            }, 5500);
+            this.reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            this.queue();
+        },
+        queue() {
+            this.clear();
+            if (this.reduced || this.userPaused || this.hovering || this.embedOn || this.slides.length < 2) return;
+            this.timer = setInterval(() => this.next(), this.delay);
+        },
+        clear() {
+            if (this.timer) {
+                clearInterval(this.timer);
+                this.timer = null;
+            }
+        },
+        hold() { this.hovering = true; this.clear(); },
+        release() { this.hovering = false; this.queue(); },
+        toggle() { this.userPaused = !this.userPaused; this.queue(); },
+        go(i) {
+            this.embedOn = false;
+            const total = this.slides.length;
+            if (!total) return;
+            this.active = ((i % total) + total) % total;
+            this.queue();
+        },
+        next() { this.go(this.active + 1); },
+        prev() { this.go(this.active - 1); },
+        playEmbed() {
+            if (!this.current || !this.current.embed) return;
+            this.embedOn = true;
+            this.clear();
+        },
+        stopEmbed() {
+            this.embedOn = false;
+            this.queue();
+        },
+        embedSrc() {
+            const base = this.current && this.current.embed;
+            if (!base) return '';
+            const join = base.indexOf('?') === -1 ? '?' : '&';
+            return base + join + 'width=360&height=640';
         }
     };
 }
