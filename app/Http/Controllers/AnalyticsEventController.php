@@ -2,51 +2,51 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\AnalyticsEvent;
+use App\Services\AnalyticsIngestService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
 
 class AnalyticsEventController extends Controller
 {
-    public function store(Request $request): JsonResponse
+    public function __construct(private readonly AnalyticsIngestService $ingest) {}
+
+    public function store(Request $request): Response|JsonResponse
     {
-        $data = $request->validate([
-            'event_name' => ['required', 'string', 'max:80'],
-            'event_id' => ['nullable', 'integer', 'exists:events,id'],
-            'path' => ['nullable', 'string', 'max:512'],
-            'referrer' => ['nullable', 'string', 'max:512'],
-        ]);
+        $events = $request->input('events');
+        if (! is_array($events)) {
+            if (! $request->filled('event_name')) {
+                return response()->noContent();
+            }
 
-        $sessionId = (string) ($request->session()->getId() ?: '');
-        if ($sessionId === '') {
-            $sessionId = (string) $request->cookie('nova_session_id', '');
+            $events = [[
+                'event_name' => $request->input('event_name'),
+                'event_id' => $request->input('event_id'),
+                'path' => $request->input('path'),
+                'referrer' => $request->input('referrer'),
+                'route_name' => $request->input('route_name'),
+                'label' => $request->input('label'),
+                'view_token' => $request->input('view_token'),
+                'duration_ms' => $request->input('duration_ms'),
+            ]];
         }
 
-        AnalyticsEvent::create([
-            'event_name' => $data['event_name'],
-            'session_id' => $sessionId !== '' ? $sessionId : null,
-            'user_id' => auth()->id(),
-            'event_id' => $data['event_id'] ?? null,
-            'ip_address' => $request->ip(),
-            'path' => $data['path'] ?? $request->path(),
-            'referrer' => $data['referrer'] ?? $request->headers->get('referer'),
-            'device_type' => $this->resolveDeviceType((string) $request->userAgent()),
-            'occurred_at' => now(),
-        ]);
-
-        return response()->json(['ok' => true]);
-    }
-
-    private function resolveDeviceType(string $userAgent): string
-    {
-        $ua = strtolower($userAgent);
-        if (str_contains($ua, 'tablet') || str_contains($ua, 'ipad')) {
-            return 'tablet';
-        }
-        if (str_contains($ua, 'mobile') || str_contains($ua, 'android')) {
-            return 'mobile';
+        if (count($events) > AnalyticsIngestService::MAX_BATCH) {
+            return response()->json(['message' => 'Demasiados eventos.'], 422);
         }
 
-        return 'desktop';
+        $prepared = $this->ingest->prepare(
+            $events,
+            $request->hasSession() ? (string) $request->session()->getId() : null,
+            $request->user()?->id,
+            $request->ip(),
+            (string) $request->userAgent(),
+        );
+
+        dispatch(function () use ($prepared) {
+            app(AnalyticsIngestService::class)->write($prepared);
+        })->afterResponse();
+
+        return response()->noContent();
     }
 }

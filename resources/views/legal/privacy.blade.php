@@ -7,12 +7,12 @@
     <div class="rounded-2xl border border-purple-900/50 bg-black/60 backdrop-blur p-8 md:p-10">
         <h1 class="font-display text-3xl font-bold text-[#ff2daa] tracking-widest mb-2">POLÍTICA DE PRIVACIDAD</h1>
         <p class="text-white/80 mb-2">NOVA — reserva de entradas</p>
-        <p class="text-white/60 text-sm mb-8">Última actualización: 13 de octubre de 2026</p>
+        <p class="text-white/60 text-sm mb-8">Última actualización: 28 de octubre de 2026</p>
 
         <div class="max-w-none space-y-8 text-white/90 text-sm leading-relaxed">
             <section>
                 <h2 class="text-lg font-semibold text-[#ff2daa] mb-2">1. Quién es responsable</h2>
-                <p>Esta política describe cómo NOVA, la plataforma de reserva de entradas de este sitio, accede, usa, guarda y comparte los datos de las personas que reservan tickets o entran con Google. Aplica solo a esta aplicación y a esta organización. No es un modelo genérico.</p>
+                <p>Esta política describe cómo NOVA, la plataforma de reserva de entradas de este sitio, accede, usa, guarda y comparte los datos de las personas que reservan tickets o entran con Google. La sección 9 describe la medición de páginas y clics de quien visita el sitio, haya entrado o no. Aplica solo a esta aplicación y a esta organización. No es un modelo genérico.</p>
                 <p class="mt-2">Para consultas o para pedir la eliminación de tu cuenta puedes escribir por WhatsApp al +591 64066996 desde la sección <a href="{{ route('home') }}#contacto" class="text-[#ff2daa] hover:text-[#39ff14] underline underline-offset-2">Contacto</a>.</p>
             </section>
 
@@ -71,6 +71,13 @@
             <section>
                 <h2 class="text-lg font-semibold text-[#ff2daa] mb-2">8. Tus opciones</h2>
                 <p>Puedes entrar con correo y contraseña en lugar de Google. Puedes pedir acceso, corrección o eliminación de tus datos por el WhatsApp de la sección Contacto. Revocar el acceso de NOVA en tu cuenta de Google no borra sola la cuenta ya creada aquí; para eso hay que pedirnos la eliminación.</p>
+            </section>
+
+            <section>
+                <h2 class="text-lg font-semibold text-[#ff2daa] mb-2">9. Actividad en el sitio</h2>
+                <p>Para ver qué páginas se abren, qué botones o enlaces se usan y cuánto tiempo la pestaña estuvo visible, el navegador envía esa información en lotes, aparte de la carga de la página. Si la persona inició sesión, la visita queda asociada a su cuenta. Si no, queda agrupada como una visita anónima.</p>
+                <p class="mt-2">No guardamos lo que se escribe en los formularios, ni contraseñas, ni el movimiento del mouse, ni cada desplazamiento. En esta medición de páginas y clics no guardamos la dirección IP. En las visitas a un evento de la cartelera y al empezar una reserva sí puede quedar la IP, porque ese dato ya alimenta el reporte de métricas. Los enlaces de restablecer contraseña se guardan sin el código secreto.</p>
+                <p class="mt-2">Esa actividad se borra a los 30 días. Solo la ve el personal de administración de NOVA, para entender cómo se usa el sitio. No se usa para publicidad ni se vende.</p>
             </section>
         </div>
 

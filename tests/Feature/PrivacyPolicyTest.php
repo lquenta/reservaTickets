@@ -8,6 +8,7 @@ use Tests\TestCase;
 class PrivacyPolicyTest extends TestCase
 {
     use RefreshDatabase;
+
     public function test_privacy_policy_is_linked_from_home_and_describes_google_data(): void
     {
         $this->get(route('home'))
@@ -21,6 +22,7 @@ class PrivacyPolicyTest extends TestCase
             ->assertSee('NOVA')
             ->assertSee('identificador de tu cuenta de Google')
             ->assertSee('No vendemos datos de usuarios de Google')
-            ->assertSee('13 de octubre de 2026');
+            ->assertSee('Actividad en el sitio')
+            ->assertSee('28 de octubre de 2026');
     }
 }

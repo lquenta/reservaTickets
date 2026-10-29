@@ -20,9 +20,9 @@ class Kernel extends ConsoleKernel
             ->everyMinute()
             ->withoutOverlapping(2);
 
-        // Depura metricas de analytics con mas de 30 dias de antiguedad.
-        $schedule->job(new PruneAnalyticsMetricsJob())
-            ->monthlyOn(1, '03:30');
+        // Borra la actividad y las métricas con más de 30 días. Diario, para que la tabla no crezca un mes entero.
+        $schedule->job(new PruneAnalyticsMetricsJob)
+            ->dailyAt('03:40');
     }
 
     /**

@@ -8,9 +8,14 @@
         <h1 class="text-3xl font-bold text-slate-800 dark:text-white">Reportes</h1>
         <p class="text-slate-600 dark:text-slate-400 mt-1">Entradas vendidas, clientes y ventas (reservas confirmadas).</p>
     </div>
-    <a href="{{ route('admin.reports.audit') }}" class="inline-flex items-center gap-2 rounded-xl border-2 border-violet-500 bg-violet-50 dark:bg-violet-900/30 dark:border-violet-600 px-4 py-2.5 text-violet-700 dark:text-violet-200 font-semibold hover:bg-violet-100 dark:hover:bg-violet-900/50 transition">
-        <x-icon name="clipboard" class="w-4 h-4" /> Auditoría de reservas
-    </a>
+    <div class="flex flex-wrap gap-2">
+        <a href="{{ route('admin.reports.activity') }}" class="inline-flex items-center gap-2 rounded-xl border-2 border-violet-500 bg-violet-50 dark:bg-violet-900/30 dark:border-violet-600 px-4 py-2.5 text-violet-700 dark:text-violet-200 font-semibold hover:bg-violet-100 dark:hover:bg-violet-900/50 transition">
+            <x-icon name="chart" class="w-4 h-4" /> Actividad de usuarios
+        </a>
+        <a href="{{ route('admin.reports.audit') }}" class="inline-flex items-center gap-2 rounded-xl border-2 border-violet-500 bg-violet-50 dark:bg-violet-900/30 dark:border-violet-600 px-4 py-2.5 text-violet-700 dark:text-violet-200 font-semibold hover:bg-violet-100 dark:hover:bg-violet-900/50 transition">
+            <x-icon name="clipboard" class="w-4 h-4" /> Auditoría de reservas
+        </a>
+    </div>
 </div>
 
 @php

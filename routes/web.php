@@ -2,11 +2,11 @@
 
 use App\Http\Controllers\AnalyticsEventController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\Auth\EmailVerificationNotificationController;
+use App\Http\Controllers\Auth\EmailVerificationPromptController;
 use App\Http\Controllers\Auth\GoogleAuthController;
 use App\Http\Controllers\Auth\NewPasswordController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
-use App\Http\Controllers\Auth\EmailVerificationNotificationController;
-use App\Http\Controllers\Auth\EmailVerificationPromptController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Auth\VerifyEmailController;
 use App\Http\Controllers\Auth\VerifyEmailTokenController;
@@ -162,6 +162,8 @@ Route::prefix('admin')->middleware(['auth', 'admin'])->name('admin.')->group(fun
     Route::get('reports/pdf/nombres-por-evento', [\App\Http\Controllers\Admin\ReportController::class, 'downloadNombresPorEventoPdf'])->name('reports.pdf.nombres-por-evento');
     Route::get('reports/audit', [\App\Http\Controllers\Admin\ReportController::class, 'audit'])->name('reports.audit');
     Route::get('reports/pdf/audit', [\App\Http\Controllers\Admin\ReportController::class, 'downloadAuditPdf'])->name('reports.pdf.audit');
+    Route::get('reports/activity', [\App\Http\Controllers\Admin\ActivityReportController::class, 'index'])->name('reports.activity');
+    Route::get('reports/pdf/activity', [\App\Http\Controllers\Admin\ActivityReportController::class, 'downloadPdf'])->name('reports.pdf.activity');
     Route::get('reports/metrics', [\App\Http\Controllers\Admin\ReportController::class, 'metrics'])->name('reports.metrics');
     Route::get('reports/pdf/metrics', [\App\Http\Controllers\Admin\ReportController::class, 'downloadMetricsPdf'])->name('reports.pdf.metrics');
     Route::get('reports/pdf/reembolsos', [\App\Http\Controllers\Admin\ReportController::class, 'downloadRefundsPdf'])->name('reports.pdf.reembolsos');
