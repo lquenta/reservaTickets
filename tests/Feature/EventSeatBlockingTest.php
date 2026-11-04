@@ -153,14 +153,19 @@ class EventSeatBlockingTest extends TestCase
             'position' => 1,
         ]);
 
+        $blockPath = str_replace('/', '\\/', parse_url(route('admin.events.seats.block', [$event, $availableSeat]), PHP_URL_PATH));
+        $unblockPath = str_replace('/', '\\/', parse_url(route('admin.events.seats.unblock', [$event, $availableSeat]), PHP_URL_PATH));
+
         $this->actingAs($admin)
             ->get(route('admin.events.seats', $event))
             ->assertOk()
             ->assertSee('href="'.route('admin.events.index').'"', false)
             ->assertSee('Plano del venue', false)
-            ->assertSee('&quot;readonly&quot;:true', false)
+            ->assertSee('&quot;readonly&quot;:false', false)
             ->assertSee('Bloqueada solo en este evento', false)
-            ->assertDontSee('Clic en una butaca disponible para bloquearla', false)
+            ->assertSee('Clic en una butaca disponible para bloquearla', false)
+            ->assertSee($blockPath, false)
+            ->assertSee($unblockPath, false)
             ->assertSee('&quot;occupied&quot;:false', false)
             ->assertSee('&quot;occupied&quot;:true', false);
     }

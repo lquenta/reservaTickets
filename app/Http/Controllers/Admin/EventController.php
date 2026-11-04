@@ -310,7 +310,7 @@ class EventController extends Controller
 
     public function seats(Event $event): View|RedirectResponse
     {
-        $mapData = EventSeatOverviewMapData::forEvent($event);
+        $mapData = EventSeatOverviewMapData::forEvent($event, withAdminBlockUrls: true);
         if ($mapData === null) {
             return redirect()->route('admin.events.index')->with('error', 'Este evento no tiene butacas.');
         }
