@@ -1,6 +1,6 @@
 <section id="galeria" class="mb-10">
     <h2 class="text-xl font-bold text-slate-800 dark:text-white mb-1">Galería del archivo</h2>
-    <p class="text-sm text-slate-600 dark:text-slate-400 mb-4">Un evento puede tener varias fotos, videos y enlaces de Facebook. Cada envío suma piezas a la galería. Cuando la fecha ya pasó, el evento aparece en el slider del inicio y esta galería se abre al entrar.</p>
+    <p class="text-sm text-slate-600 dark:text-slate-400 mb-4">Un evento puede tener varias fotos, videos y enlaces de Facebook. Cada envío suma piezas a la galería. Cuando la fecha ya pasó, el evento entra al carrusel de la portada y a la sección de eventos pasados. Esta galería se abre al entrar.</p>
 
     @if($event->media->isNotEmpty())
         <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 mb-6">

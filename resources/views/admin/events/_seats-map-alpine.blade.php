@@ -9,6 +9,8 @@
 
         return {
             readonly,
+            temporaryBlock: false,
+            blockHours: 24,
             layoutElements,
             layoutCanvas: lc,
             sectionPalettesById,
@@ -173,6 +175,59 @@
             seatBlockedForEvent(el) {
                 return !!(el && el.seat && el.seat.blocked_for_event);
             },
+            seatBlockedTemporarily(el) {
+                return !!(el && el.seat && el.seat.blocked_temporarily);
+            },
+            normalizedBlockHours() {
+                const n = parseInt(this.blockHours, 10);
+                if (!Number.isFinite(n)) return 24;
+                return Math.min(24, Math.max(1, n));
+            },
+            blockHoursValue() {
+                return this.temporaryBlock ? String(this.normalizedBlockHours()) : '';
+            },
+            onBlockHoursInput() {
+                const n = parseInt(this.blockHours, 10);
+                if (!Number.isFinite(n)) return;
+                if (n > 24) this.blockHours = 24;
+                if (n < 1) this.blockHours = 1;
+            },
+            blockHint() {
+                if (this.temporaryBlock) {
+                    return 'Clic en una butaca disponible para bloquearla por ' + this.normalizedBlockHours() + ' h (máximo 24).';
+                }
+                return 'Clic en una butaca disponible para bloquearla solo en este evento.';
+            },
+            formatBlockExpiry(iso) {
+                const d = new Date(iso);
+                if (Number.isNaN(d.getTime())) return '';
+                const pad = function (n) { return String(n).padStart(2, '0'); };
+                return pad(d.getDate()) + '/' + pad(d.getMonth() + 1) + '/' + d.getFullYear() + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+            },
+            seatEventBlockTitle(el) {
+                const label = 'Butaca ' + el.seat.label;
+                let detail = ' bloqueada para evento';
+                if (this.seatBlockedTemporarily(el) && el.seat.block_expires_at) {
+                    detail = ' bloqueada hasta ' + this.formatBlockExpiry(el.seat.block_expires_at);
+                }
+                if (this.readonly) return label + detail;
+                return label + detail + ' (clic para desbloquear)';
+            },
+            availableSeatTitle(el) {
+                const label = 'Butaca ' + el.seat.label;
+                if (this.temporaryBlock) {
+                    return label + ' disponible (clic para bloquear ' + this.normalizedBlockHours() + ' h)';
+                }
+                return label + ' disponible (clic para bloquear)';
+            },
+            seatOverviewTitle(el) {
+                if (!el || !el.seat) return '';
+                if (this.seatUnavailable(el)) {
+                    return 'Butaca ' + el.seat.label + (el.seat.occupied ? ' (ocupada)' : ' (bloqueada)');
+                }
+                if (this.seatBlockedForEvent(el)) return this.seatEventBlockTitle(el);
+                return 'Butaca ' + el.seat.label;
+            },
             seatPublicAvailable(el) {
                 if (!el || !el.seat) return false;
                 return !this.seatUnavailable(el) && !this.seatBlockedForEvent(el);
@@ -185,6 +240,9 @@
                 const shadow = '0 1px 2px rgba(0,0,0,0.35)';
                 if (this.seatUnavailable(el)) {
                     return 'background-color:#1e293b;border-color:#334155;color:#64748b;box-shadow:none;';
+                }
+                if (this.seatBlockedTemporarily(el)) {
+                    return 'background-color:#0c4a6e;border-color:#0369a1;color:#e0f2fe;box-shadow:0 0 0 2px rgba(56,189,248,0.9);';
                 }
                 if (this.seatBlockedForEvent(el)) {
                     return 'background-color:#1e293b;border-color:#475569;color:#94a3b8;box-shadow:0 0 0 2px rgba(251,191,36,0.85);';

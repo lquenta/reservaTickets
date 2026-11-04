@@ -14,5 +14,5 @@
     <p class="text-lg text-white/80 mt-1">{{ $event->name }} — {{ $event->starts_at->translatedFormat('d/m/Y H:i') }}</p>
 </div>
 
-@include('shared.event-seats-overview-map', ['readonly' => true])
+@include('shared.event-seats-overview-map', ['readonly' => false])
 @endsection

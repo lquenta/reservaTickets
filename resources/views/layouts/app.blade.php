@@ -76,7 +76,7 @@
     </div>
 
     <div x-data="{ scrolled: false }"
-         x-init="window.addEventListener('scroll', () => { scrolled = window.scrollY > 60; }); @if(request()->routeIs('home')) $nextTick(() => { const ids = ['hero', 'videos', 'quienes-somos', 'nuestros-eventos', 'eventos-pasados', 'contacto', 'boletin']; const observer = new IntersectionObserver((entries) => { const visible = entries.filter(e => e.isIntersecting).sort((a,b) => a.boundingClientRect.top - b.boundingClientRect.top); if (visible.length) Alpine.store('scrollSpy').activeSection = visible[0].target.id; }, { rootMargin: '-15% 0px -55% 0px', threshold: 0 }); ids.forEach(id => { const el = document.getElementById(id); if (el) observer.observe(el); }); }); @endif">
+         x-init="window.addEventListener('scroll', () => { scrolled = window.scrollY > 60; }); @if(request()->routeIs('home')) $nextTick(() => { const ids = ['hero', 'como-funciona', 'videos', 'quienes-somos', 'nuestros-eventos', 'eventos-pasados', 'contacto', 'boletin']; const observer = new IntersectionObserver((entries) => { const visible = entries.filter(e => e.isIntersecting).sort((a,b) => a.boundingClientRect.top - b.boundingClientRect.top); if (visible.length) Alpine.store('scrollSpy').activeSection = visible[0].target.id; }, { rootMargin: '-15% 0px -55% 0px', threshold: 0 }); ids.forEach(id => { const el = document.getElementById(id); if (el) observer.observe(el); }); }); @endif">
     <header class="fixed top-0 left-0 right-0 z-40 transition-all duration-300">
         <nav class="px-3 sm:px-6 lg:px-8 py-3 sm:py-4" :class="scrolled ? 'bg-black/95 backdrop-blur border-b border-purple-900/50' : 'bg-transparent'">
             <div class="max-w-7xl mx-auto flex justify-between items-center gap-2">
@@ -84,6 +84,7 @@
                     NOVA
                 </a>
                 <div class="flex items-center gap-2 sm:gap-6 min-w-0" x-data x-effect="$store.scrollSpy.activeSection">
+                    <a href="{{ route('home') }}#como-funciona" class="text-sm transition tracking-wide hidden lg:inline" :class="$store.scrollSpy.activeSection === 'como-funciona' ? 'text-[#ff2daa] font-semibold' : 'text-white/80 hover:text-[#39ff14]'">Cómo funciona</a>
                     @if(request()->routeIs('home') && isset($featured_videos) && $featured_videos->isNotEmpty())
                     <a href="{{ route('home') }}#videos" class="text-sm transition tracking-wide hidden sm:inline" :class="$store.scrollSpy.activeSection === 'videos' ? 'text-[#ff2daa] font-semibold' : 'text-white/80 hover:text-[#39ff14]'">Videos</a>
                     @endif

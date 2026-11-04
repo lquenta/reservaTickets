@@ -1,5 +1,6 @@
 @php
     $readonly = $readonly ?? false;
+    $temporaryBlockExpiresBySeatId = $temporaryBlockExpiresBySeatId ?? [];
     $maxCols = \App\Support\EventSeatOverviewMapData::maxColsForGrid($seatsByRow);
     $labelW = 2.5;
     $gapLabel = 0.75;
@@ -36,16 +37,56 @@
                     <span class="w-8 h-8 rounded-md flex items-center justify-center font-mono text-xs font-bold border-2 border-slate-600 bg-slate-800 text-slate-400 ring-2 ring-amber-400/80">1</span>
                     Bloqueada solo en este evento (clic para desbloquear)
                 </span>
+                <span class="inline-flex items-center gap-2">
+                    <span class="w-8 h-8 rounded-md flex items-center justify-center font-mono text-xs font-bold border-2 border-sky-700 bg-sky-950 text-sky-100 ring-2 ring-sky-400/90">1</span>
+                    Bloqueada por tiempo limitado (clic para desbloquear)
+                </span>
             @else
                 <span class="inline-flex items-center gap-2">
                     <span class="w-8 h-8 rounded-md flex items-center justify-center font-mono text-xs font-bold border-2 border-slate-600 bg-slate-800 text-slate-400 ring-2 ring-amber-400/80">1</span>
                     Bloqueada solo en este evento
                 </span>
+                <span class="inline-flex items-center gap-2">
+                    <span class="w-8 h-8 rounded-md flex items-center justify-center font-mono text-xs font-bold border-2 border-sky-700 bg-sky-950 text-sky-100 ring-2 ring-sky-400/90">1</span>
+                    Bloqueada por tiempo limitado
+                </span>
             @endif
         </div>
         @include('shared.section-color-legend')
         @if(!$readonly)
-            <p class="text-white/50 text-xs text-center mb-4">Clic en una butaca disponible para bloquearla solo en este evento.</p>
+            <div class="mb-4 flex flex-col items-center gap-3">
+                @error('hours')
+                    <p class="text-sm text-red-400 text-center">{{ $message }}</p>
+                @enderror
+                <div class="inline-flex rounded-xl border border-purple-900/50 bg-black/40 p-1 text-sm" role="group" aria-label="Tipo de bloqueo">
+                    <button type="button"
+                            @click="temporaryBlock = false"
+                            :class="temporaryBlock ? 'text-white/70 hover:text-white' : 'bg-[#ff2daa] text-white'"
+                            class="rounded-lg px-3 py-1.5 font-medium transition">
+                        Permanente
+                    </button>
+                    <button type="button"
+                            @click="temporaryBlock = true"
+                            :class="temporaryBlock ? 'bg-sky-500 text-white' : 'text-white/70 hover:text-white'"
+                            class="rounded-lg px-3 py-1.5 font-medium transition">
+                        Bloqueo temporal
+                    </button>
+                </div>
+                <label x-show="temporaryBlock" x-cloak class="flex items-center gap-2 text-sm text-white/80">
+                    <span>Horas</span>
+                    <input type="number"
+                           min="1"
+                           max="24"
+                           step="1"
+                           inputmode="numeric"
+                           x-model.number="blockHours"
+                           @input="onBlockHoursInput()"
+                           class="w-20 rounded-lg border border-purple-900/50 bg-black/60 px-2 py-1 text-center text-white"
+                           aria-label="Horas de bloqueo temporal, máximo 24">
+                    <span class="text-xs text-white/50">máximo 24</span>
+                </label>
+                <p class="text-white/50 text-xs text-center" x-text="blockHint()">Clic en una butaca disponible para bloquearla solo en este evento.</p>
+            </div>
         @endif
 
         @if(!empty($hasCustomLayout))
@@ -59,7 +100,7 @@
                                     <span class="absolute inset-0 rounded-md text-[9px] sm:text-[10px] font-bold px-0.5 sm:px-1 border-2 flex items-center justify-center leading-none overflow-hidden text-center cursor-default"
                                           :class="layoutSeatClass(el)"
                                           :style="layoutSeatFaceStyle(el)"
-                                          :title="el.seat ? ('Butaca ' + el.seat.label) : ''">
+                                          :title="seatOverviewTitle(el)">
                                         <span class="truncate max-w-full" x-text="el.seat ? el.seat.label : ''"></span>
                                     </span>
                                 </template>
@@ -79,7 +120,7 @@
                                                 class="w-full h-full rounded-md text-[9px] sm:text-[10px] font-bold px-0.5 sm:px-1 transition border-2 flex items-center justify-center leading-none overflow-hidden text-center"
                                                 :class="layoutSeatClass(el)"
                                                 :style="layoutSeatFaceStyle(el)"
-                                                :title="'Butaca ' + el.seat.label + ' bloqueada para evento (clic para desbloquear)'">
+                                                :title="seatEventBlockTitle(el)">
                                             <span class="truncate max-w-full" x-text="el.seat.label"></span>
                                         </button>
                                     </form>
@@ -87,11 +128,12 @@
                                 <template x-if="!readonly && seatPublicAvailable(el)">
                                     <form :action="el.seat.block_url" method="POST" class="absolute inset-0">
                                         @csrf
+                                        <input type="hidden" name="hours" :value="blockHoursValue()">
                                         <button type="submit"
                                                 class="w-full h-full rounded-md text-[9px] sm:text-[10px] font-bold px-0.5 sm:px-1 transition border-2 flex items-center justify-center leading-none overflow-hidden text-center"
                                                 :class="layoutSeatClass(el)"
                                                 :style="layoutSeatFaceStyle(el)"
-                                                :title="'Butaca ' + el.seat.label + ' disponible (clic para bloquear)'">
+                                                :title="availableSeatTitle(el)">
                                             <span class="truncate max-w-full" x-text="el.seat.label"></span>
                                         </button>
                                     </form>
@@ -150,9 +192,20 @@
                                         $occupied = $occupiedSeatIds->has($seat->id);
                                         $blockedGlobally = $seat->blocked ?? false;
                                         $blockedForEvent = $blockedSeatIds->has($seat->id);
+                                        $temporaryExpiresAt = $temporaryBlockExpiresBySeatId[(int) $seat->id] ?? null;
+                                        $blockedTemporarily = $temporaryExpiresAt !== null;
+                                        $expiresLabel = $blockedTemporarily
+                                            ? \Illuminate\Support\Carbon::parse($temporaryExpiresAt)->timezone(config('app.timezone'))->format('d/m/Y H:i')
+                                            : null;
                                         $unavailable = $occupied || $blockedGlobally;
                                         $sid = (int) ($seat->section_id ?? 0);
                                         $seatSize = 'width: var(--seat-size); height: var(--seat-size); min-width: var(--seat-size); font-size: min(0.875rem, var(--seat-size)); line-height: 1;';
+                                        $eventBlockStyle = $blockedTemporarily
+                                            ? 'background-color:#0c4a6e;border-color:#0369a1;color:#e0f2fe;box-shadow:0 0 0 2px rgba(56,189,248,0.9);'
+                                            : 'background-color:#1e293b;border-color:#475569;color:#94a3b8;box-shadow:0 0 0 2px rgba(251,191,36,0.85);';
+                                        $eventBlockDetail = $blockedTemporarily
+                                            ? 'bloqueada hasta '.$expiresLabel
+                                            : 'bloqueada para evento';
                                     @endphp
                                     @if($unavailable)
                                         <span class="seat-plan-cell rounded-lg font-mono font-bold flex items-center justify-center shrink-0 box-border cursor-default border-2"
@@ -163,8 +216,8 @@
                                     @elseif($blockedForEvent)
                                         @if($readonly)
                                             <span class="seat-plan-cell rounded-lg font-mono font-bold flex items-center justify-center shrink-0 box-border border-2 cursor-default"
-                                                  style="{{ $seatSize }}background-color:#1e293b;border-color:#475569;color:#94a3b8;box-shadow:0 0 0 2px rgba(251,191,36,0.85);"
-                                                  title="Fila {{ $seat->row_letter ?? $rowLetter }} Butaca {{ $seat->number }} (bloqueada para evento)">
+                                                  style="{{ $seatSize }}{{ $eventBlockStyle }}"
+                                                  title="Fila {{ $seat->row_letter ?? $rowLetter }} Butaca {{ $seat->number }} ({{ $eventBlockDetail }})">
                                                 {{ $seat->number }}
                                             </span>
                                         @else
@@ -173,8 +226,8 @@
                                                 @method('DELETE')
                                                 <button type="submit"
                                                         class="seat-plan-cell rounded-lg font-mono font-bold flex items-center justify-center shrink-0 transition box-border border-2 hover:brightness-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#ff2daa]"
-                                                        style="{{ $seatSize }}background-color:#1e293b;border-color:#475569;color:#94a3b8;box-shadow:0 0 0 2px rgba(251,191,36,0.85);"
-                                                        title="Fila {{ $seat->row_letter ?? $rowLetter }} Butaca {{ $seat->number }} (bloqueada para evento, clic para desbloquear)">
+                                                        style="{{ $seatSize }}{{ $eventBlockStyle }}"
+                                                        title="Fila {{ $seat->row_letter ?? $rowLetter }} Butaca {{ $seat->number }} ({{ $eventBlockDetail }}, clic para desbloquear)">
                                                     {{ $seat->number }}
                                                 </button>
                                             </form>
@@ -193,6 +246,7 @@
                                         @else
                                             <form method="POST" action="{{ route('admin.events.seats.block', [$event, $seat]) }}">
                                                 @csrf
+                                                <input type="hidden" name="hours" :value="blockHoursValue()">
                                                 <button type="submit"
                                                         class="seat-plan-cell rounded-lg font-mono font-bold flex items-center justify-center shrink-0 transition box-border border-2 hover:brightness-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#ff2daa]"
                                                         style="{{ $seatSize }}{{ $seatFill }}"

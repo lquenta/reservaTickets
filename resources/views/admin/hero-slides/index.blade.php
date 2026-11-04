@@ -5,7 +5,7 @@
 @section('admin')
 <div class="mb-8">
     <h1 class="text-3xl font-bold text-slate-800 dark:text-white">Fondo de la portada</h1>
-    <p class="text-slate-600 dark:text-slate-400 mt-1">Elige <strong>fotos (slider)</strong> o <strong>video</strong> para la sección inicial (NOVA · Tus entradas. Tu experiencia. · ENTRAR). Solo uno: si usas video no hay slider; si usas fotos no hay video.</p>
+    <p class="text-slate-600 dark:text-slate-400 mt-1">Estas fotos o este video entran al carrusel de la portada, junto con la cartelera, los eventos pasados y los videos publicitarios. Sigue siendo uno u otro: si activas el video, las fotos dejan de salir, y al revés.</p>
 </div>
 
 {{-- Selector: Fotos o Video --}}

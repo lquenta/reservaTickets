@@ -87,7 +87,7 @@
                 'href' => route('admin.events.seats', $event),
                 'icon' => 'seat',
                 'title' => 'Mapa de butacas',
-                'description' => 'Ver ocupación y bloquear butacas.',
+                'description' => 'Ver ocupación y bloquear butacas, de forma permanente o hasta por 24 horas.',
                 'button' => 'Ver mapa',
             ])
             @include('admin.events._action-tile', [
