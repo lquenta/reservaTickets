@@ -49,6 +49,8 @@ class Seat extends Model
     public function eventsBlocked(): BelongsToMany
     {
         return $this->belongsToMany(Event::class, 'event_seat_blocks')
+            ->using(EventSeatBlock::class)
+            ->withPivot('expires_at')
             ->withTimestamps();
     }
 

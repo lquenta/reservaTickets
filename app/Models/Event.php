@@ -230,7 +230,17 @@ class Event extends Model
     public function blockedSeats(): BelongsToMany
     {
         return $this->belongsToMany(Seat::class, 'event_seat_blocks')
+            ->using(EventSeatBlock::class)
+            ->withPivot('expires_at')
             ->withTimestamps();
+    }
+
+    /** Bloqueos vigentes: permanentes (sin vencimiento) o temporales aún no vencidos. */
+    public function activeBlockedSeats(): BelongsToMany
+    {
+        return $this->blockedSeats()->where(function ($query) {
+            EventSeatBlock::applyActiveConstraint($query);
+        });
     }
 
     /**
@@ -249,6 +259,7 @@ class Event extends Model
             ->where('blocked', false)
             ->whereDoesntHave('eventsBlocked', function ($q) {
                 $q->where('events.id', $this->id);
+                EventSeatBlock::applyActiveConstraint($q);
             })
             ->whereDoesntHave('reservationTickets', function ($q) {
                 $q->active()->whereHas('reservation', function ($q2) {
@@ -281,7 +292,7 @@ class Event extends Model
             return collect();
         }
 
-        return $this->blockedSeats()->pluck('seats.id')->unique()->values();
+        return $this->activeBlockedSeats()->pluck('seats.id')->unique()->values();
     }
 
     public function ticketTemplate(): \Illuminate\Database\Eloquent\Relations\HasOne

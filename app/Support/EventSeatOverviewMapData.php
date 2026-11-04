@@ -27,16 +27,26 @@ class EventSeatOverviewMapData
         $seats = $venue->seats()->orderBy('row')->orderBy('number')->get();
         $seatsByRow = $seats->groupBy('row');
         $occupiedSeatIds = $event->occupiedSeatIds()->flip();
-        $blockedSeatIds = $event->blockedSeatIds()->flip();
-        $layoutElements = $venue->layoutElements->map(function ($element) use ($occupiedSeatIds, $blockedSeatIds, $event, $withAdminBlockUrls) {
+        $activeBlocks = $event->activeBlockedSeats()->get();
+        $blockedSeatIds = $activeBlocks->pluck('id')->flip();
+        $temporaryBlockExpiresBySeatId = [];
+        foreach ($activeBlocks as $blockedSeat) {
+            $expiresAt = $blockedSeat->pivot->expires_at;
+            if ($expiresAt) {
+                $temporaryBlockExpiresBySeatId[(int) $blockedSeat->id] = $expiresAt->toIso8601String();
+            }
+        }
+        $layoutElements = $venue->layoutElements->map(function ($element) use ($occupiedSeatIds, $blockedSeatIds, $temporaryBlockExpiresBySeatId, $event, $withAdminBlockUrls) {
             $seat = $element->seat;
             $isOccupied = false;
             $isBlockedForEvent = false;
             $isBlockedGlobally = false;
+            $blockExpiresAt = null;
             if ($seat) {
                 $isOccupied = $occupiedSeatIds->has($seat->id);
                 $isBlockedForEvent = $blockedSeatIds->has($seat->id);
                 $isBlockedGlobally = (bool) $seat->blocked;
+                $blockExpiresAt = $temporaryBlockExpiresBySeatId[(int) $seat->id] ?? null;
             }
 
             $seatPayload = $seat ? [
@@ -48,6 +58,8 @@ class EventSeatOverviewMapData
                 'occupied' => $isOccupied,
                 'blocked_globally' => $isBlockedGlobally,
                 'blocked_for_event' => $isBlockedForEvent,
+                'blocked_temporarily' => $blockExpiresAt !== null,
+                'block_expires_at' => $blockExpiresAt,
             ] : null;
 
             if ($seatPayload && $withAdminBlockUrls) {
@@ -93,6 +105,7 @@ class EventSeatOverviewMapData
             'seatsByRow',
             'occupiedSeatIds',
             'blockedSeatIds',
+            'temporaryBlockExpiresBySeatId',
             'layoutElements',
             'layoutElementsData',
             'hasCustomLayout',

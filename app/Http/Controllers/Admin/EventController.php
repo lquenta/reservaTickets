@@ -318,7 +318,7 @@ class EventController extends Controller
         return view('admin.events.seats', array_merge(['event' => $event], $mapData));
     }
 
-    public function blockSeat(Event $event, Seat $seat): RedirectResponse
+    public function blockSeat(Request $request, Event $event, Seat $seat): RedirectResponse
     {
         if (! $this->seatBelongsToEventVenue($event, $seat)) {
             return redirect()->route('admin.events.seats', $event)->with('error', 'La butaca no pertenece al lugar del evento.');
@@ -329,9 +329,17 @@ class EventController extends Controller
             return redirect()->route('admin.events.seats', $event)->with('error', 'No se puede bloquear una butaca ocupada.');
         }
 
-        $event->blockedSeats()->syncWithoutDetaching([$seat->id]);
+        $expiresAt = $this->temporaryBlockExpiry($request);
 
-        return redirect()->route('admin.events.seats', $event)->with('message', 'Butaca bloqueada para este evento.');
+        $event->blockedSeats()->syncWithoutDetaching([
+            $seat->id => ['expires_at' => $expiresAt],
+        ]);
+
+        $message = $expiresAt
+            ? 'Butaca bloqueada por '.$request->integer('hours').' h, hasta '.$expiresAt->timezone(config('app.timezone'))->format('d/m/Y H:i').'.'
+            : 'Butaca bloqueada para este evento.';
+
+        return redirect()->route('admin.events.seats', $event)->with('message', $message);
     }
 
     public function unblockSeat(Event $event, Seat $seat): RedirectResponse
@@ -348,5 +356,22 @@ class EventController extends Controller
     private function seatBelongsToEventVenue(Event $event, Seat $seat): bool
     {
         return (int) $event->venue_id > 0 && (int) $seat->venue_id === (int) $event->venue_id;
+    }
+
+    private function temporaryBlockExpiry(Request $request): ?\Illuminate\Support\Carbon
+    {
+        $hours = $request->input('hours');
+        if ($hours === null || $hours === '') {
+            return null;
+        }
+
+        $validated = $request->validate([
+            'hours' => ['integer', 'between:1,24'],
+        ], [
+            'hours.integer' => 'Las horas del bloqueo temporal deben ser un número entero.',
+            'hours.between' => 'El bloqueo temporal puede durar entre 1 y 24 horas.',
+        ]);
+
+        return now()->addHours((int) $validated['hours']);
     }
 }
